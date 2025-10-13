@@ -1,19 +1,15 @@
 import sqlite3
-conn = sqlite3.connect("pickem.db")
-cur = conn.cursor()
+import pandas as pd
 
-# See current columns
-print(cur.execute("PRAGMA table_info(user);").fetchall())
+DB_PATH = "bolao_2026_dev.db"
 
-# 1) Add the column (NULLs allowed)
-cur.execute("ALTER TABLE user ADD COLUMN email TEXT;")
-
-# 2) Backfill something (or set emails properly)
-# Example demo backfill: name-based placeholder
-cur.execute("UPDATE user SET email = lower(name) || '@example.local' WHERE email IS NULL;")
-
-# 3) Create a unique index (enforces uniqueness going forward)
-cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_user_email ON user(email);")
-
-conn.commit()
+# ---------- DB helpers ----------
+def get_conn():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+user_name = "Bernardo"
+with get_conn() as conn:
+    row = conn.execute("SELECT id, user_name, password FROM users WHERE user_name=?", (user_name,)).fetchone()
+print(row["password"])
 conn.close()

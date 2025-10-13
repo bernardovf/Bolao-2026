@@ -1,14 +1,55 @@
 from flask import Flask, render_template_string, request, redirect, url_for, flash, session
-from werkzeug.security import check_password_hash
 import sqlite3, os
-from datetime import datetime, timezone
 from collections import defaultdict
 
 APP_SECRET = os.environ.get("SECRET_KEY", "dev-secret")
-DB_PATH = "users.db"
+DB_PATH = "bolao_2026_dev.db"
+
+# --- Flags ---
+# Use ISO 3166-1 alpha-2 where possible; special cases for England/Wales.
+TEAM_TO_CODE = {
+    "Qatar": "qa",
+    "Ecuador": "ec",
+    "Senegal": "sn",
+    "Netherlands": "nl",
+    "England": "gb-eng",     # subnational
+    "Iran": "ir",
+    "USA": "us",
+    "Wales": "gb-wls",       # subnational
+    "Argentina": "ar",
+    "Saudi Arabia": "sa",
+    "Mexico": "mx",
+    "Poland": "pl",
+    "Denmark": "dk",
+    "Tunisia": "tn",
+    "France": "fr",
+    "Australia": "au",
+    "Germany": "de",
+    "Japan": "jp",
+    "Spain": "es",
+    "Costa Rica": "cr",
+    "Morocco": "ma",
+    "Croatia": "hr",
+    "Belgium": "be",
+    "Canada": "ca",
+    "Switzerland": "ch",
+    "Cameroon": "cm",
+    "Brazil": "br",
+    "Serbia": "rs",
+    "Uruguay": "uy",
+    "South Korea": "kr",
+    "Portugal": "pt",
+    "Ghana": "gh",
+}
+
+# Flag source: use FlagCDN for countries; serve two local SVGs for England/Wales.
+def flag_url(team: str) -> str:
+    code = TEAM_TO_CODE.get(team)
+    return f"https://flagcdn.com/h20/{code}.png"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = APP_SECRET
+app.jinja_env.globals.update(flag=flag_url)
 
 # ---------- DB helpers ----------
 def get_conn():
@@ -47,15 +88,6 @@ CREATE TABLE IF NOT EXISTS bet (
   FOREIGN KEY(match_id) REFERENCES match(id)
 );
 """
-
-def ensure_schema():
-    with get_conn() as conn:
-        conn.execute(SCHEMA_USER)
-        conn.execute(SCHEMA_MATCH)
-        conn.execute(SCHEMA_BET)
-        conn.commit()
-
-ensure_schema()
 
 # ---------- Fixtures: FIFA World Cup 2022 (all 64) ----------
 WC2022_FIXTURES = [
@@ -134,6 +166,16 @@ BASE = """<!doctype html><meta charset="utf-8">
   .fixtures table { width: 100%; }
   .index-col { width: 48px; text-align: center; }
   .fixture-cell { padding: .45rem .6rem; }
+  .flag {
+      height: 18px;
+      width: auto;
+      vertical-align: -3px;
+      margin: 0 6px;
+      border-radius: 2px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .flagbox { width: 24px; height: 16px; display:inline-block; line-height:0; vertical-align:-3px; margin:0 6px; border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.06); }
+  .flagbox > img { width:100%; height:100%; object-fit: cover; }  /* fills box; can crop edges */
 
   /* one-line layout */
   .fixture-row {
@@ -172,7 +214,7 @@ BASE = """<!doctype html><meta charset="utf-8">
 <main>
 <header>
   <h1>Pick'Em</h1>
-  {% if session.get('uid') %}
+  {% if session.get('id') %}
     <small>Logged in as {{ session.get('email') }}</small> · <a href="{{ url_for('logout') }}">Logout</a>
   {% endif %}
   {% for m in get_flashed_messages() %}<p>{{ m }}</p>{% endfor %}
@@ -184,7 +226,7 @@ BASE = """<!doctype html><meta charset="utf-8">
 HOME = """
 <h2>Welcome!</h2>
 <p>
-  {% if not session.get('uid') %}
+  {% if not session.get('id') %}
     <a class="button" href="{{ url_for('login') }}">Login</a>
   {% else %}
     <a class="button" href="{{ url_for('matches') }}">Go to Matches</a>
@@ -196,83 +238,79 @@ HOME = """
 LOGIN = """
 <h2>Login</h2>
 <form method="post" action="{{ url_for('login') }}">
-  <label>Email <input type="email" name="email" required autocomplete="email"></label>
-  <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
+  <label>Username
+    <input type="text" name="user_name">
+  </label>
+  <label>Password
+    <input type="password" name="password">
+  </label>
   <button>Login</button>
 </form>
 """
 
 MATCHES = """
+{% set all_groups = group_order %}
 <h2>World Cup 2022 — Enter your predictions</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
 <div class="fixtures">
-{% for group_name in group_order %}
-  {% if groups.get(group_name) %}
-  <h3>{{ group_name }}</h3>
 
-  <form method="post" action="{{ url_for('save_group', group=group_name) }}">
-    <table>
-      <thead>
-        <tr>
-          <th class="index-col">#</th>
-          <th>Fixture</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for m in groups[group_name] %}
-        {% set b = bets.get(m['id']) %}
-        <tr>
-          <td class="index-col">{{ loop.index }}</td>
-            <td class="fixture-cell">
-              <div class="fixture-row">
-                <div class="team left">{{ m['home'] }}</div>
-                <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
-                <div class="sep">x</div>
-                <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
-                <div class="team right">{{ m['away'] }}</div>
-              </div>
-            </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    <div class="save-row">
-      <button>Save {{ group_name }}</button>
-    </div>
+  <!-- Group selector -->
+  <form id="groupFilter" method="get" action="{{ url_for('matches') }}" style="margin-bottom: 1rem;">
+    <label>Group:&nbsp;
+      <select name="group" onchange="document.getElementById('groupFilter').submit()">
+        {% for g in all_groups %}
+          <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
+        {% endfor %}
+      </select>
+    </label>
   </form>
-  {% endif %}
-{% endfor %}
 
-{% if knockouts %}
-  <h3>Knockout Stage</h3>
-  <table>
-    <thead><tr><th class="index-col">#</th><th>Phase</th><th>Fixture</th><th>Action</th></tr></thead>
-    <tbody>
-    {% for m in knockouts %}
-      {% set b = bets.get(m['id']) %}
-      <tr>
-        <td class="index-col">{{ loop.index }}</td>
-        <td>{{ m['phase'] }}</td>
-        <td class="fixture-cell">
-          <div class="fixture-grid">
-            <div class="team-left">{{ m['home'] }}</div>
-            <form method="post" action="{{ url_for('place_bet', match_id=m['id']) }}" style="display:contents;">
-              <input class="score" type="number" min="0" name="home_goals" value="{{ b['home_goals'] if b else '' }}">
-              <div class="sep">x</div>
-              <input class="score" type="number" min="0" name="away_goals" value="{{ b['away_goals'] if b else '' }}">
-              <div class="team-right">{{ m['away'] }}</div>
-          </div>
-        </td>
-        <td>
-              <button>Save</button>
-            </form>
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
+  {% if groups.get(selected_group) %}
+    <h3>{{ selected_group }}</h3>
+    <form method="post" action="{{ url_for('save_group', group=selected_group) }}">
+      <table>
+        <thead>
+          <tr>
+            <th class="index-col">#</th>
+            <th>Fixture</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for m in groups[selected_group] %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="index-col">{{ loop.index }}</td>
+              <td class="fixture-cell">
+                <div class="fixture-row">
+                <div class="team left">
+                  {{ m['home'] }}
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}
+                    <span class="flagbox"><img src="{{ fu }}" alt=""></span>
+                  {% endif %}
+                </div>
+                  <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
+                  <div class="sep">x</div>
+                  <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  {{ m['away'] }}
+                </div>
+                </div>
+              </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="save-row">
+        <button>Save {{ selected_group }}</button>
+      </div>
+    </form>
+  {% else %}
+    <p>No fixtures found for {{ selected_group }}.</p>
+  {% endif %}
 </div>
 """
 
@@ -290,7 +328,7 @@ def seed_wc2022_route():
 @app.route("/save_group/<group>", methods=["POST"])
 def save_group(group):
     # require login
-    if not session.get("uid"):
+    if not session.get("id"):
         flash("Please log in.")
         return redirect(url_for("login"))
 
@@ -319,12 +357,12 @@ def save_group(group):
             # upsert
             cur = conn.execute(
                 "UPDATE bet SET home_goals=?, away_goals=? WHERE user_id=? AND match_id=?",
-                (hg, ag, session["uid"], mid)
+                (hg, ag, session["id"], mid)
             )
             if cur.rowcount == 0:
                 conn.execute(
                     "INSERT INTO bet (user_id, match_id, home_goals, away_goals) VALUES (?,?,?,?)",
-                    (session["uid"], mid, hg, ag)
+                    (session["id"], mid, hg, ag)
                 )
             saved += 1
         conn.commit()
@@ -333,35 +371,37 @@ def save_group(group):
     return redirect(url_for("matches"))
 
 
+def check_password(pwd, real_password):
+    if pwd == real_password:
+        return True
+    else:
+        return False
+
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
-        email = (request.form.get("email") or "").strip().lower()
+        user_name = (request.form.get("user_name") or "").strip().lower()
         pwd   = request.form.get("password") or ""
-        if not email or not pwd:
+        if not user_name or not pwd:
             flash("Email and password are required.")
             return redirect(url_for("login"))
 
         with get_conn() as conn:
-            row = conn.execute(
-                "SELECT id, user_name, user_email, password_hash FROM user WHERE user_email=?",
-                (email,)
-            ).fetchone()
+            row = conn.execute("SELECT id, user_name, password FROM users WHERE user_name=?", (user_name,)).fetchone()
 
-        if not row or not check_password_hash(row["password_hash"], pwd):
+        if not row or not check_password(pwd, row["password"]):
             flash("Invalid email or password.")
             return redirect(url_for("login"))
 
-        session["uid"] = row["id"]
-        session["email"] = row["user_email"]
-        session["name"] = row["user_name"]
+        session["user_name"] = row["user_name"]
+        session["id"] = row["id"]
         flash("Logged in.")
         return redirect(url_for("matches"))
 
     return render_template_string(BASE, content=render_template_string(LOGIN))
 
 def require_login():
-    if not session.get("uid"):
+    if not session.get("id"):
         flash("Please log in.")
         return redirect(url_for("login"))
     return None
@@ -369,32 +409,35 @@ def require_login():
 @app.route("/matches")
 @app.route("/matches")
 def matches():
-    # login gate
-    if not session.get("uid"):
+    if not session.get("id"):
         flash("Please log in.")
         return redirect(url_for("login"))
 
+    selected_group = request.args.get("group")  # e.g., "Group A"
+
     with get_conn() as conn:
-        all_matches = conn.execute("SELECT id, phase, home, away FROM match ORDER BY id").fetchall()
+        all_matches = conn.execute(
+            "SELECT id, phase, home, away FROM match ORDER BY id"
+        ).fetchall()
         my_bets = conn.execute(
             "SELECT match_id, home_goals, away_goals FROM bet WHERE user_id=?",
-            (session["uid"],)
+            (session["id"],)
         ).fetchall()
 
     bets = {b["match_id"]: dict(b) for b in my_bets}
 
-    # Split into group tables and knockouts
+    # Split into groups
+    from collections import defaultdict
     groups = defaultdict(list)
-    knockouts = []
     for m in all_matches:
         ph = m["phase"]
-        if ph.startswith("Group "):   # e.g., "Group A"
+        if ph.startswith("Group "):
             groups[ph].append(m)
-        else:
-            knockouts.append(m)
 
-    # desired order of groups
     group_order = [f"Group {c}" for c in list("ABCDEFGH")]
+    # Default selection if none provided or invalid
+    if selected_group not in group_order:
+        selected_group = group_order[0]
 
     return render_template_string(
         BASE,
@@ -402,8 +445,8 @@ def matches():
             MATCHES,
             groups=groups,
             group_order=group_order,
-            knockouts=knockouts,
-            bets=bets
+            bets=bets,
+            selected_group=selected_group
         )
     )
 
@@ -425,12 +468,12 @@ def place_bet(match_id):
         # upsert: try update first; if no row, insert
         cur = conn.execute(
             "UPDATE bet SET home_goals=?, away_goals=? WHERE user_id=? AND match_id=?",
-            (hg, ag, session["uid"], match_id)
+            (hg, ag, session["id"], match_id)
         )
         if cur.rowcount == 0:
             conn.execute(
                 "INSERT INTO bet (user_id, match_id, home_goals, away_goals) VALUES (?,?,?,?)",
-                (session["uid"], match_id, hg, ag)
+                (session["id"], match_id, hg, ag)
             )
         conn.commit()
     flash("Saved.")
