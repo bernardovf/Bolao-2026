@@ -98,7 +98,7 @@ WC2022_FIXTURES = [
     ("Group H","Ghana","Uruguay")
 ]
 
-DB_PATH = "bolao_2026_dev.db"
+DB_PATH  = os.getenv("DB_PATH", "bolao_2026_dev.db")
 
 def flag_url(team: str) -> str:
     code = TEAM_TO_CODE.get(team)
