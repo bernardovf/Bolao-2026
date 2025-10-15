@@ -41,6 +41,25 @@ TEAM_TO_CODE = {
 
 DB_PATH  = os.getenv("DB_PATH", "bolao_2026_dev.db")
 
+PHASE_LOCKS = {
+    "Round of 16": True,   # True = locked (bets closed)
+    "Quarterfinals": False,
+    "Semifinals":   False,
+    "Final":        True,
+    "General":      True
+}
+
+unlocks = {
+    "oitavas": True,
+    "quartas": True,
+    "semi": True,
+    "final3": True,
+}
+
+
+def phase_locked(phase: str) -> bool:
+    return bool(PHASE_LOCKS.get(phase, False))
+
 def flag_url(team: str) -> str:
     code = TEAM_TO_CODE.get(team)
     return f"https://flagcdn.com/h20/{code}.png"

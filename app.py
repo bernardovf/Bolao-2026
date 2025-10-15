@@ -1,7 +1,7 @@
 from flask import Flask, render_template_string, request, redirect, url_for, flash, session
 import sqlite3, os
 from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, OITAVAS_PAGE, QUARTAS_PAGE, SEMI_PAGE, FINAL_PAGE
-from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams
+from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, unlocks, phase_locked
 from datetime import datetime
 
 APP_SECRET = os.environ.get("SECRET_KEY", "dev-secret")
@@ -11,17 +11,9 @@ app.config["SECRET_KEY"] = APP_SECRET
 app.jinja_env.globals.update(flag=flag_url)
 app.jinja_env.filters["fmtkick"] = fmt_kickoff
 
-
-
 # ---------- Routes ----------
 @app.route("/")
 def index():
-    unlocks = {
-        "oitavas": True,
-        "quartas": False,
-        "semi":   False,
-        "final3": False,
-    }
     return render_template_string(
         BASE,
         content=render_template_string(HOME, unlocks=unlocks),
@@ -78,22 +70,20 @@ def salvar_oitavas():
         flash("Please log in.")
         return redirect(url_for("login"))
 
-    with get_conn() as conn:
-        # make rows dict-like
-        conn.row_factory = sqlite3.Row
+    if phase_locked("Round of 16"):
+        flash("Apostas encerradas para as Oitavas.")
+        return redirect(url_for("oitavas_final"))
 
-        # ✅ use the real table name that has rows
+    with get_conn() as conn:
+        conn.row_factory = sqlite3.Row
         mids = [r["id"] for r in conn.execute(
-            "SELECT id FROM fixtures WHERE phase = ? ORDER BY id",
-            ("Round of 16",)
+            "SELECT id FROM fixtures WHERE phase='Round of 16' ORDER BY id"
         ).fetchall()]
 
         saved = 0
         for mid in mids:
-            h_key, a_key = f"h_{mid}", f"a_{mid}"
-            h_raw, a_raw = request.form.get(h_key), request.form.get(a_key)
-
-            # both must be present & non-empty
+            h_raw = request.form.get(f"h_{mid}")
+            a_raw = request.form.get(f"a_{mid}")
             if not h_raw or not a_raw:
                 continue
             try:
@@ -103,7 +93,6 @@ def salvar_oitavas():
             except ValueError:
                 continue
 
-            # ✅ single-statement UPSERT
             conn.execute("""
                 INSERT INTO bet (user_id, match_id, home_goals, away_goals)
                 VALUES (?, ?, ?, ?)
@@ -112,11 +101,10 @@ def salvar_oitavas():
                   away_goals = excluded.away_goals
             """, (session["id"], mid, hg, ag))
             saved += 1
-
         conn.commit()
 
     flash(f"Saved {saved} pick(s).")
-    return redirect(url_for("oitavas_final"))  # make sure this endpoint exists
+    return redirect(url_for("oitavas_final"))
 
 @app.route("/salvar_quartas", methods=["POST"])
 def salvar_quartas():
@@ -359,17 +347,15 @@ def oitavas_final():
 
     # map bets by match id
     bets = {b["match_id"]: dict(b) for b in my_bets}
+    locked = phase_locked("Round of 16")
+
 
     # either pass rows directly (Row supports dict-like access) or convert:
     matches = [dict(r) for r in rows]
 
     return render_template_string(
         BASE,
-        content=render_template_string(
-            OITAVAS_PAGE,
-            matches=matches,   # ← was missing
-            bets=bets
-        ),
+        content=render_template_string(OITAVAS_PAGE, matches=matches, bets=bets, locked=locked),
     )
 
 @app.route("/quartas_final")
@@ -380,36 +366,24 @@ def quartas_final():
         return redirect(url_for("login"))
 
     with get_conn() as conn:
-        # make rows dict-like (or convert to dicts below)
         conn.row_factory = sqlite3.Row
-
-        # ⚠️ Use the correct table name. If you inserted into "fixtures",
-        # query fixtures; if your table is actually called "match", keep it.
         rows = conn.execute("""
             SELECT id, home, away, kickoff_utc
             FROM fixtures
-            WHERE phase = ?
+            WHERE phase = 'Quarterfinals'
             ORDER BY datetime(kickoff_utc), id
-        """, ("Quarterfinals",)).fetchall()
-
+        """).fetchall()
         my_bets = conn.execute("""
             SELECT match_id, home_goals, away_goals
-            FROM bet
-            WHERE user_id = ?
+            FROM bet WHERE user_id = ?
         """, (session["id"],)).fetchall()
-
-    # map bets by match id
-    bets = {b["match_id"]: dict(b) for b in my_bets}
-
-    # either pass rows directly (Row supports dict-like access) or convert:
-    matches = [dict(r) for r in rows]
-
     return render_template_string(
         BASE,
         content=render_template_string(
             QUARTAS_PAGE,
-            matches=matches,   # ← was missing
-            bets=bets
+            matches=[dict(r) for r in rows],
+            bets={b["match_id"]: dict(b) for b in my_bets},
+            locked=phase_locked("Quarterfinals"),
         ),
     )
 
@@ -421,36 +395,24 @@ def semi_final():
         return redirect(url_for("login"))
 
     with get_conn() as conn:
-        # make rows dict-like (or convert to dicts below)
         conn.row_factory = sqlite3.Row
-
-        # ⚠️ Use the correct table name. If you inserted into "fixtures",
-        # query fixtures; if your table is actually called "match", keep it.
         rows = conn.execute("""
             SELECT id, home, away, kickoff_utc
             FROM fixtures
-            WHERE phase = ?
+            WHERE phase = 'Semifinals'
             ORDER BY datetime(kickoff_utc), id
-        """, ("Semifinals",)).fetchall()
-
+        """).fetchall()
         my_bets = conn.execute("""
             SELECT match_id, home_goals, away_goals
-            FROM bet
-            WHERE user_id = ?
+            FROM bet WHERE user_id = ?
         """, (session["id"],)).fetchall()
-
-    # map bets by match id
-    bets = {b["match_id"]: dict(b) for b in my_bets}
-
-    # either pass rows directly (Row supports dict-like access) or convert:
-    matches = [dict(r) for r in rows]
-
     return render_template_string(
         BASE,
         content=render_template_string(
             SEMI_PAGE,
-            matches=matches,   # ← was missing
-            bets=bets
+            matches=[dict(r) for r in rows],
+            bets={b["match_id"]: dict(b) for b in my_bets},
+            locked=phase_locked("Semifinals"),
         ),
     )
 
@@ -462,41 +424,26 @@ def final_terceiro():
         return redirect(url_for("login"))
 
     with get_conn() as conn:
-        # make rows dict-like (or convert to dicts below)
         conn.row_factory = sqlite3.Row
-
-        # ⚠️ Use the correct table name. If you inserted into "fixtures",
-        # query fixtures; if your table is actually called "match", keep it.
-        phases = ("Third Place", "Final")
-        rows = conn.execute(f"""
+        rows = conn.execute("""
             SELECT id, home, away, kickoff_utc
             FROM fixtures
-            WHERE phase IN ({",".join("?" * len(phases))})
-            ORDER BY CASE phase
-                       WHEN 'Third Place' THEN 1
-                       WHEN 'Final' THEN 2
-                     END,
-                     datetime(kickoff_utc), id
-        """, phases).fetchall()
-
+            WHERE phase IN ('Third Place','Final')
+            ORDER BY datetime(kickoff_utc), id
+        """).fetchall()
         my_bets = conn.execute("""
             SELECT match_id, home_goals, away_goals
-            FROM bet
-            WHERE user_id = ?
+            FROM bet WHERE user_id = ?
         """, (session["id"],)).fetchall()
-
-    # map bets by match id
-    bets = {b["match_id"]: dict(b) for b in my_bets}
-
-    # either pass rows directly (Row supports dict-like access) or convert:
-    matches = [dict(r) for r in rows]
-
+    # lock if BOTH Final and Third Place are locked (tweak to your policy)
+    locked = phase_locked("Final")
     return render_template_string(
         BASE,
         content=render_template_string(
             FINAL_PAGE,
-            matches=matches,   # ← was missing
-            bets=bets
+            matches=[dict(r) for r in rows],
+            bets={b["match_id"]: dict(b) for b in my_bets},
+            locked=locked,
         ),
     )
 
@@ -510,6 +457,11 @@ def palpites():
     uid = session["id"]
 
     if request.method == "POST":
+        # hard block when locked
+        if phase_locked("General"):
+            flash("Palpites gerais estão encerrados.")
+            return redirect(url_for("palpites"))
+
         data = {
             "artilheiro": (request.form.get("artilheiro") or "").strip(),
             "melhor_jogador": (request.form.get("melhor_jogador") or "").strip(),
@@ -555,7 +507,15 @@ def palpites():
         ).fetchone()
 
     teams = list_teams()
-    return render_template_string(BASE, content=render_template_string(PALPITES, row=row, teams=teams))
+    return render_template_string(
+        BASE,
+        content=render_template_string(
+            PALPITES,
+            row=row,
+            teams=teams,
+            locked=phase_locked("General"),   # <-- pass to template
+        ),
+    )
 
 @app.route("/bet/<int:match_id>", methods=["POST"])
 def place_bet(match_id):
