@@ -1,3 +1,4 @@
+
 # ---------- Templates ----------
 BASE = """<!doctype html>
 <meta charset="utf-8">
@@ -141,10 +142,38 @@ HOME = """
   </p>
 {% else %}
   <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
-    <a class="button" href="{{ url_for('matches') }}">Fase de Grupos</a>
+  
+      <style>
+       .button.disabled { pointer-events:none; color:#9aa0a6; opacity:.6; cursor:not-allowed; text-decoration:none; }
+      </style>
+
+    <a class="button" href="{{ url_for('fase_grupos') }}">Fase de Grupos</a>
     <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
-    <a class="button" href="{{ url_for('logout') }}">Sair</a>
-  </div>
+    {% if unlocks.oitavas %}
+      <a class="button" href="{{ url_for('oitavas_final') }}">Oitavas de Final</a>
+    {% else %}
+      <span class="button disabled">Oitavas de Final</span>
+    {% endif %}
+    
+    {% if unlocks.quartas %}
+      <a class="button" href="{{ url_for('quartas_final') }}">Quartas de Final</a>
+    {% else %}
+      <span class="button disabled">Quartas de Final</span>
+    {% endif %}
+    
+    {% if unlocks.semi %}
+      <a class="button" href="{{ url_for('semi_final') }}">Semi Final</a>
+    {% else %}
+      <span class="button disabled">Semi Final</span>
+    {% endif %}
+    
+    {% if unlocks.final3 %}
+      <a class="button" href="{{ url_for('final_terceiro') }}">Final e Terceiro Lugar</a>
+    {% else %}
+      <span class="button disabled">Final e Terceiro Lugar</span>
+    {% endif %}
+        <a class="button" href="{{ url_for('logout') }}">Sair</a>
+      </div>
 {% endif %}
 """
 
@@ -169,7 +198,7 @@ MATCHES = """
 
   <!-- Sticky group selector -->
   <div class="toolbar">
-    <form id="groupFilter" method="get" action="{{ url_for('matches') }}">
+    <form id="groupFilter" method="get" action="{{ url_for('fase_grupos') }}">
       <label>Group:&nbsp;
         <select name="group" onchange="document.getElementById('groupFilter').submit()">
           {% for g in group_order %}
@@ -241,59 +270,333 @@ MATCHES = """
 </div>
 """
 
+OITAVAS_PAGE = """
+<h2>OITAVAS</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+<form method="post" action="{{ url_for('salvar_oitavas') }}">
+  <table>
+    <thead>
+      <tr><th class="kick-col">Data</th><th>Jogo</th></tr>
+    </thead>
+    <tbody>
+      {% for m in matches %}
+        {% set b = bets.get(m['id']) %}
+        <tr>
+          <td class="kick-col"><div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div></td>
+          <td class="fixture-cell">
+            <div class="fixture-row">
+              <div class="team left">
+                <span class="name">{{ m['home'] }}</span>
+                {% set fu = flag(m['home']) %}
+                {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+              </div>
+
+              <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+                     value="{{ b['home_goals'] if b else '' }}"
+                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+              <div class="sep">x</div>
+              <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+                     value="{{ b['away_goals'] if b else '' }}"
+                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+
+              <div class="team right">
+                {% set fu = flag(m['away']) %}
+                {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                <span class="name">{{ m['away'] }}</span>
+              </div>
+
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="save-row">
+    {% if locked %}
+      <button type="button" class="button" disabled title="Apostas encerradas">Salvar Oitavas</button>
+    {% else %}
+      <button class="button">Salvar Oitavas</button>
+    {% endif %}
+  </div>
+</form>
+
+<style>
+  input[disabled]{opacity:.6; cursor:not-allowed;}
+  button[disabled]{opacity:.6; cursor:not-allowed;}
+</style>
+</div>
+"""
+
+QUARTAS_PAGE = """
+<h2>QUARTAS</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_quartas') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+                       value="{{ b['home_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+                       value="{{ b['away_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      {% if locked %}
+        <button type="button" class="button" disabled title="Apostas encerradas">Salvar Quartas</button>
+      {% else %}
+        <button class="button">Salvar Quartas</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<style>
+  input[disabled]{opacity:.6; cursor:not-allowed;}
+  button[disabled]{opacity:.6; cursor:not-allowed;}
+</style>
+"""
+
+SEMI_PAGE = """
+<h2>SEMI</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_semi') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+                       value="{{ b['home_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+                       value="{{ b['away_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      {% if locked %}
+        <button type="button" class="button" disabled title="Apostas encerradas">Salvar Semi</button>
+      {% else %}
+        <button class="button">Salvar Semi</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<style>
+  input[disabled]{opacity:.6; cursor:not-allowed;}
+  button[disabled]{opacity:.6; cursor:not-allowed;}
+</style>
+"""
+
+FINAL_PAGE = """
+<h2>FINAL</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_final') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+                       value="{{ b['home_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+                       value="{{ b['away_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      {% if locked %}
+        <button type="button" class="button" disabled title="Apostas encerradas">Salvar Final e Terceiro Lugar</button>
+      {% else %}
+        <button class="button">Salvar Final e Terceiro Lugar</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<style>
+  input[disabled]{opacity:.6; cursor:not-allowed;}
+  button[disabled]{opacity:.6; cursor:not-allowed;}
+</style>
+"""
+
 PALPITES = """
 <h2>Palpites Gerais</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
-<form method="post" action="{{ url_for('palpites') }}" class="card" style="max-width:720px;">
-  <label>
-    Artilheiro
-    <input type="text" name="artilheiro" value="{{ (row.artilheiro if row else '')|e }}" autocomplete="off">
-  </label>
+<form method="post" action="{{ url_for('palpites') }}">
+  <div class="field">
+    <label>Artilheiro</label>
+    <input type="text" name="artilheiro"
+           value="{{ (row['artilheiro'] if row else '') }}"
+           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+  </div>
 
-  <label>
-    Melhor Jogador
-    <input type="text" name="melhor_jogador" value="{{ (row.melhor_jogador if row else '')|e }}" autocomplete="off">
-  </label>
+  <div class="field">
+    <label>Melhor Jogador</label>
+    <input type="text" name="melhor_jogador"
+           value="{{ (row['melhor_jogador'] if row else '') }}"
+           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+  </div>
 
-  <label>
-    Melhor Jogador Jovem
-    <input type="text" name="melhor_jogador_jovem" value="{{ (row.melhor_jogador_jovem if row else '')|e }}" autocomplete="off">
-  </label>
+  <div class="field">
+    <label>Melhor Jogador Jovem</label>
+    <input type="text" name="melhor_jogador_jovem"
+           value="{{ (row['melhor_jogador_jovem'] if row else '') }}"
+           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+  </div>
 
-  <label>
-    Campeão
-    <select name="campeao" required>
-      <option value="">-- Selecione --</option>
+  <div class="field">
+    <label>Campeão</label>
+    <select name="campeao" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+      <option value=""></option>
       {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row.campeao==t else '' }}>{{ t }}</option>
+        <option value="{{ t }}" {{ 'selected' if row and row['campeao']==t else '' }}>{{ t }}</option>
       {% endfor %}
     </select>
-  </label>
+  </div>
 
-  <label>
-    Vice-Campeão
-    <select name="vice_campeao" required>
-      <option value="">-- Selecione --</option>
+  <div class="field">
+    <label>Vice-Campeão</label>
+    <select name="vice_campeao" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+      <option value=""></option>
       {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row.vice_campeao==t else '' }}>{{ t }}</option>
+        <option value="{{ t }}" {{ 'selected' if row and row['vice_campeao']==t else '' }}>{{ t }}</option>
       {% endfor %}
     </select>
-  </label>
+  </div>
 
-  <label>
-    Terceiro Colocado
-    <select name="terceiro_colocado" required>
-      <option value="">-- Selecione --</option>
+  <div class="field">
+    <label>Terceiro Colocado</label>
+    <select name="terceiro_colocado" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+      <option value=""></option>
       {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row.terceiro_colocado==t else '' }}>{{ t }}</option>
+        <option value="{{ t }}" {{ 'selected' if row and row['terceiro_colocado']==t else '' }}>{{ t }}</option>
       {% endfor %}
     </select>
-  </label>
+  </div>
 
-  <div style="margin-top:1rem;">
-    <button>Salvar Palpites</button>
-    <a class="button" href="{{ url_for('matches') }}" style="margin-left:.5rem;">Cancelar</a>
+  <div class="save-row">
+    {% if locked %}
+      <button type="button" class="button" disabled title="Palpites encerrados">Salvar Palpites</button>
+    {% else %}
+      <button class="button">Salvar Palpites</button>
+    {% endif %}
   </div>
 </form>
+
+<style>
+  input[disabled], select[disabled], button[disabled] { opacity:.6; cursor:not-allowed; }
+</style>
 """
