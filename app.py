@@ -1,6 +1,6 @@
 from flask import Flask, render_template_string, request, redirect, url_for, flash, session
 import sqlite3, os
-from templates import BASE, HOME, LOGIN, MATCHES, PALPITES
+from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, OITAVAS_PAGE, QUARTAS_PAGE, SEMI_PAGE, FINAL_PAGE
 from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams
 from datetime import datetime
 
@@ -59,7 +59,193 @@ def save_group(group):
         conn.commit()
 
     flash(f"Saved {saved} pick(s) for {group}.")
-    return redirect(url_for("matches"))
+    return redirect(url_for("fase_grupos"))
+
+@app.route("/salvar_oitavas", methods=["POST"])
+def salvar_oitavas():
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like
+        conn.row_factory = sqlite3.Row
+
+        # ✅ use the real table name that has rows
+        mids = [r["id"] for r in conn.execute(
+            "SELECT id FROM fixtures WHERE phase = ? ORDER BY id",
+            ("Round of 16",)
+        ).fetchall()]
+
+        saved = 0
+        for mid in mids:
+            h_key, a_key = f"h_{mid}", f"a_{mid}"
+            h_raw, a_raw = request.form.get(h_key), request.form.get(a_key)
+
+            # both must be present & non-empty
+            if not h_raw or not a_raw:
+                continue
+            try:
+                hg, ag = int(h_raw), int(a_raw)
+                if hg < 0 or ag < 0:
+                    continue
+            except ValueError:
+                continue
+
+            # ✅ single-statement UPSERT
+            conn.execute("""
+                INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, match_id) DO UPDATE SET
+                  home_goals = excluded.home_goals,
+                  away_goals = excluded.away_goals
+            """, (session["id"], mid, hg, ag))
+            saved += 1
+
+        conn.commit()
+
+    flash(f"Saved {saved} pick(s).")
+    return redirect(url_for("oitavas_final"))  # make sure this endpoint exists
+
+@app.route("/salvar_quartas", methods=["POST"])
+def salvar_quartas():
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like
+        conn.row_factory = sqlite3.Row
+
+        # ✅ use the real table name that has rows
+        mids = [r["id"] for r in conn.execute(
+            "SELECT id FROM fixtures WHERE phase = ? ORDER BY id",
+            ("Quarterfinals",)
+        ).fetchall()]
+
+        saved = 0
+        for mid in mids:
+            h_key, a_key = f"h_{mid}", f"a_{mid}"
+            h_raw, a_raw = request.form.get(h_key), request.form.get(a_key)
+
+            # both must be present & non-empty
+            if not h_raw or not a_raw:
+                continue
+            try:
+                hg, ag = int(h_raw), int(a_raw)
+                if hg < 0 or ag < 0:
+                    continue
+            except ValueError:
+                continue
+
+            # ✅ single-statement UPSERT
+            conn.execute("""
+                INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, match_id) DO UPDATE SET
+                  home_goals = excluded.home_goals,
+                  away_goals = excluded.away_goals
+            """, (session["id"], mid, hg, ag))
+            saved += 1
+
+        conn.commit()
+
+    flash(f"Saved {saved} pick(s).")
+    return redirect(url_for("quartas_final"))  # make sure this endpoint exists
+
+@app.route("/salvar_semi", methods=["POST"])
+def salvar_semi():
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like
+        conn.row_factory = sqlite3.Row
+
+        # ✅ use the real table name that has rows
+        mids = [r["id"] for r in conn.execute(
+            "SELECT id FROM fixtures WHERE phase = ? ORDER BY id",
+            ("Semifinals",)
+        ).fetchall()]
+
+        saved = 0
+        for mid in mids:
+            h_key, a_key = f"h_{mid}", f"a_{mid}"
+            h_raw, a_raw = request.form.get(h_key), request.form.get(a_key)
+
+            # both must be present & non-empty
+            if not h_raw or not a_raw:
+                continue
+            try:
+                hg, ag = int(h_raw), int(a_raw)
+                if hg < 0 or ag < 0:
+                    continue
+            except ValueError:
+                continue
+
+            # ✅ single-statement UPSERT
+            conn.execute("""
+                INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, match_id) DO UPDATE SET
+                  home_goals = excluded.home_goals,
+                  away_goals = excluded.away_goals
+            """, (session["id"], mid, hg, ag))
+            saved += 1
+
+        conn.commit()
+
+    flash(f"Saved {saved} pick(s).")
+    return redirect(url_for("semi_final"))  # make sure this endpoint exists
+
+@app.route("/salvar_final", methods=["POST"])
+def salvar_final():
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like
+        conn.row_factory = sqlite3.Row
+
+        # ✅ use the real table name that has rows
+        phases = ("Third Place", "Final")
+        placeholders = ",".join("?" * len(phases))
+        mids = [r["id"] for r in conn.execute(
+            f"SELECT id FROM fixtures WHERE phase IN ({placeholders}) ORDER BY id",
+            phases
+        ).fetchall()]
+
+        saved = 0
+        for mid in mids:
+            h_key, a_key = f"h_{mid}", f"a_{mid}"
+            h_raw, a_raw = request.form.get(h_key), request.form.get(a_key)
+
+            # both must be present & non-empty
+            if not h_raw or not a_raw:
+                continue
+            try:
+                hg, ag = int(h_raw), int(a_raw)
+                if hg < 0 or ag < 0:
+                    continue
+            except ValueError:
+                continue
+
+            # ✅ single-statement UPSERT
+            conn.execute("""
+                INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, match_id) DO UPDATE SET
+                  home_goals = excluded.home_goals,
+                  away_goals = excluded.away_goals
+            """, (session["id"], mid, hg, ag))
+            saved += 1
+
+        conn.commit()
+
+    flash(f"Saved {saved} pick(s).")
+    return redirect(url_for("final_terceiro"))  # make sure this endpoint exists
 
 @app.route("/login", methods=["GET","POST"])
 def login():
@@ -80,7 +266,7 @@ def login():
         session["user_name"] = row["user_name"]
         session["id"] = row["id"]
         flash("Logged in.")
-        return redirect(url_for("matches"))
+        return redirect(url_for("fase_grupos"))
 
     return render_template_string(BASE, content=render_template_string(LOGIN))
 
@@ -90,8 +276,8 @@ def require_login():
         return redirect(url_for("login"))
     return None
 
-@app.route("/matches")
-def matches():
+@app.route("/fase_grupos")
+def fase_grupos():
     # login gate
     if not session.get("id"):
         flash("Please log in.")
@@ -102,7 +288,7 @@ def matches():
     with get_conn() as conn:
         # ⬇︎ include kickoff_utc here
         all_matches = conn.execute(
-            "SELECT id, phase, home, away, kickoff_utc FROM match ORDER BY id"
+            "SELECT id, phase, home, away, kickoff_utc FROM match where phase like '%Group%' ORDER BY id "
         ).fetchall()
         my_bets = conn.execute(
             "SELECT match_id, home_goals, away_goals FROM bet WHERE user_id=?",
@@ -131,6 +317,175 @@ def matches():
             group_order=group_order,
             bets=bets,
             selected_group=selected_group,
+        ),
+    )
+
+@app.route("/oitavas_final")
+def oitavas_final():
+    # login gate
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like (or convert to dicts below)
+        conn.row_factory = sqlite3.Row
+
+        # ⚠️ Use the correct table name. If you inserted into "fixtures",
+        # query fixtures; if your table is actually called "match", keep it.
+        rows = conn.execute("""
+            SELECT id, home, away, kickoff_utc
+            FROM fixtures
+            WHERE phase = ?
+            ORDER BY datetime(kickoff_utc), id
+        """, ("Round of 16",)).fetchall()
+
+        my_bets = conn.execute("""
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        """, (session["id"],)).fetchall()
+
+    # map bets by match id
+    bets = {b["match_id"]: dict(b) for b in my_bets}
+
+    # either pass rows directly (Row supports dict-like access) or convert:
+    matches = [dict(r) for r in rows]
+
+    return render_template_string(
+        BASE,
+        content=render_template_string(
+            OITAVAS_PAGE,
+            matches=matches,   # ← was missing
+            bets=bets
+        ),
+    )
+
+@app.route("/quartas_final")
+def quartas_final():
+    # login gate
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like (or convert to dicts below)
+        conn.row_factory = sqlite3.Row
+
+        # ⚠️ Use the correct table name. If you inserted into "fixtures",
+        # query fixtures; if your table is actually called "match", keep it.
+        rows = conn.execute("""
+            SELECT id, home, away, kickoff_utc
+            FROM fixtures
+            WHERE phase = ?
+            ORDER BY datetime(kickoff_utc), id
+        """, ("Quarterfinals",)).fetchall()
+
+        my_bets = conn.execute("""
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        """, (session["id"],)).fetchall()
+
+    # map bets by match id
+    bets = {b["match_id"]: dict(b) for b in my_bets}
+
+    # either pass rows directly (Row supports dict-like access) or convert:
+    matches = [dict(r) for r in rows]
+
+    return render_template_string(
+        BASE,
+        content=render_template_string(
+            QUARTAS_PAGE,
+            matches=matches,   # ← was missing
+            bets=bets
+        ),
+    )
+
+@app.route("/semi_final")
+def semi_final():
+    # login gate
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like (or convert to dicts below)
+        conn.row_factory = sqlite3.Row
+
+        # ⚠️ Use the correct table name. If you inserted into "fixtures",
+        # query fixtures; if your table is actually called "match", keep it.
+        rows = conn.execute("""
+            SELECT id, home, away, kickoff_utc
+            FROM fixtures
+            WHERE phase = ?
+            ORDER BY datetime(kickoff_utc), id
+        """, ("Semifinals",)).fetchall()
+
+        my_bets = conn.execute("""
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        """, (session["id"],)).fetchall()
+
+    # map bets by match id
+    bets = {b["match_id"]: dict(b) for b in my_bets}
+
+    # either pass rows directly (Row supports dict-like access) or convert:
+    matches = [dict(r) for r in rows]
+
+    return render_template_string(
+        BASE,
+        content=render_template_string(
+            SEMI_PAGE,
+            matches=matches,   # ← was missing
+            bets=bets
+        ),
+    )
+
+@app.route("/final_terceiro")
+def final_terceiro():
+    # login gate
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        # make rows dict-like (or convert to dicts below)
+        conn.row_factory = sqlite3.Row
+
+        # ⚠️ Use the correct table name. If you inserted into "fixtures",
+        # query fixtures; if your table is actually called "match", keep it.
+        phases = ("Third Place", "Final")
+        rows = conn.execute(f"""
+            SELECT id, home, away, kickoff_utc
+            FROM fixtures
+            WHERE phase IN ({",".join("?" * len(phases))})
+            ORDER BY CASE phase
+                       WHEN 'Third Place' THEN 1
+                       WHEN 'Final' THEN 2
+                     END,
+                     datetime(kickoff_utc), id
+        """, phases).fetchall()
+
+        my_bets = conn.execute("""
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        """, (session["id"],)).fetchall()
+
+    # map bets by match id
+    bets = {b["match_id"]: dict(b) for b in my_bets}
+
+    # either pass rows directly (Row supports dict-like access) or convert:
+    matches = [dict(r) for r in rows]
+
+    return render_template_string(
+        BASE,
+        content=render_template_string(
+            FINAL_PAGE,
+            matches=matches,   # ← was missing
+            bets=bets
         ),
     )
 
@@ -203,7 +558,7 @@ def place_bet(match_id):
         if hg < 0 or ag < 0: raise ValueError
     except Exception:
         flash("Enter non-negative integers.")
-        return redirect(url_for("matches"))
+        return redirect(url_for("fase_grupos"))
 
     with get_conn() as conn:
         # upsert: try update first; if no row, insert
@@ -218,7 +573,7 @@ def place_bet(match_id):
             )
         conn.commit()
     flash("Saved.")
-    return redirect(url_for("matches"))
+    return redirect(url_for("fase_grupos"))
 
 @app.route("/logout")
 def logout():

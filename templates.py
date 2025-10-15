@@ -141,8 +141,12 @@ HOME = """
   </p>
 {% else %}
   <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
-    <a class="button" href="{{ url_for('matches') }}">Fase de Grupos</a>
+    <a class="button" href="{{ url_for('fase_grupos') }}">Fase de Grupos</a>
     <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
+    <a class="button" href="{{ url_for('oitavas_final') }}">Oitavas de Final</a>
+    <a class="button" href="{{ url_for('quartas_final') }}">Quartas de Final</a>
+    <a class="button" href="{{ url_for('semi_final') }}">Semi Final</a>
+    <a class="button" href="{{ url_for('final_terceiro') }}">Final e Terceiro Lugar</a>
     <a class="button" href="{{ url_for('logout') }}">Sair</a>
   </div>
 {% endif %}
@@ -169,7 +173,7 @@ MATCHES = """
 
   <!-- Sticky group selector -->
   <div class="toolbar">
-    <form id="groupFilter" method="get" action="{{ url_for('matches') }}">
+    <form id="groupFilter" method="get" action="{{ url_for('fase_grupos') }}">
       <label>Group:&nbsp;
         <select name="group" onchange="document.getElementById('groupFilter').submit()">
           {% for g in group_order %}
@@ -241,6 +245,218 @@ MATCHES = """
 </div>
 """
 
+OITAVAS_PAGE = """
+<h2>OITAVAS</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_oitavas') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      <button>Salvar Oitavas</button>
+    </div>
+  </form>
+</div>
+"""
+
+QUARTAS_PAGE = """
+<h2>QUARTAS</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_quartas') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      <button>Salvar Quartas</button>
+    </div>
+  </form>
+</div>
+"""
+
+SEMI_PAGE = """
+<h2>SEMI</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_semi') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      <button>Salvar Semi</button>
+    </div>
+  </form>
+</div>
+"""
+
+FINAL_PAGE = """
+<h2>FINAL</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<div class="fixtures">
+  <form method="post" action="{{ url_for('salvar_final') }}">
+    <table>
+      <thead>
+        <tr>
+          <th class="kick-col">Data</th>
+          <th>Jogo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matches %}
+          {% set b = bets.get(m['id']) %}
+          <tr>
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+            <td class="fixture-cell">
+              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+
+              <div class="fixture-row">
+                <div class="team left">
+                  <span class="name">{{ m['home'] }}</span>
+                  {% set fu = flag(m['home']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                </div>
+
+                <input class="score" type="number" min="0" name="h_{{ m['id'] }}" value="{{ b['home_goals'] if b else '' }}">
+                <div class="sep">x</div>
+                <input class="score" type="number" min="0" name="a_{{ m['id'] }}" value="{{ b['away_goals'] if b else '' }}">
+
+                <div class="team right">
+                  {% set fu = flag(m['away']) %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  <span class="name">{{ m['away'] }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="save-row">
+      <button>Salvar Final e Terceiro Lugar</button>
+    </div>
+  </form>
+</div>
+"""
+
 PALPITES = """
 <h2>Palpites Gerais</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
@@ -293,7 +509,7 @@ PALPITES = """
 
   <div style="margin-top:1rem;">
     <button>Salvar Palpites</button>
-    <a class="button" href="{{ url_for('matches') }}" style="margin-left:.5rem;">Cancelar</a>
+    <a class="button" href="{{ url_for('fase_grupos') }}" style="margin-left:.5rem;">Cancelar</a>
   </div>
 </form>
 """
