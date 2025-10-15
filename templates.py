@@ -1,3 +1,4 @@
+
 # ---------- Templates ----------
 BASE = """<!doctype html>
 <meta charset="utf-8">
@@ -141,14 +142,38 @@ HOME = """
   </p>
 {% else %}
   <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
+  
+      <style>
+       .button.disabled { pointer-events:none; color:#9aa0a6; opacity:.6; cursor:not-allowed; text-decoration:none; }
+      </style>
+
     <a class="button" href="{{ url_for('fase_grupos') }}">Fase de Grupos</a>
     <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
-    <a class="button" href="{{ url_for('oitavas_final') }}">Oitavas de Final</a>
-    <a class="button" href="{{ url_for('quartas_final') }}">Quartas de Final</a>
-    <a class="button" href="{{ url_for('semi_final') }}">Semi Final</a>
-    <a class="button" href="{{ url_for('final_terceiro') }}">Final e Terceiro Lugar</a>
-    <a class="button" href="{{ url_for('logout') }}">Sair</a>
-  </div>
+    {% if unlocks.oitavas %}
+      <a class="button" href="{{ url_for('oitavas_final') }}">Oitavas de Final</a>
+    {% else %}
+      <span class="button disabled">Oitavas de Final</span>
+    {% endif %}
+    
+    {% if unlocks.quartas %}
+      <a class="button" href="{{ url_for('quartas_final') }}">Quartas de Final</a>
+    {% else %}
+      <span class="button disabled">Quartas de Final</span>
+    {% endif %}
+    
+    {% if unlocks.semi %}
+      <a class="button" href="{{ url_for('semi_final') }}">Semi Final</a>
+    {% else %}
+      <span class="button disabled">Semi Final</span>
+    {% endif %}
+    
+    {% if unlocks.final3 %}
+      <a class="button" href="{{ url_for('final_terceiro') }}">Final e Terceiro Lugar</a>
+    {% else %}
+      <span class="button disabled">Final e Terceiro Lugar</span>
+    {% endif %}
+        <a class="button" href="{{ url_for('logout') }}">Sair</a>
+      </div>
 {% endif %}
 """
 

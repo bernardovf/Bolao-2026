@@ -39,65 +39,6 @@ TEAM_TO_CODE = {
     "Ghana": "gh",
 }
 
-WC2022_FIXTURES = [
-    # Group A
-    ("Group A","Qatar","Ecuador"),
-    ("Group A","Senegal","Netherlands"),
-    ("Group A","Qatar","Senegal"),
-    ("Group A","Netherlands","Ecuador"),
-    ("Group A","Netherlands","Qatar"),
-    ("Group A","Ecuador","Senegal"),
-    # Group B
-    ("Group B","England","Iran"),
-    ("Group B","USA","Wales"),
-    ("Group B","Wales","Iran"),
-    ("Group B","England","USA"),
-    ("Group B","Wales","England"),
-    ("Group B","Iran","USA"),
-    # Group C
-    ("Group C","Argentina","Saudi Arabia"),
-    ("Group C","Mexico","Poland"),
-    ("Group C","Poland","Saudi Arabia"),
-    ("Group C","Argentina","Mexico"),
-    ("Group C","Poland","Argentina"),
-    ("Group C","Saudi Arabia","Mexico"),
-    # Group D
-    ("Group D","Denmark","Tunisia"),
-    ("Group D","France","Australia"),
-    ("Group D","Tunisia","Australia"),
-    ("Group D","France","Denmark"),
-    ("Group D","Australia","Denmark"),
-    ("Group D","Tunisia","France"),
-    # Group E
-    ("Group E","Germany","Japan"),
-    ("Group E","Spain","Costa Rica"),
-    ("Group E","Japan","Costa Rica"),
-    ("Group E","Spain","Germany"),
-    ("Group E","Japan","Spain"),
-    ("Group E","Costa Rica","Germany"),
-    # Group F
-    ("Group F","Morocco","Croatia"),
-    ("Group F","Belgium","Canada"),
-    ("Group F","Belgium","Morocco"),
-    ("Group F","Croatia","Canada"),
-    ("Group F","Croatia","Belgium"),
-    ("Group F","Canada","Morocco"),
-    # Group G
-    ("Group G","Switzerland","Cameroon"),
-    ("Group G","Brazil","Serbia"),
-    ("Group G","Cameroon","Serbia"),
-    ("Group G","Brazil","Switzerland"),
-    ("Group G","Serbia","Switzerland"),
-    ("Group G","Cameroon","Brazil"),
-    # Group H
-    ("Group H","Uruguay","South Korea"),
-    ("Group H","Portugal","Ghana"),
-    ("Group H","South Korea","Ghana"),
-    ("Group H","Portugal","Uruguay"),
-    ("Group H","South Korea","Portugal"),
-    ("Group H","Ghana","Uruguay")
-]
-
 DB_PATH  = os.getenv("DB_PATH", "bolao_2026_dev.db")
 
 def flag_url(team: str) -> str:
@@ -128,14 +69,6 @@ def check_password(pwd, real_password):
         return True
     else:
         return False
-
-def seed_wc2022(conn):
-    cur = conn.execute("SELECT COUNT(*) AS c FROM match")
-    if cur.fetchone()["c"] > 0:
-        return 0
-    conn.executemany("INSERT INTO match (phase,home,away) VALUES (?,?,?)", WC2022_FIXTURES)
-    conn.commit()
-    return len(WC2022_FIXTURES)
 
 def get_conn():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=30)

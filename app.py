@@ -11,10 +11,21 @@ app.config["SECRET_KEY"] = APP_SECRET
 app.jinja_env.globals.update(flag=flag_url)
 app.jinja_env.filters["fmtkick"] = fmt_kickoff
 
+
+
 # ---------- Routes ----------
 @app.route("/")
 def index():
-    return render_template_string(BASE, content=render_template_string(HOME))
+    unlocks = {
+        "oitavas": True,
+        "quartas": False,
+        "semi":   False,
+        "final3": False,
+    }
+    return render_template_string(
+        BASE,
+        content=render_template_string(HOME, unlocks=unlocks),
+    )
 
 @app.route("/save_group/<group>", methods=["POST"])
 def save_group(group):
