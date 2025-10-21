@@ -696,19 +696,21 @@ MATCHES = """
       <input type="hidden" name="group" value="{{ selected_group }}">
       <div class="table-wrap">
       <table>
-      <colgroup>
-        <col class="c-kick">     <!-- date/time -->
-        <col class="c-fixture">  <!-- match (flexes) -->
-        <col class="c-bets">     <!-- button -->
-      </colgroup>
+      {% set show_bets_col = locked %}
 
-        <thead>
-          <tr>
-            <th class="kick-col">Data</th>
-            <th>Jogo</th>
-            <th class="bets-col">Palpites</th>
-          </tr>
-        </thead>
+    <colgroup>
+      <col class="c-kick">
+      <col class="c-fixture">
+      {% if show_bets_col %}<col class="c-bets">{% endif %}
+    </colgroup>
+
+<thead>
+  <tr>
+    <th class="kick-col">Data</th>
+    <th>Jogo</th>
+    {% if show_bets_col %}<th class="bets-col">Palpites</th>{% endif %}
+  </tr>
+</thead>
         <tbody>
         {% for m in groups[selected_group] %}
           {% set b = bets.get(m['id']) %}
@@ -769,14 +771,15 @@ MATCHES = """
               {% endif %}
             </td>
 
-            <!-- NEW: Bets column cell -->
-            <!--
+          {% if show_bets_col %}
             <td class="bets-col">
-              <a class="button small" href="{{ url_for('match_detail', match_id=m['id']) }}" aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+              <a class="button small"
+                 href="{{ url_for('match_detail', match_id=m['id']) }}"
+                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
                 Ver palpites
               </a>
-            </td>-->
-            
+            </td>
+          {% endif %}
             
           </tr>
         {% endfor %}

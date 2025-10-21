@@ -157,7 +157,7 @@ PHASE_LOCKS = {
 
 # Phase is still not open
 unlocks = {
-    "decima_sexta": True,
+    "decima_sexta": False,
     "oitavas": False,
     "quartas": False,
     "semi": False,
