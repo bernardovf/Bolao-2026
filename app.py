@@ -1,7 +1,9 @@
-from flask import Flask, render_template_string, request, redirect, url_for, flash, session
+from flask import Flask, render_template_string, request, redirect, url_for, flash, session, abort
 import sqlite3, os
-from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING
-from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _fetch_user_bets, _fetch_phase_rows, _select_match_ids, require_login, _calc_points
+from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING, MATCH_BREAKDOWN
+from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _fetch_user_bets, _fetch_phase_rows, \
+    _select_match_ids, require_login, _calc_points, _compute_group_table_from_bets, phase_locked, rank_best_thirds, \
+    team_color, DRAW_COLOR
 from datetime import datetime
 from collections import defaultdict
 from constants import unlocks, PHASE_ROUTES, PHASE_PAGES
@@ -109,9 +111,150 @@ def login():
         session["user_name"] = row["user_name"]
         session["id"] = row["id"]
         flash("Logged in.")
-        return redirect(url_for("fase_grupos"))
+        return redirect(url_for("index"))
 
     return render_template_string(BASE, content=render_template_string(LOGIN))
+
+@app.route("/match/<int:match_id>")
+def match_detail(match_id: int):
+    # same auth guard pattern
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        # Fixture header
+        cur.execute("""
+            SELECT id, phase, home, away, kickoff_utc, final_home_goals, final_away_goals
+            FROM fixtures
+            WHERE id = ?
+        """, (match_id,))
+        fixture = cur.fetchone()
+        if not fixture:
+            abort(404)
+
+        # Total bets
+        cur.execute("SELECT COUNT(*) AS n FROM bet WHERE match_id = ?", (match_id,))
+        total_bets = cur.fetchone()["n"]
+
+        # Outcome breakdown (home/draw/away) with percentages
+        cur.execute("""
+            WITH x AS (
+              SELECT
+                CASE
+                  WHEN home_goals > away_goals THEN 'home'
+                  WHEN home_goals = away_goals THEN 'draw'
+                  ELSE 'away'
+                END AS outcome
+              FROM bet
+              WHERE match_id = ?
+            ),
+            c AS (
+              SELECT outcome, COUNT(*) AS cnt FROM x GROUP BY outcome
+            )
+            SELECT outcome, cnt,
+                   CASE WHEN (SELECT SUM(cnt) FROM c) = 0 THEN 0.0
+                        ELSE ROUND(100.0 * cnt * 1.0 / (SELECT SUM(cnt) FROM c), 1)
+                   END AS pct
+            FROM c;
+        """, (match_id,))
+        raw_outcomes = cur.fetchall()
+
+        label_map = {
+            "home": f"Vitória {fixture['home']}",
+            "draw": "Empate",
+            "away": f"Vitória {fixture['away']}",
+        }
+        outcomes = [
+            {"outcome": r["outcome"], "cnt": r["cnt"], "pct": r["pct"], "label": label_map.get(r["outcome"], r["outcome"])}
+            for r in raw_outcomes
+        ]
+        # keep order home/draw/away
+        outcomes.sort(key=lambda o: {"home": 1, "draw": 2, "away": 3}.get(o["outcome"], 99))
+
+        # Top exact scores
+        cur.execute("""
+            SELECT home_goals, away_goals, COUNT(*) AS cnt
+            FROM bet
+            WHERE match_id = ?
+            GROUP BY home_goals, away_goals
+            ORDER BY cnt DESC, home_goals, away_goals
+            LIMIT 10;
+        """, (match_id,))
+        top_scores = cur.fetchall()
+
+        # List all picks with user names
+        cur.execute("""
+            SELECT u.user_name, b.home_goals, b.away_goals
+            FROM bet b
+            JOIN users u ON u.id = b.user_id
+            WHERE b.match_id = ?
+            ORDER BY u.user_name COLLATE NOCASE;
+        """, (match_id,))
+        picks = cur.fetchall()
+
+        # --- build stacked bar values (safe for 0 total) ---
+        tot = sum(r["cnt"] for r in raw_outcomes) or 1
+        by = {r["outcome"]: r["cnt"] for r in raw_outcomes}
+        home_cnt = by.get("home", 0)
+        draw_cnt = by.get("draw", 0)
+        away_cnt = by.get("away", 0)
+
+        stack = {
+            "home_pct": round(100.0 * home_cnt / tot, 1),
+            "draw_pct": round(100.0 * draw_cnt / tot, 1),
+            "away_pct": round(100.0 * away_cnt / tot, 1),
+            "home_cnt": home_cnt,
+            "draw_cnt": draw_cnt,
+            "away_cnt": away_cnt,
+            "total": tot if tot != 1 or (home_cnt + draw_cnt + away_cnt) == 1 else 0,  # only for display
+        }
+
+    home_color = team_color(fixture["home"])
+    away_color = team_color(fixture["away"])
+    colors = {"home": home_color, "draw": DRAW_COLOR, "away": away_color}
+
+    def rgba(hex_color: str, a: float) -> str:
+        # hex like "#RRGGBB" -> "rgba(r,g,b,a)"
+        hex_color = hex_color.lstrip("#")
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return f"rgba({r},{g},{b},{a})"
+
+    # after you compute:
+    # colors = {"home": team_color(...), "draw": DRAW_COLOR, "away": team_color(...)}
+
+    bg = {
+        "home": rgba(colors["home"], 0.12),  # soft tint
+        "draw": rgba(colors["draw"], 0.12),
+        "away": rgba(colors["away"], 0.12),
+    }
+    # a stronger color for the left border accent
+    edge = {
+        "home": colors["home"],
+        "draw": colors["draw"],
+        "away": colors["away"],
+    }
+
+    html = render_template_string(
+        MATCH_BREAKDOWN,
+        fixture=fixture,
+        outcomes=outcomes,
+        top_scores=top_scores,
+        total_bets=total_bets,
+        picks=picks,
+        back_url=request.referrer or url_for("index"),
+        stack=stack,
+        colors=colors,  # <-- pass to template
+        bg=bg,
+        edge=edge,
+    )
+    return render_template_string(BASE, content=html)
+
 
 @app.route("/fase/<phase_slug>")
 def fase_page(phase_slug):
@@ -158,6 +301,17 @@ def fase_page(phase_slug):
                     m.get("final_home_goals"), m.get("final_away_goals")
                 )
 
+        # Build standings for ALL groups first
+        standings_by_group = {}
+        for gname, grows in groups.items():
+            standings_by_group[gname] = _compute_group_table_from_bets(grows, bets)
+
+        # Determine the 8 best third-placed teams (by user bets)
+        best3 = rank_best_thirds(standings_by_group)
+
+        # The table to display is the selected group's table
+        standings = standings_by_group.get(selected_group, [])
+
         html = render_template_string(
             MATCHES,
             groups=groups,
@@ -165,7 +319,9 @@ def fase_page(phase_slug):
             bets=bets,
             selected_group=selected_group,
             locked=locked,
-            points=points,  # <-- pass it
+            points=points,
+            standings=standings,  # current group's table
+            best3=best3,  # <-- pass set of team names
         )
     else:
         matches = [dict(r) for r in rows]
@@ -213,7 +369,23 @@ def ranking():
                 (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals) OR
                 (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)) THEN 5
           ELSE 0
-        END AS points
+        END AS points,
+        CASE
+          WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+          WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 1
+          WHEN ((b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals) OR
+                (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals) OR
+                (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)) THEN 0
+          ELSE 0
+        END AS number_exact_matches,
+        CASE
+          WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+          WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 0
+          WHEN ((b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals) OR
+                (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals) OR
+                (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)) THEN 1
+          ELSE 0
+        END AS number_result_matches
       FROM users u
       LEFT JOIN bet b      ON b.user_id = u.id
       LEFT JOIN fixtures f ON f.id      = b.match_id
@@ -224,6 +396,8 @@ def ranking():
       user_id,
       user_name,
       COALESCE(SUM(points),0) AS total_points,
+      COALESCE(SUM(number_exact_matches),0) AS number_exact_matches,
+      COALESCE(SUM(number_result_matches),0) AS number_result_matches,
 
       -- breakdown por fase
       COALESCE(SUM(CASE WHEN phase LIKE 'Group %'    THEN points END),0) AS pts_grupos,
@@ -245,7 +419,7 @@ def ranking():
 
     return render_template_string(
         BASE,
-        content=render_template_string(RANKING, rows=rows),
+        content=render_template_string(RANKING, rows=rows, current_id=session["id"]),
     )
 
 @app.route("/fase_grupos")

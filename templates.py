@@ -1,5 +1,3 @@
-
-# ---------- Templates ----------
 BASE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,7 +55,7 @@ BASE = """<!doctype html>
 
   /* Desktop/Tablet: two columns (Date/Time + Fixture) */
   .kick-col { width: 150px; text-align: center; white-space: nowrap; }
-  .kickoff  { font-size: 0.95rem; color: #6b7280; }
+  .kickoff  { font-size: 0.8rem; color: #6b7280; }
   .kick-mobile { display: none; } /* hidden on desktop */
 
   /* Fixture row grid */
@@ -72,6 +70,7 @@ BASE = """<!doctype html>
     align-items: center;
     column-gap: 8px;
   }
+
 
   /* Team: single line name + flag, no truncation; font scales to fit */
   .team {
@@ -94,10 +93,10 @@ BASE = """<!doctype html>
   }
 
   /* Consistent, compact flags */
-  .flagbox { flex: 0 0 auto; display: inline-block; width: 18px; height: 12px;
+  .flagbox { flex: 0 0 auto; display: inline-block; width: 24px; height: 15px;
              line-height: 0; border-radius: 2px; background: #fff;
              box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
-  .flagbox > img { width: 100%; height: 100%; object-fit: contain; }
+  .flagbox > img { width: 100%; height: 100%; object-fit: fill; }
 
   /* Sticky Save bar */
   .save-row {
@@ -133,8 +132,13 @@ BASE = """<!doctype html>
   }
   .fixtures .team .name { font-size: clamp(0.74rem, 3.2vw, 0.95rem); }
   .fixtures .score { width: 32px !important; height: 24px; font-size: 13.5px; }
-  .fixtures .flagbox { width: 16px; height: 10px; }
+  .fixtures .flagbox { width: 37px; height: 25px; }
+  
+
 }
+
+
+
 
   /* Very narrow phones */
   @media (max-width: 360px) {
@@ -144,13 +148,38 @@ BASE = """<!doctype html>
     }
     .team .name { font-size: clamp(0.70rem, 3.6vw, 0.90rem); }
     .score { width: 30px !important; height: 22px; font-size: 12.5px; }
-    .flagbox { width: 15px; height: 10px; }
+    .flagbox { width: 48px; height: 32px; }
   }
 </style>
 
 <style>
-  .left   { text-align: left; }
-  .center { text-align: center; }
+  /* already added earlier */
+  .table .top2 td{
+    background:#ecfdf5;            /* soft green for 1st/2nd */
+  }
+  .table .top2 td:first-child{
+    border-left:4px solid #34d399;
+  }
+
+  /* NEW: highlight 3rd place if among best eight third-placed teams */
+  .table .best3 td{
+    background:#ecfdf5;            /* soft blue */
+  }
+  .table .best3 td:first-child{
+    border-left:4px solid #34d399;
+  }
+</style>
+
+<style>
+  /* highlight the logged-in user's row in Ranking */
+  .table .me td{
+    background:#ecfdf5;          /* soft green */
+    font-weight:700;              /* bold text */
+  }
+  /* optional: subtle left border for emphasis */
+  .table .me td:first-child{
+    border-left:4px solid #34d399;
+  }
 </style>
 
 <style>
@@ -200,6 +229,277 @@ BASE = """<!doctype html>
   th.sortable::after { content:"⇅"; position:absolute; right:.35rem; opacity:.35; font-size:.85em; }
   th.sortable[data-order="asc"]::after  { content:"↑"; opacity:.85; }
   th.sortable[data-order="desc"]::after { content:"↓"; opacity:.85; }
+  
+  .stack-wrap{ margin:14px 0 8px; }
+.stack-bar{
+  height:14px; background:#eee; border-radius:999px; overflow:hidden;
+  display:flex; box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
+}
+.seg{ height:100%; }
+.seg-home{ background:#6366f1; }   /* indigo */
+.seg-draw{ background:#a3a3a3; }   /* neutral */
+.seg-away{ background:#22c55e; }   /* green  */
+.stack-legend{
+  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
+}
+.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
+.dot{
+  width:10px; height:10px; border-radius:50%;
+  display:inline-block;
+}
+.dot-home{ background:#6366f1; }
+.dot-draw{ background:#a3a3a3; }
+.dot-away{ background:#22c55e; }
+.muted{ color:#666; }
+@media (max-width: 640px){
+  .stack-legend{ grid-template-columns: 1fr; }
+}
+
+.stack-legend{
+  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
+}
+.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
+.flag{ width:48px; height:32px; object-fit:cover; border:1px solid #ddd; border-radius:2px; }
+.abbr{ font-weight:600; } /* fallback text if no flag URL */
+.badge-draw{
+  padding:2px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb;
+  font-weight:600; font-size:13px;
+}
+@media (max-width: 640px){
+  .stack-legend{ grid-template-columns: 1fr; }
+}
+
+</style>
+
+<style>
+.stack-wrap{ margin:14px 0 8px; }
+.stack-bar{
+  height:14px; background:#eee; border-radius:999px; overflow:hidden;
+  display:flex; box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
+}
+.seg{ height:100%; }
+
+.stack-legend{
+  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
+}
+.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
+.flag{ width:48px; height:32px; object-fit:cover; border:1px solid #ddd; border-radius:2px; }
+.abbr{ font-weight:600; }
+.badge-draw{
+  padding:2px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb;
+  font-weight:600; font-size:13px;
+}
+.color-dot{
+  width:10px; height:10px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.06);
+}
+@media (max-width: 640px){
+  .stack-legend{ grid-template-columns: 1fr; }
+}
+</style>
+
+<style>
+/* Horizontal slider container */
+.table-hscroll{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth iOS/Android swipe */
+  scrollbar-width: thin;             /* Firefox */
+}
+
+/* Ensure content can overflow to trigger scroll */
+.table-hscroll > table{
+  min-width: 640px;   /* tweak if needed: 600–720px works well */
+}
+
+/* Optional: a subtle right-edge fade to hint scrollability */
+.table-hscroll{
+  position: relative;
+}
+.table-hscroll:after{
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(255,255,255,0.9), rgba(255,255,255,0));
+}
+
+/* Tighten inputs on small screens so less overflow happens */
+@media (max-width: 520px){
+  .score{
+    width: 2.2rem;   /* was larger; shrink slightly */
+    padding: .25rem .35rem;
+  }
+  .sep{ margin: 0 .25rem; }
+  .fixture-row .name{ font-size: .95rem; }
+}
+
+/* Keep “Ver palpites” readable but compact on mobile */
+.button.small{
+  padding: .35rem .55rem;
+  font-size: .9rem;
+}
+
+</style>
+
+<style>
+/* Remove the thin white vertical line */
+table {
+  border-collapse: collapse;     /* unify background colors between cells */
+  width: 100%;
+}
+
+tr, th, td {
+  border: none;                  /* prevent tiny cell borders */
+  background-clip: padding-box;  /* ensures background extends fully */
+}
+
+/* If your header uses a gradient or color */
+th {
+  background-color: #007BFF;     /* or your desired header color */
+  color: white;
+}
+
+/* Optional: unify the background of alternating rows */
+tbody tr:nth-child(even) {
+  background-color: #f8f9fa;     /* light gray */
+}
+tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+.fixture-row {
+  background-color: inherit;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* tables render consistently and no seams between cells */
+.fixtures table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+/* columns */
+th.kick-col, td.kick-col { width: 88px; white-space: nowrap; }
+th.bets-col, td.bets-col { width: 120px; text-align: center; }
+td.fixture-cell { width: auto; }  /* takes the remaining space */
+
+/* make the middle cell actually fill */
+.fixtures td.fixture-cell { display: table-cell; width: auto; }
+.fixture-row  { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* inputs compact on mobile so less spillover */
+@media (max-width:520px){
+  .score { width: 2.3rem; padding: .25rem .35rem; }
+  .sep { margin: 0 .25rem; }
+}
+
+/* remove tiny borders/gaps some mobiles render */
+.fixtures table td, .fixtures table th {
+  border: 0;
+  background-clip: padding-box;
+}
+
+</style>
+<style>
+    .fixture-row{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
+    .score-wrap{ display:flex; align-items:center; gap:6px; }
+    .score{ width:44px; height:36px; line-height:36px; text-align:center; font-variant-numeric:tabular-nums; box-sizing:border-box; }
+    .sep{ display:flex; align-items:center; justify-content:center; width:14px; height:36px; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    input[type=number]{ -moz-appearance:textfield; }
+    @media (max-width:520px){ .score{ width:38px; height:34px; line-height:34px; } .sep{ height:34px; } }
+    
+    /* Horizontal slider on mobile */
+
+/* --- general: do NOT clip the table horizontally --- */
+.fixtures, .table-wrap { overflow: visible; }      /* ensure parents don't clip */
+.table-wrap{
+  overflow-x: auto;                                /* horizontal slider on phones */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* desktop / default: let content decide widths */
+.table-wrap > table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  min-width: 0;
+}
+
+/* column model: compact sides, flexible middle */
+.c-kick   { width: 96px; }
+.c-bets   { width: 132px; }
+.c-fixture{ width: 100%; }
+
+th.kick-col, td.kick-col,
+th.bets-col, td.bets-col { white-space: nowrap; }
+
+/* prevent the middle cell from overflowing into the right one */
+td.fixture-cell{ overflow: hidden; }
+
+/* subtle zebra applied to the whole row (prevents seams) */
+.fixtures table tbody tr:nth-child(even) td { background:#f6f9ff; }
+.fixtures table tbody tr:nth-child(odd)  td { background:#fff; }
+
+/* inner layout for scores (keeps inputs aligned) */
+.fixture-row{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;  /* team | score | team */
+  align-items: center;
+  gap: 8px;
+}
+.score-wrap{ display:flex; align-items:center; gap:6px; }
+.score{ width:44px; height:36px; line-height:36px; text-align:center; font-variant-numeric:tabular-nums; box-sizing:border-box; }
+.sep{ display:flex; align-items:center; justify-content:center; width:14px; height:36px; }
+
+/* tighter on small phones; keep scroll instead of squeezing */
+@media (max-width: 475px){
+  .table-wrap > table{
+    table-layout: fixed;     /* honor the colgroup widths */
+    min-width: 475px;        /* force horizontal scroll; no overlap, nothing cut off */
+  }
+  .c-kick   { width: 100%; }
+  .c-bets   { width: 150px; }
+  .score{ width:70px; height:4px; line-height:34px; }
+  .sep{ height:34px; }
+}
+
+/* input spinner removal */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+input[type=number]{ -moz-appearance:textfield; }
+
+.clickable{ cursor:pointer; }
+.score-row.active{ outline:2px solid #2563eb; background: #eff6ff; }
+.pick-row[style*="display: none"] { /* nothing; just to remind what's happening */ }
+
+/* Row tint on ALL cells */
+.score-row td,
+.pick-row  td{
+  background: var(--bg) !important;   /* light fill across the row */
+}
+
+/* Nice colored edge using a pseudo element (more reliable than border-left) */
+.score-row,
+.pick-row{
+  position: relative;
+}
+.score-row::before,
+.pick-row::before{
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 1px;
+  background: var(--edge);
+  border-top-left-radius: 0px;   /* match your table’s rounding if any */
+  border-bottom-left-radius: 0px;
+}
+
+/* Keep hover/active without changing the background tint */
+.score-row:hover{ filter: brightness(0.985); }
+.score-row.active{
+  box-shadow: 0 0 0 5px #2563eb inset;  /* focus ring, does not override bg */
+}
+
+
 </style>
 
 <main>
@@ -223,19 +523,27 @@ RANKING = """
   <table id="rankTable" class="table">
     <thead>
       <tr>
-        <th class="sortable center" data-type="num"  style="width:60px;">Pos</th>
+        <th class="center" style="width:60px;">Pos</th>  {# no 'sortable' here #}
         <th class="sortable left"  data-type="text">Jogador</th>
+        <th class="sortable center" data-type="num">Resultados Exatos</th>
+        <th class="sortable center" data-type="num">Resultados Parciais</th>
         <th class="sortable center" data-type="num">Total Pontos</th>
       </tr>
     </thead>
     <tbody>
       {% for r in rows %}
-        <tr>
+        <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
           <td class="center" data-label="Pos" data-val="{{ loop.index }}">
             <span class="cell-value">{{ loop.index }}</span>
           </td>
           <td class="left" data-label="Jogador">
             <span class="cell-value">{{ r['user_name'] }}</span>
+          </td>
+          <td class="center" data-label="Resultados Exatos" data-val="{{ r['number_exact_matches'] }}">
+            <span class="cell-value">{{ r['number_exact_matches'] }}</span>
+          </td>
+          <td class="center" data-label="Resultados Parciais" data-val="{{ r['number_result_matches'] }}">
+            <span class="cell-value">{{ r['number_result_matches'] }}</span>
           </td>
           <td class="center" data-label="Total Pontos" data-val="{{ r['total_points'] }}">
             <span class="cell-value">{{ r['total_points'] }}</span>
@@ -386,12 +694,19 @@ MATCHES = """
     <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
       <!-- keep user on the same group after saving -->
       <input type="hidden" name="group" value="{{ selected_group }}">
-
+      <div class="table-wrap">
       <table>
+      <colgroup>
+        <col class="c-kick">     <!-- date/time -->
+        <col class="c-fixture">  <!-- match (flexes) -->
+        <col class="c-bets">     <!-- button -->
+      </colgroup>
+
         <thead>
           <tr>
             <th class="kick-col">Data</th>
             <th>Jogo</th>
+            <th class="bets-col">Palpites</th>
           </tr>
         </thead>
         <tbody>
@@ -416,14 +731,17 @@ MATCHES = """
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
                 </div>
 
-                <!-- Scores -->
-                <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
-                       value="{{ b['home_goals'] if b else '' }}"
-                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                <div class="sep">x</div>
-                <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
-                       value="{{ b['away_goals'] if b else '' }}"
-                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+            <div class="score-wrap" role="group" aria-label="Palpite de placar">
+              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
+                     name="h_{{ m['id'] }}"
+                     value="{{ b['home_goals'] if b else '' }}"
+                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+              <span class="sep" aria-hidden="true">x</span>
+              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
+                     name="a_{{ m['id'] }}"
+                     value="{{ b['away_goals'] if b else '' }}"
+                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+            </div>
 
                 <!-- AWAY -->
                 <div class="team right">
@@ -436,25 +754,35 @@ MATCHES = """
               {# Official result below, centered #}
               {% set fh = m.get('final_home_goals') %}
               {% set fa = m.get('final_away_goals') %}
-            {# NEW: points pill (shows only if we can score this pick) #}
-            {% set pts = points.get(m['id']) %}
-            {# Show result line only if there is an official result #}
-                {% if fh is not none and fa is not none %}
-                  <div class="result-line">
-                    <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-                
-                    {# points to the right of the result #}
-                    {% if pts is not none %}
-                      <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                    {% endif %}
-                  </div>
-                {% endif %}
+              {# NEW: points pill (shows only if we can score this pick) #}
+              {% set pts = points.get(m['id']) %}
+              {# Show result line only if there is an official result #}
+              {% if fh is not none and fa is not none %}
+                <div class="result-line">
+                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
 
+                  {# points to the right of the result #}
+                  {% if pts is not none %}
+                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
             </td>
+
+            <!-- NEW: Bets column cell -->
+            <!--
+            <td class="bets-col">
+              <a class="button small" href="{{ url_for('match_detail', match_id=m['id']) }}" aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                Ver palpites
+              </a>
+            </td>-->
+            
+            
           </tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
 
       <div class="save-row">
         {% if locked %}
@@ -469,9 +797,48 @@ MATCHES = """
   {% endif %}
 </div>
 
+{% if standings and standings|length >= 1 %}
+  <h3 style="margin-top:1rem;">Classificação (meu palpite)</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="center" style="width:60px;">Pos</th>
+          <th class="left">Seleção</th>
+          <th class="center">J</th>
+          <th class="center">V</th>
+          <th class="center">E</th>
+          <th class="center">D</th>
+          <th class="center">GP</th>
+          <th class="center">GC</th>
+          <th class="center">SG</th>
+          <th class="center">Pts</th>
+        </tr>
+      </thead>
+    <tbody>
+      {% for r in standings %}
+        <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
+          <td class="center">{{ r.rank }}</td>
+          <td class="left">{{ r.team }}</td>
+          <td class="center">{{ r.played }}</td>
+          <td class="center">{{ r.won }}</td>
+          <td class="center">{{ r.draw }}</td>
+          <td class="center">{{ r.lost }}</td>
+          <td class="center">{{ r.gf }}</td>
+          <td class="center">{{ r.ga }}</td>
+          <td class="center">{{ r.gd }}</td>
+          <td class="center"><strong>{{ r.pts }}</strong></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </div>
+{% endif %}
+
 <style>
   input[disabled]{opacity:.6; cursor:not-allowed;}
   button[disabled]{opacity:.6; cursor:not-allowed;}
+  .button.small{ padding:.3rem .6rem; font-size:.9rem; }
 
   .official-result{
     display:flex;
@@ -566,16 +933,35 @@ FLAT_PHASE_PAGE = """
 
 <div class="fixtures">
   <form method="post" action="{{ action_url or url_for('save_picks', phase_slug=phase_slug) }}">
-    <table>
-      <thead>
-        <tr><th class="kick-col">Data</th><th>Jogo</th></tr>
-      </thead>
-      <tbody>
+
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col class="c-kick">     <!-- date/time -->
+          <col class="c-fixture">  <!-- match (flexes) -->
+          <col class="c-bets">     <!-- button -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th class="kick-col">Data</th>
+            <th>Jogo</th>
+            <th class="bets-col">Palpites</th>
+          </tr>
+        </thead>
+
+        <tbody>
         {% for m in matches %}
           {% set b = bets.get(m['id']) %}
           <tr>
-            <td class="kick-col"><div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div></td>
+            <!-- Data -->
+            <td class="kick-col">
+              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+            </td>
+
+            <!-- Fixture -->
             <td class="fixture-cell">
+              <!-- Mobile-only date -->
               <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
 
               <div class="fixture-row">
@@ -583,43 +969,57 @@ FLAT_PHASE_PAGE = """
                 <div class="team left">
                   <span class="name">{{ m['home'] }}</span>
                   {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
                 </div>
 
-                <!-- Scores -->
-                <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
-                       value="{{ b['home_goals'] if b else '' }}"
-                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                <div class="sep">x</div>
-                <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
-                       value="{{ b['away_goals'] if b else '' }}"
-                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <!-- Scores (aligned) -->
+                <div class="score-wrap" role="group" aria-label="Palpite de placar">
+                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                         name="h_{{ m['id'] }}"
+                         value="{{ b['home_goals'] if b else '' }}"
+                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                  <span class="sep" aria-hidden="true">x</span>
+                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                         name="a_{{ m['id'] }}"
+                         value="{{ b['away_goals'] if b else '' }}"
+                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                </div>
 
                 <!-- AWAY -->
                 <div class="team right">
                   {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
                   <span class="name">{{ m['away'] }}</span>
                 </div>
               </div>
 
-              {# Official result below, centered #}
+              {# Official result + points #}
               {% set fh = m.get('final_home_goals') %}
               {% set fa = m.get('final_away_goals') %}
               {% set pts = points.get(m['id']) %}
-                {% if fh is not none and fa is not none %}
-                  <div class="result-line">
-                    <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-                    {% if pts is not none %}
-                      <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                    {% endif %}
-                  </div>
-                {% endif %}
+              {% if fh is not none and fa is not none %}
+                <div class="result-line">
+                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
+                  {% if pts is not none %}
+                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </td>
+
+            <!-- Bets link -->
+            <td class="bets-col">
+              <a class="button small"
+                 href="{{ url_for('match_detail', match_id=m['id']) }}"
+                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                 Ver palpites
+              </a>
             </td>
           </tr>
         {% endfor %}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
 
     <div class="save-row">
       {% if locked %}
@@ -630,24 +1030,153 @@ FLAT_PHASE_PAGE = """
     </div>
   </form>
 </div>
+"""
 
-<style>
-  input[disabled]{opacity:.6; cursor:not-allowed;}
-  button[disabled]{opacity:.6; cursor:not-allowed;}
+MATCH_BREAKDOWN = """
+<div class="section">
+  <h2 style="margin: 0 0 6px 0;">{{ fixture['home'] }} x {{ fixture['away'] }}</h2>
+  <div style="color:#666; font-size:14px; margin-bottom:10px;"></div>
 
-  .official-result{
-    display:flex;
-    justify-content:center;
-    margin-top:.35rem;
+  {% if total_bets == 0 %}
+    <p style="color:#666">No bets for this match yet.</p>
+  {% else %}
+    <!-- Stacked bar -->
+    <div class="stack-wrap" aria-label="Distribuição de palpites">
+      <div class="stack-bar" role="img"
+           aria-label="{{ fixture['home'] }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away'] }} {{ stack.away_pct }} por cento">
+        <div class="seg" style="width: {{ stack.home_pct }}%; background: {{ colors.home }};"
+             title="{{ fixture['home'] }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
+        <div class="seg" style="width: {{ stack.draw_pct }}%; background: {{ colors.draw }};"
+             title="Empate: {{ stack.draw_cnt }} ({{ stack.draw_pct }}%)"></div>
+        <div class="seg" style="width: {{ stack.away_pct }}%; background: {{ colors.away }};"
+             title="{{ fixture['away'] }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
+      </div>
+
+      <!-- Legend with flags -->
+      <div class="stack-legend">
+        <div class="legend-item">
+          {% set fhome = flag(fixture['home']) %}
+          {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home'] }}">{% else %}<span class="abbr">{{ fixture['home'] }}</span>{% endif %}
+          <span class="color-dot" style="background: {{ colors.home }};"></span>
+          <span class="muted">{{ stack.home_pct }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="badge-draw">Empate</span>
+          <span class="color-dot" style="background: {{ colors.draw }};"></span>
+          <span class="muted">{{ stack.draw_pct }}%</span>
+        </div>
+        <div class="legend-item">
+          {% set faway = flag(fixture['away']) %}
+          {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away'] }}">{% else %}<span class="abbr">{{ fixture['away'] }}</span>{% endif %}
+          <span class="color-dot" style="background: {{ colors.away }};"></span>
+          <span class="muted">{{ stack.away_pct }}%</span>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+<!-- Top exact-score picks -->
+<table class="table" id="top-scores">
+  <thead>
+    <tr><th>Score</th><th>Picks</th><th>%</th></tr>
+  </thead>
+<tbody>
+  {% for r in top_scores %}
+    {% set score = r['home_goals'] ~ '-' ~ r['away_goals'] %}
+    {% set outcome = 'draw' if r['home_goals'] == r['away_goals']
+                     else ('home' if r['home_goals'] > r['away_goals'] else 'away') %}
+    <tr class="score-row clickable o-{{ outcome }}"
+        data-score="{{ score }}"
+        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};"
+        title="Mostrar quem apostou {{ score }}">
+      <td>{{ r['home_goals'] }}–{{ r['away_goals'] }}</td>
+      <td>{{ r['cnt'] }}</td>
+      <td>{{ (100.0 * r['cnt'] / total_bets) | round(1) }}%</td>
+    </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+<h3 style="margin-top:18px;">
+  All picks
+  <small id="filter-chip" style="display:none; margin-left:.5rem;"></small>
+</h3>
+<table class="table" id="all-picks">
+  <thead>
+    <tr><th>Jogador</th><th>Palpite</th></tr>
+  </thead>
+<tbody>
+  {% for p in picks %}
+    {% set score = p['home_goals'] ~ '-' ~ p['away_goals'] %}
+    {% set outcome = 'draw' if p['home_goals'] == p['away_goals']
+                     else ('home' if p['home_goals'] > p['away_goals'] else 'away') %}
+    <tr class="pick-row o-{{ outcome }}" data-score="{{ score }}"
+        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};">
+      <td>{{ p['user_name'] }}</td>
+      <td>{{ p['home_goals'] }}–{{ p['away_goals'] }}</td>
+    </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+<script>
+(function(){
+  const scoreRows = Array.from(document.querySelectorAll('#top-scores .score-row'));
+  const pickRows  = Array.from(document.querySelectorAll('#all-picks .pick-row'));
+
+  // Create the chip if missing to avoid null errors
+  let chip = document.getElementById('filter-chip');
+  if (!chip) {
+    const h3 = document.querySelector('h3 + table#all-picks')?.previousElementSibling;
+    chip = document.createElement('small');
+    chip.id = 'filter-chip'; chip.style.display = 'none'; chip.style.marginLeft = '.5rem';
+    if (h3) h3.appendChild(chip);
   }
-  .final-pill{
-    display:inline-block; padding:.15rem .45rem;
-    border-radius:999px; font-weight:600; font-variant-numeric:tabular-nums;
-    background:#eef2ff; border:1px solid #c7d2fe; color:#1f2937;
-    white-space:nowrap;
+
+  let active = null; // e.g. "2-1"
+
+  function updateChip(){
+    if (!chip) return;
+    if (!active){
+      chip.style.display = 'none';
+      chip.textContent = '';
+      return;
+    }
+    const visible = pickRows.filter(tr => tr.style.display !== 'none').length;
+    chip.style.display = '';
+    chip.innerHTML = `Filtro: <strong>${active}</strong> • ${visible} usuário(s)
+      <a href="#" id="clear-filter" style="margin-left:.4rem;">limpar</a>`;
+    chip.querySelector('#clear-filter').addEventListener('click', function(e){
+      e.preventDefault(); clearFilter();
+    }, {once:true});
   }
-  @media (max-width: 520px){
-    .official-result{ margin-top:.25rem; }
+
+  function applyFilter(score){
+    active = score;
+    scoreRows.forEach(tr => tr.classList.toggle('active', tr.dataset.score === score));
+    pickRows.forEach(tr => { tr.style.display = (tr.dataset.score === score) ? '' : 'none'; });
+    updateChip();
+    document.getElementById('all-picks').scrollIntoView({behavior:'smooth', block:'start'});
   }
-</style>
+
+  function clearFilter(){
+    active = null;
+    scoreRows.forEach(tr => tr.classList.remove('active'));
+    pickRows.forEach(tr => { tr.style.display = ''; });
+    updateChip();
+  }
+
+  // Hook up events
+  scoreRows.forEach(tr => {
+    tr.addEventListener('click', () => (active === tr.dataset.score) ? clearFilter() : applyFilter(tr.dataset.score));
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tr.click(); }});
+    tr.tabIndex = 0;
+  });
+})();
+</script>
+
+  <div style="margin-top:16px;">
+    <a href="{{ back_url }}">&larr; Voltar</a>
+  </div>
+</div>
 """
