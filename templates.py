@@ -452,13 +452,14 @@ td.fixture-cell{ overflow: hidden; }
 .sep{ display:flex; align-items:center; justify-content:center; width:14px; height:36px; }
 
 /* tighter on small phones; keep scroll instead of squeezing */
-@media (max-width: 475px){
+@media (max-width: 500px){
   .table-wrap > table{
-    table-layout: fixed;     /* honor the colgroup widths */
-    min-width: 475px;        /* force horizontal scroll; no overlap, nothing cut off */
+    table-layout: auto;     /* honor the colgroup widths */
+    min-width: 350px;        /* force horizontal scroll; no overlap, nothing cut off */
   }
   .c-kick   { width: 100%; }
-  .c-bets   { width: 150px; }
+  .c-bets   { width: 100%; }
+  .c-fixture   { width: 0px; }
   .score{ width:70px; height:4px; line-height:34px; }
   .sep{ height:34px; }
 }
