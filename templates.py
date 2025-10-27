@@ -670,196 +670,588 @@ LOGIN = """
 </form>
 """
 
+MATCHES_2 = """
+<h2>Copa do Mundo 2026</h2>
+<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+
+<!-- Toolbar -->
+<div class="toolbar simple">
+  <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
+    <select id="groupSelect" name="group" onchange="this.form.submit()">
+      {% for g in group_order %}
+        <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="page-grid">
+  <!-- LEFT: TABELA -->
+  <aside class="left-card card">
+    <h3 class="card-title">TABELA</h3>
+    {% if standings and standings|length >= 1 %}
+    <div class="table-wrap">
+      <table class="table standings">
+        <thead>
+          <tr>
+            <th class="center pos">#</th>
+            <th class="left">Seleção</th>
+            <th class="center">P</th>
+            <th class="center">J</th>
+            <th class="center">V</th>
+            <th class="center">SG</th>
+            <th class="center">GP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in standings %}
+          <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and (best3 is defined and r.team in best3) %}best3{% endif %}">
+            <td class="center pos"><span class="cell">{{ r.rank }}</span></td>
+            <td class="left">
+              <div class="team">
+                {% set fu = flag(r.team) %}
+                {% if fu %}<img class="crest" src="{{ fu }}" alt="">{% endif %}
+                <span class="name">{{ r.team }}</span>
+              </div>
+            </td>
+            <td class="center"><strong class="mono">{{ r.pts }}</strong></td>
+            <td class="center mono">{{ r.played }}</td>
+            <td class="center mono">{{ r.won }}</td>
+            <td class="center mono">{{ r.gd }}</td>
+            <td class="center mono">{{ r.gf }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p>Sem classificação disponível.</p>
+    {% endif %}
+  </aside>
+
+  <!-- RIGHT: MATCHES -->
+  <section class="right-card card flat">
+    <div class="matches-compact">
+      {% if groups.get(selected_group) %}
+      <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
+        <input type="hidden" name="group" value="{{ selected_group }}">
+
+        {% for m in groups[selected_group] %}
+          {% set b = bets.get(m['id']) %}
+          <div class="match-line">
+            <!-- left meta -->
+            <div class="meta">
+              <div class="dow">{{ m.get('weekday','') }}</div>
+                <div class="meta">
+                  <span class="date">{{ m.kickoff_utc | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
+                </div>
+              
+              {% if m.get('stadium') %}
+                <div class="stadium">{{ m['stadium'] }}</div>
+              {% endif %}
+            </div>
+
+            <!-- teams + inputs -->
+            <div class="fixture-flat">
+              <!-- HOME -->
+              <div class="side home">
+                {% set fuh = flag(m['home']) %}
+                <span class="abbr">{{ (m.get('home_abbr') or (m['home']|abbr3)) }}</span>
+                {% if fuh %}<img class="crest" src="{{ fuh }}" alt="">{% endif %}
+              </div>
+
+              <!-- Inputs -->
+              <div class="middle">
+                <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                       name="h_{{ m['id'] }}"
+                       value="{{ b['home_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <span class="x">x</span>
+                <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                       name="a_{{ m['id'] }}"
+                       value="{{ b['away_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+              </div>
+
+              <!-- AWAY -->
+              <div class="side away">
+                {% set fua = flag(m['away']) %}
+                {% if fua %}<img class="crest" src="{{ fua }}" alt="">{% endif %}
+                <span class="abbr">{{ (m.get('away_abbr') or (m['away']|abbr3)) }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+        <div class="save-row right">
+          {% if locked %}
+            <button type="button" class="button" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
+          {% else %}
+            <button class="button">Salvar {{ selected_group }}</button>
+          {% endif %}
+        </div>
+      </form>
+      {% else %}
+        <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<style>
+/* ---- Design tokens (tweak here) ---- */
+:root{
+  --bg:#fff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --rule:#e5e7eb;
+  --card:#ffffff;
+  --radius:10px;
+  --gap:28px;        /* space between the two columns */
+  --colL: 380px;     /* min width standings column */
+  --colBias: 30%;    /* % width for left column on wide screens */
+  --metaW: 220px;    /* width of left meta inside match rows */
+  --inputW: 24px;    /* score box width */
+  --inputH: 20px;    /* score box height */
+}
+
+/* Layout grid (bias to the RIGHT column, like Globo) */
+.page-grid{
+  display:grid;
+  grid-template-columns: minmax(var(--colL), var(--colBias)) minmax(0, calc(100% - var(--colBias)));
+  gap: var(--gap);
+  align-items:start;
+}
+
+/* Cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid rgba(3,7,18,0.05);
+  box-shadow:0 6px 18px rgba(15,23,42,0.06);
+  padding:20px 16px 12px;
+}
+.card.flat{ box-shadow:none; border:1px solid rgba(3,7,18,0.04); }
+.card-title{ margin:0 0 10px; font-size:16px; color:var(--ink); }
+
+/* Table (standings) */
+.table{ width:100%; border-collapse:collapse; font-size:14px; color:var(--ink); }
+.table th, .table td{ padding:8px 10px; border-bottom:1px solid var(--rule); }
+.table th{ font-weight:600; text-transform:uppercase; font-size:12px; color:#8a8f99; letter-spacing:.04em; }
+.center{text-align:center} .left{text-align:left}
+.pos{ width:48px; }
+.team{ display:flex; align-items:center; gap:8px; }
+.crest{ width:22px; height:22px; border-radius:50%; background:#fff; object-fit:cover; }
+.name{ overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.mono{ font-variant-numeric: tabular-nums; }
+
+/* Highlighting for qualifiers (subtle, like interativos) */
+tr.top2{ background:linear-gradient(90deg, rgba(0,128,0,.06), rgba(0,128,0,.02)); }
+tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,.02)); }
+
+/* Matches list (flat rows with a left meta band) */
+.matches-compact{ padding-top:4px; }
+/* STACK layout: date/time on top, match under it */
+.match-line{
+  display:grid;
+  grid-template-columns: 1fr;
+  row-gap: 6px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--rule);
+}
+.match-line .meta{
+  justify-content: center;   /* centers the flex row */
+  text-align: center;        /* centers any wrapped text */
+}
+
+/* compact "date line" */
+.meta{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.meta .date{ font-variant-numeric: tabular-nums; }
+
+.fixture-flat{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
+  align-items:center; column-gap: 20px; min-width:0;
+}
+.side{ display:flex; align-items:center; gap:6px; min-width:0; }
+.side.home{ justify-content:flex-end; }
+.abbr{ font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Center inputs */
+.middle{ display:flex; align-items:center; justify-content:center; gap:8px; }
+.box{
+  width:var(--inputW); height:var(--inputH); text-align:center;
+  border:1px solid #d1d5db; border-radius:6px; background:#fff;
+  font-variant-numeric: tabular-nums;
+}
+.box:focus{ outline:2px solid #93c5fd; outline-offset:1px; }
+.box[disabled]{ background:#f3f4f6; color:#9ca3af; }
+
+/* Buttons / selects to match vibe */
+.button{
+  display:inline-block; padding:8px 14px; border-radius:8px;
+  background:#0ea5e9; color:white; border:0; cursor:pointer;
+  font-weight:600; text-decoration:none;
+}
+.button[disabled]{ background:#9ca3af; cursor:not-allowed; }
+select{ padding:6px 8px; border:1px solid #d1d5db; border-radius:8px; }
+
+/* Utilities */
+.save-row.right{ padding-top:12px; text-align:right; }
+
+/* Responsive: collapse to single column */
+@media (max-width: 900px){
+  .page-grid{ grid-template-columns: 1fr; }
+  .left-card{ order:2; }
+  .right-card{ order:1; }
+  :root{ --metaW: 140px; }
+}
+</style>
+"""
+
 MATCHES = """
 <h2>Copa do Mundo 2026</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
-<div class="fixtures">
+<div class="page-grid">
 
-  <!-- Sticky group selector -->
-  <div class="toolbar">
+  <!-- FILTER spans both columns -->
+  <div class="filter-card">
     <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
-      <label>Group:&nbsp;
-        <select name="group" onchange="document.getElementById('groupFilter').submit()">
-          {% for g in group_order %}
-            <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
-          {% endfor %}
-        </select>
-      </label>
+      <select id="groupSelect" name="group" onchange="this.form.submit()">
+        {% for g in group_order %}
+          <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
+        {% endfor %}
+      </select>
     </form>
   </div>
 
-  {% if groups.get(selected_group) %}
-    <h3>{{ selected_group }}</h3>
-
-    <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
-      <!-- keep user on the same group after saving -->
-      <input type="hidden" name="group" value="{{ selected_group }}">
-      <div class="table-wrap">
-      <table>
-      {% set show_bets_col = locked %}
-
-    <colgroup>
-      <col class="c-kick">
-      <col class="c-fixture">
-      {% if show_bets_col %}<col class="c-bets">{% endif %}
-    </colgroup>
-
-<thead>
-  <tr>
-    <th class="kick-col">Data</th>
-    <th>Jogo</th>
-    {% if show_bets_col %}<th class="bets-col">Palpites</th>{% endif %}
-  </tr>
-</thead>
-        <tbody>
-        {% for m in groups[selected_group] %}
-          {% set b = bets.get(m['id']) %}
+  <!-- LEFT: TABELA -->
+  <aside class="left-card card">
+    <h3 class="card-title">TABELA</h3>
+    {% if standings and standings|length >= 1 %}
+    <div class="table-wrap">
+      <table class="table standings">
+        <thead>
           <tr>
-            <!-- Desktop/Tablet: Data column -->
-            <td class="kick-col">
-              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
-            </td>
-
-            <!-- Fixture column -->
-            <td class="fixture-cell">
-              <!-- Mobile-only Data -->
-              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
-
-              <div class="fixture-row">
-                <!-- HOME -->
-                <div class="team left">
-                  <span class="name">{{ m['home'] }}</span>
-                  {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                </div>
-
-            <div class="score-wrap" role="group" aria-label="Palpite de placar">
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="h_{{ m['id'] }}"
-                     value="{{ b['home_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-              <span class="sep" aria-hidden="true">x</span>
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="a_{{ m['id'] }}"
-                     value="{{ b['away_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-            </div>
-
-                <!-- AWAY -->
-                <div class="team right">
-                  {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                  <span class="name">{{ m['away'] }}</span>
-                </div>
-              </div>
-
-              {# Official result below, centered #}
-              {% set fh = m.get('final_home_goals') %}
-              {% set fa = m.get('final_away_goals') %}
-              {# NEW: points pill (shows only if we can score this pick) #}
-              {% set pts = points.get(m['id']) %}
-              {# Show result line only if there is an official result #}
-              {% if fh is not none and fa is not none %}
-                <div class="result-line">
-                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-
-                  {# points to the right of the result #}
-                  {% if pts is not none %}
-                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </td>
-
-          {% if show_bets_col %}
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
-                Ver palpites
-              </a>
-            </td>
-          {% endif %}
-            
+            <th class="center pos">#</th>
+            <th class="left">Seleção</th>
+            <th class="center">P</th>
+            <th class="center">J</th>
+            <th class="center">V</th>
+            <th class="center">SG</th>
+            <th class="center">GP</th>
           </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+          {% for r in standings %}
+          <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and (best3 is defined and r.team in best3) %}best3{% endif %}">
+            <td class="center pos"><span class="cell">{{ r.rank }}</span></td>
+            <td class="left">
+              <div class="team">
+                {% set fu = flag(r.team) %}
+                {% if fu %}<img class="crest" src="{{ fu }}" alt="">{% endif %}
+                <span class="name">{{ r.team }}</span>
+              </div>
+            </td>
+            <td class="center"><strong class="mono">{{ r.pts }}</strong></td>
+            <td class="center mono">{{ r.played }}</td>
+            <td class="center mono">{{ r.won }}</td>
+            <td class="center mono">{{ r.gd }}</td>
+            <td class="center mono">{{ r.gf }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
-      </div>
+    </div>
+    {% else %}
+      <p>Sem classificação disponível.</p>
+    {% endif %}
+  </aside>
 
-      <div class="save-row">
-        {% if locked %}
-          <button type="button" class="button" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
-        {% else %}
-          <button class="button">Salvar {{ selected_group }}</button>
-        {% endif %}
-      </div>
-    </form>
-  {% else %}
-    <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
-  {% endif %}
+  <!-- RIGHT: MATCHES -->
+  <section class="right-card card flat">
+    <div class="matches-compact">
+      {% if groups.get(selected_group) %}
+      <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
+        <input type="hidden" name="group" value="{{ selected_group }}">
+
+        {% for m in groups[selected_group] %}
+          {% set b = bets.get(m['id']) %}
+          <div class="match-line">
+            <!-- date (centered) -->
+            <div class="meta">
+              <span class="date">{{ m.kickoff_utc | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
+              {% if m.get('stadium') %}
+                <span class="stadium">• {{ m['stadium'] }}</span>
+              {% endif %}
+            </div>
+
+            <!-- teams + inputs -->
+            <div class="fixture-flat">
+              <!-- HOME -->
+              <div class="side home">
+                  {% set fuh = flag(m['home']) %}
+                  <!-- full name (desktop) -->
+                  <span class="team-name full">{{ m['home'] }}</span>
+                  <!-- abbreviation (mobile) -->
+                  <span class="team-name abbr">{{ m.get('home_abbr') or (m['home']|abbr3) }}</span>
+                  {% if fuh %}<img class="crest" src="{{ fuh }}" alt="">{% endif %}
+              </div>
+
+              <!-- Inputs -->
+              <div class="middle">
+                <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                       name="h_{{ m['id'] }}"
+                       value="{{ b['home_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+                <span class="x">x</span>
+                <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                       name="a_{{ m['id'] }}"
+                       value="{{ b['away_goals'] if b else '' }}"
+                       {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+              </div>
+
+              <!-- AWAY -->
+              <div class="side away">
+                  {% set fua = flag(m['away']) %}
+                  {% if fua %}<img class="crest" src="{{ fua }}" alt="">{% endif %}
+                  <!-- full name (desktop) -->
+                  <span class="team-name full">{{ m['away'] }}</span>
+                  <!-- abbreviation (mobile) -->
+                  <span class="team-name abbr">{{ m.get('away_abbr') or (m['away']|abbr3) }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+        <div class="save-row right">
+          {% if locked %}
+            <button type="button" class="button-submit" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
+          {% else %}
+            <button class="button-submit">Salvar {{ selected_group }}</button>
+          {% endif %}
+        </div>
+      </form>
+      {% else %}
+        <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
+      {% endif %}
+    </div>
+  </section>
 </div>
 
-{% if standings and standings|length >= 1 %}
-  <h3 style="margin-top:1rem;">Classificação (meu palpite)</h3>
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th class="center" style="width:60px;">Pos</th>
-          <th class="left">Seleção</th>
-          <th class="center">J</th>
-          <th class="center">V</th>
-          <th class="center">E</th>
-          <th class="center">D</th>
-          <th class="center">GP</th>
-          <th class="center">GC</th>
-          <th class="center">SG</th>
-          <th class="center">Pts</th>
-        </tr>
-      </thead>
-    <tbody>
-      {% for r in standings %}
-        <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
-          <td class="center">{{ r.rank }}</td>
-          <td class="left">{{ r.team }}</td>
-          <td class="center">{{ r.played }}</td>
-          <td class="center">{{ r.won }}</td>
-          <td class="center">{{ r.draw }}</td>
-          <td class="center">{{ r.lost }}</td>
-          <td class="center">{{ r.gf }}</td>
-          <td class="center">{{ r.ga }}</td>
-          <td class="center">{{ r.gd }}</td>
-          <td class="center"><strong>{{ r.pts }}</strong></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-    </table>
-  </div>
-{% endif %}
-
 <style>
-  input[disabled]{opacity:.6; cursor:not-allowed;}
-  button[disabled]{opacity:.6; cursor:not-allowed;}
-  .button.small{ padding:.3rem .6rem; font-size:.9rem; }
+/* ---- Design tokens (tweak here) ---- */
+:root{
+  --bg:#fff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --rule:#e5e7eb;
+  --card:#ffffff;
+  --radius:10px;
+  --gap:28px;        /* space between the two columns */
+  --colL: 520px;     /* wider min width for standings */
+  --colBias: 42%;    /* share of grid for left column */
+  --metaW: 220px;
+  --inputW: 24px;
+  --inputH: 20px;
+}
 
-  .official-result{
-    display:flex;
-    justify-content:center;
-    margin-top:.35rem;     /* puts it just below the inputs */
-  }
-  .final-pill{
-    display:inline-block; margin-left:.0rem; padding:.15rem .45rem;
-    border-radius:999px; font-weight:600; font-variant-numeric:tabular-nums;
-    background:#eef2ff; border:1px solid #c7d2fe; color:#1f2937;
-    white-space:nowrap;
-  }
-  @media (max-width: 520px){
-    .official-result{ margin-top:.25rem; }
-  }
-</style>
+/* Full layout grid with filter spanning both columns */
+.page-grid{
+  display:grid;
+  grid-template-columns: minmax(420px, 42%) 1fr;
+  gap: 28px;
+  align-items:start;
+}
+
+
+
+/* Make inner cards line up with each other */
+.left-card{
+  width: 100%;
+},
+.right-card{
+  height: 100%;
+},
+
+/* Cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid rgba(3,7,18,0.05);
+  box-shadow:0 6px 18px rgba(15,23,42,0.06);
+  padding:20px 16px 12px;
+}
+.card.flat{ box-shadow:none; border:1px solid rgba(3,7,18,0.04); }
+.card-title{ margin:0 0 10px; font-size:16px; color:var(--ink); }
+
+/* Table (standings) */
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;                 /* columns fill space evenly */
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* even column widths: #, Seleção, P, J, V, SG, GP */
+.table thead th{ width: calc(100% / 7); }
+
+.table th, .table td{
+  border-bottom: 1px solid var(--rule);  /* was 'solid var(--rule)' */
+  padding: 6px 8px;
+}
+
+.table th{
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #FFFFFF;
+  letter-spacing: .04em;
+}
+
+.center{ text-align: center; }
+.left{ text-align: left; }
+
+/* let the # column be natural (no forced 100%) */
+.pos{ /* no width here */ }
+
+/* team cell layout */
+.team{
+  display: flex;
+  align-items: center;
+  gap: 12px;                             /* slightly tighter than 18px */
+}
+
+.crest{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: cover;
+}
+
+.name{
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mono{ font-variant-numeric: tabular-nums; }
+
+/* Highlighting */
+tr.top2{ background:linear-gradient(90deg, rgba(0,128,0,.06), rgba(0,128,0,.02)); }
+tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,.02)); }
+
+/* Matches list */
+.matches-compact{ width:100%;}
+.match-line{
+  display:grid;
+  grid-template-columns: 1fr;
+  row-gap: 6px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--rule);
+}
+.match-line .meta{
+  justify-content: center;
+  text-align: center;
+}
+
+/* Meta/date */
+.meta{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.meta .date{ font-variant-numeric: tabular-nums; }
+
+/* Teams + inputs row */
+.fixture-flat{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
+  align-items:center; 
+  column-gap: 20px; 
+  min-width:0;
+}
+.side{ display:flex; align-items:center; gap:6px; min-width:0; }
+.side.home{ justify-content:flex-end; }
+.team-name.full{ font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline; }
+.team-name.abbr{ font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none; }
+
+
+/* Score inputs */
+.middle{ display:flex; align-items:center; justify-content:center; gap:8px; }
+.box{
+  width:var(--inputW); height:var(--inputH); text-align:center;
+  border:1px solid #d1d5db; border-radius:6px; background:#fff;
+  font-variant-numeric: tabular-nums;
+}
+.box:focus{ outline:2px solid #93c5fd; outline-offset:1px; }
+.box[disabled]{ background:#f3f4f6; color:#9ca3af; }
+
+/* Buttons / selects */
+.button-submit{
+  display:inline-block; padding:8px 14px; border-radius:8px;
+  background:#0ea5e9; color:white; border:0; cursor:pointer;
+  font-weight:600; text-decoration:none;
+}
+.button-submit[disabled]{ background:#9ca3af; cursor:not-allowed; }
+select{ padding:6px 8px; border:1px solid #d1d5db; border-radius:8px; }
+
+/* Utilities */
+.save-row.right{ padding-top:12px; text-align:right; }
+
+.filter-card{
+  grid-column: 1 / -1; /* full width */
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;          /* remove the ring of empty space */
+  margin: 0;
+}
+
+/* Let the select breathe a little, but fill width */
+.filter-card form{
+  padding: 0;
+  margin: 20px;
+}
+
+.filter-card select{
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0;
+  margin: 0;  
+}
+
+
+/* Responsive */
+@media (max-width: 900px){
+  .page-grid{ grid-template-columns: 1fr; }
+  .left-card{ order:2; }
+  .right-card{ order:1; }
+  :root{ --metaW: 140px; --colBias: 100%; }
+  .team-name.full{ display:none; }
+  .team-name.abbr{ display:inline; }
+
+}
 """
+
+
+
+
+
+
+
 
 PALPITES = """
 <h2>Palpites Gerais</h2>
@@ -917,13 +1309,6 @@ PALPITES = """
     </select>
   </div>
 
-  <div class="save-row">
-    {% if locked %}
-      <button type="button" class="button" disabled title="Palpites encerrados">Salvar Palpites</button>
-    {% else %}
-      <button class="button">Salvar Palpites</button>
-    {% endif %}
-  </div>
 </form>
 
 <style>
@@ -960,7 +1345,9 @@ FLAT_PHASE_PAGE = """
           <tr>
             <!-- Data -->
             <td class="kick-col">
-              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
+                <div class="meta">
+                  <span class="date">{{ match.kickoff_iso | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
+                </div>
             </td>
 
             <!-- Fixture -->

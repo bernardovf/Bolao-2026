@@ -2,6 +2,24 @@ from datetime import datetime
 import sqlite3
 from constants import TEAM_TO_CODE, DB_PATH, PHASE_LOCKS, TEAM_COLOR_FALLBACKS
 from collections import defaultdict
+from zoneinfo import ZoneInfo
+
+# Uppercase, without accents (matches your example "SABADO")
+WEEKDAY_PT_NOACC = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"]
+# If you prefer accents, swap to this:
+WEEKDAY_PT_ACC = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"]
+
+ABBR_MAP = {
+    "Brazil": "BRA", "Argentina": "ARG", "France": "FRA", "Germany": "GER",
+    "England": "ENG", "Spain": "ESP", "Portugal": "POR", "Italy": "ITA",
+    # …add the rest here (FIFA codes). Fallback will handle unknowns.
+}
+
+def abbr3(name: str) -> str:
+    if not name:
+        return ""
+    return ABBR_MAP.get(name, name[:3]).upper()
+
 
 def _calc_points(pick_h, pick_a, real_h, real_a):
     """10 exact, 5 correct outcome, else 0. None if result/pick missing."""
@@ -78,6 +96,14 @@ def fmt_kickoff(value):
         else:
             return str(value)
     return dt.strftime("%d/%m %H:%M")
+
+def fmt_kickoff_pt(iso_utc: str, tz: str = "America/Sao_Paulo", accents: bool = False) -> str:
+    # Accept "...Z" or "+00:00"
+    dt_utc = datetime.fromisoformat(iso_utc.replace("Z", "+00:00"))
+    local = dt_utc.astimezone(ZoneInfo(tz))
+    names = WEEKDAY_PT_ACC if accents else WEEKDAY_PT_NOACC
+    wd = names[local.weekday()]  # 0=Mon ... 6=Sun
+    return f"{wd} {local:%d/%m %H:%M}"
 
 def check_password(pwd, real_password):
     if pwd == real_password:

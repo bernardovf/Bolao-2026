@@ -3,7 +3,7 @@ import sqlite3, os
 from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING, MATCH_BREAKDOWN
 from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _fetch_user_bets, _fetch_phase_rows, \
     _select_match_ids, require_login, _calc_points, _compute_group_table_from_bets, phase_locked, rank_best_thirds, \
-    team_color, DRAW_COLOR
+    team_color, DRAW_COLOR, abbr3, fmt_kickoff_pt
 from datetime import datetime
 from collections import defaultdict
 from constants import unlocks, PHASE_ROUTES, PHASE_PAGES
@@ -15,6 +15,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = APP_SECRET
 app.jinja_env.globals.update(flag=flag_url)
 app.jinja_env.filters["fmtkick"] = fmt_kickoff
+app.jinja_env.filters["abbr3"] = abbr3
+
+@app.template_filter("fmt_kickoff_pt")
+def _fmt_kickoff_pt_filter(iso_utc, tz="America/Sao_Paulo"):
+    # accents=False to match "SABADO"; set to True if you want "SÁBADO"
+    return fmt_kickoff_pt(iso_utc, tz=tz, accents=False)
+app.jinja_env.filters["fmt_kickoff_pt"] = fmt_kickoff_pt
 
 
 # ---------- Routes ----------
