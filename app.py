@@ -211,9 +211,9 @@ def match_detail(match_id: int):
         away_cnt = by.get("away", 0)
 
         stack = {
-            "home_pct": round(100.0 * home_cnt / tot, 1),
-            "draw_pct": round(100.0 * draw_cnt / tot, 1),
-            "away_pct": round(100.0 * away_cnt / tot, 1),
+            "home_pct": int(100 * home_cnt / tot),
+            "draw_pct": int(100 * draw_cnt / tot),
+            "away_pct": int(100 * away_cnt / tot),
             "home_cnt": home_cnt,
             "draw_cnt": draw_cnt,
             "away_cnt": away_cnt,
@@ -236,9 +236,9 @@ def match_detail(match_id: int):
     # colors = {"home": team_color(...), "draw": DRAW_COLOR, "away": team_color(...)}
 
     bg = {
-        "home": rgba(colors["home"], 0.12),  # soft tint
-        "draw": rgba(colors["draw"], 0.12),
-        "away": rgba(colors["away"], 0.12),
+        "home": rgba(colors["home"], 0.5),  # soft tint
+        "draw": rgba(colors["draw"], 0.2),
+        "away": rgba(colors["away"], 0.5),
     }
     # a stronger color for the left border accent
     edge = {
@@ -261,7 +261,6 @@ def match_detail(match_id: int):
         edge=edge,
     )
     return render_template_string(BASE, content=html)
-
 
 @app.route("/fase/<phase_slug>")
 def fase_page(phase_slug):

@@ -282,7 +282,7 @@ BASE = """<!doctype html>
 .stack-legend{
   display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
 }
-.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
+.legend-item{ display:flex; align-items:center; gap:8px; font-size:16px; }
 .flag{ width:48px; height:32px; object-fit:cover; border:1px solid #ddd; border-radius:2px; }
 .abbr{ font-weight:600; }
 .badge-draw{
@@ -1028,9 +1028,30 @@ MATCHES = """
                   <span class="team-name abbr">{{ m.get('away_abbr') or (m['away']|abbr3) }}</span>
               </div>
             </div>
-          </div>
-        {% endfor %}
+            
+            {% if m.get('final_home_goals') is not none and m.get('final_away_goals') is not none %}
+              <div class="actual-line">
+                <div class="middle">
+                  <span class="box box-static">{{ m.final_home_goals }}</span>
+                  <span class="x">x</span>
+                  <span class="box box-static">{{ m.final_away_goals }}</span>
+                </div>
+              </div>
+            {% endif %}
 
+            <!-- Bets link -->
+            <td class="bets-col">
+              <a class="button small"
+                 href="{{ url_for('match_detail', match_id=m['id']) }}"
+                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                 Ver palpites
+              </a>
+            </td>
+
+          </div>
+
+        {% endfor %}
+        
         <div class="save-row right">
           {% if locked %}
             <button type="button" class="button-submit" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
@@ -1038,6 +1059,7 @@ MATCHES = """
             <button class="button-submit">Salvar {{ selected_group }}</button>
           {% endif %}
         </div>
+        
       </form>
       {% else %}
         <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
@@ -1059,8 +1081,8 @@ MATCHES = """
   --colL: 520px;     /* wider min width for standings */
   --colBias: 42%;    /* share of grid for left column */
   --metaW: 220px;
-  --inputW: 24px;
-  --inputH: 20px;
+  --inputW: 40px;
+  --inputH: 35px;
 }
 
 /* Full layout grid with filter spanning both columns */
@@ -1109,6 +1131,7 @@ MATCHES = """
   padding: 6px 8px;
 }
 
+
 .table th{
   font-weight: 600;
   text-transform: uppercase;
@@ -1143,6 +1166,7 @@ MATCHES = """
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
 
 .mono{ font-variant-numeric: tabular-nums; }
 
@@ -1182,21 +1206,74 @@ tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,
   column-gap: 20px; 
   min-width:0;
 }
+.fixture-flat .middle{
+  margin-top: 8px;          /* try 4–8px to taste */
+  /* or: transform: translateY(4px);  */
+  /* or: position: relative; top: 4px; */
+}
+
 .side{ display:flex; align-items:center; gap:6px; min-width:0; }
 .side.home{ justify-content:flex-end; }
-.team-name.full{ font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline; }
-.team-name.abbr{ font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none; }
+.team-name.full{ font-size: 1.05rem; font-weight:1000; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline; }
+.team-name.abbr{ font-weight:1000; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none; }
 
+/* actual result sits exactly under the input boxes (center lane) */
+.actual-line{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
+  align-items:center;
+  column-gap:20px;
+  margin-top:0;
+}
+.actual-line .middle{
+  grid-column:2;               /* center column */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+}
 
 /* Score inputs */
-.middle{ display:flex; align-items:center; justify-content:center; gap:8px; }
-.box{
-  width:var(--inputW); height:var(--inputH); text-align:center;
-  border:1px solid #d1d5db; border-radius:6px; background:#fff;
+.middle{ display:flex; align-items:center; justify-content:center; gap:6px; }
+
+/* make both input + static span use the same box model */
+.box,
+.box.box-static{
+  width: var(--inputW);
+  height: var(--inputH);
+  box-sizing: border-box;        /* include border in width/height */
+  padding: 0 6px;                /* same inner padding */
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
+  line-height: 1;                /* avoid extra height differences */
 }
-.box:focus{ outline:2px solid #93c5fd; outline-offset:1px; }
-.box[disabled]{ background:#f3f4f6; color:#9ca3af; }
+
+/* inputs are replaced elements; align text like the spans */
+input.box{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* static result boxes (spans) */
+.box.box-static{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #808080;          /* optional muted bg */
+}
+
+/* optional: remove number spinners which change sizing in some browsers */
+input[type="number"].box {
+  -moz-appearance: textfield;
+}
+input[type="number"].box::-webkit-outer-spin-button,
+input[type="number"].box::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 /* Buttons / selects */
 .button-submit{
@@ -1242,16 +1319,8 @@ select{ padding:6px 8px; border:1px solid #d1d5db; border-radius:8px; }
   :root{ --metaW: 140px; --colBias: 100%; }
   .team-name.full{ display:none; }
   .team-name.abbr{ display:inline; }
-
 }
 """
-
-
-
-
-
-
-
 
 PALPITES = """
 <h2>Palpites Gerais</h2>
@@ -1425,90 +1494,93 @@ FLAT_PHASE_PAGE = """
 
 MATCH_BREAKDOWN = """
 <div class="section">
-  <h2 style="margin: 0 0 6px 0;">{{ fixture['home'] }} x {{ fixture['away'] }}</h2>
-  <div style="color:#666; font-size:14px; margin-bottom:10px;"></div>
-
-  {% if total_bets == 0 %}
-    <p style="color:#666">No bets for this match yet.</p>
-  {% else %}
-    <!-- Stacked bar -->
-    <div class="stack-wrap" aria-label="Distribuição de palpites">
-      <div class="stack-bar" role="img"
-           aria-label="{{ fixture['home'] }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away'] }} {{ stack.away_pct }} por cento">
-        <div class="seg" style="width: {{ stack.home_pct }}%; background: {{ colors.home }};"
-             title="{{ fixture['home'] }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
-        <div class="seg" style="width: {{ stack.draw_pct }}%; background: {{ colors.draw }};"
-             title="Empate: {{ stack.draw_cnt }} ({{ stack.draw_pct }}%)"></div>
-        <div class="seg" style="width: {{ stack.away_pct }}%; background: {{ colors.away }};"
-             title="{{ fixture['away'] }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
-      </div>
-
-      <!-- Legend with flags -->
-      <div class="stack-legend">
-        <div class="legend-item">
-          {% set fhome = flag(fixture['home']) %}
-          {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home'] }}">{% else %}<span class="abbr">{{ fixture['home'] }}</span>{% endif %}
-          <span class="color-dot" style="background: {{ colors.home }};"></span>
-          <span class="muted">{{ stack.home_pct }}%</span>
+      <h2 style="margin: 0 0 6px 0;">{{ fixture['home'] }} x {{ fixture['away'] }}</h2>
+      <div style="color:#666; font-size:14px; margin-bottom:10px;"></div>
+    
+      {% if total_bets == 0 %}
+        <p style="color:#666">No bets for this match yet.</p>
+      {% else %}
+        <!-- Stacked bar -->
+        <div class="stack-wrap" aria-label="Distribuição de palpites">
+          <div class="stack-bar" role="img"
+               aria-label="{{ fixture['home'] }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away'] }} {{ stack.away_pct }} por cento">
+            <div class="seg" style="width: {{ stack.home_pct }}%; background: {{ colors.home }};"
+                 title="{{ fixture['home'] }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
+            <div class="seg" style="width: {{ stack.draw_pct }}%; background: {{ colors.draw }};"
+                 title="Empate: {{ stack.draw_cnt }} ({{ stack.draw_pct }}%)"></div>
+            <div class="seg" style="width: {{ stack.away_pct }}%; background: {{ colors.away }};"
+                 title="{{ fixture['away'] }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
+          </div>
+    
+          <!-- Legend with flags -->
+          <div class="stack-legend">
+            <div class="legend-item">
+              {% set fhome = flag(fixture['home']) %}
+              {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home'] }}">{% else %}<span class="abbr">{{ fixture['home'] }}</span>{% endif %}
+              <span class="color-dot" style="background: {{ colors.home }};"></span>
+              <span class="muted">{{ stack.home_pct }}%</span>
+            </div>
+            <div class="legend-item">
+              <span class="badge-draw">Empate</span>
+              <span class="color-dot" style="background: {{ colors.draw }};"></span>
+              <span class="muted">{{ stack.draw_pct }}%</span>
+            </div>
+            <div class="legend-item">
+              {% set faway = flag(fixture['away']) %}
+              {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away'] }}">{% else %}<span class="abbr">{{ fixture['away'] }}</span>{% endif %}
+              <span class="color-dot" style="background: {{ colors.away }};"></span>
+              <span class="muted">{{ stack.away_pct }}%</span>
+            </div>
+          </div>
         </div>
-        <div class="legend-item">
-          <span class="badge-draw">Empate</span>
-          <span class="color-dot" style="background: {{ colors.draw }};"></span>
-          <span class="muted">{{ stack.draw_pct }}%</span>
-        </div>
-        <div class="legend-item">
-          {% set faway = flag(fixture['away']) %}
-          {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away'] }}">{% else %}<span class="abbr">{{ fixture['away'] }}</span>{% endif %}
-          <span class="color-dot" style="background: {{ colors.away }};"></span>
-          <span class="muted">{{ stack.away_pct }}%</span>
-        </div>
-      </div>
-    </div>
-  {% endif %}
+      {% endif %}
 
-<!-- Top exact-score picks -->
-<table class="table" id="top-scores">
-  <thead>
-    <tr><th>Score</th><th>Picks</th><th>%</th></tr>
-  </thead>
-<tbody>
-  {% for r in top_scores %}
-    {% set score = r['home_goals'] ~ '-' ~ r['away_goals'] %}
-    {% set outcome = 'draw' if r['home_goals'] == r['away_goals']
-                     else ('home' if r['home_goals'] > r['away_goals'] else 'away') %}
-    <tr class="score-row clickable o-{{ outcome }}"
-        data-score="{{ score }}"
-        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};"
-        title="Mostrar quem apostou {{ score }}">
-      <td>{{ r['home_goals'] }}–{{ r['away_goals'] }}</td>
-      <td>{{ r['cnt'] }}</td>
-      <td>{{ (100.0 * r['cnt'] / total_bets) | round(1) }}%</td>
-    </tr>
-  {% endfor %}
-</tbody>
-</table>
+    <h3 style="margin-top:30px;">
+    </h3>
 
-<h3 style="margin-top:18px;">
-  All picks
-  <small id="filter-chip" style="display:none; margin-left:.5rem;"></small>
-</h3>
-<table class="table" id="all-picks">
-  <thead>
-    <tr><th>Jogador</th><th>Palpite</th></tr>
-  </thead>
-<tbody>
-  {% for p in picks %}
-    {% set score = p['home_goals'] ~ '-' ~ p['away_goals'] %}
-    {% set outcome = 'draw' if p['home_goals'] == p['away_goals']
-                     else ('home' if p['home_goals'] > p['away_goals'] else 'away') %}
-    <tr class="pick-row o-{{ outcome }}" data-score="{{ score }}"
-        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};">
-      <td>{{ p['user_name'] }}</td>
-      <td>{{ p['home_goals'] }}–{{ p['away_goals'] }}</td>
-    </tr>
-  {% endfor %}
-</tbody>
-</table>
+    <!-- Top exact-score picks -->
+    <table class="table" id="top-scores">
+        <thead>
+            <tr><th>Placar</th><th>#</th><th>%</th></tr>
+        </thead>
+        <tbody>
+          {% for r in top_scores %}
+            {% set score = r['home_goals'] ~ '-' ~ r['away_goals'] %}
+            {% set outcome = 'draw' if r['home_goals'] == r['away_goals'] else ('home' if r['home_goals'] > r['away_goals'] else 'away') %}
+            <tr class="score-row clickable o-{{ outcome }}"
+                data-score="{{ score }}"
+                style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};"
+                title="Mostrar quem apostou {{ score }}">
+              <td>{{ r['home_goals'] }}–{{ r['away_goals'] }}</td>
+              <td>{{ r['cnt'] }}</td>
+              <td>{{ (100 * r['cnt'] / total_bets) | int }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 style="margin-top:18px;">
+      All picks
+      <small id="filter-chip" style="display:none; margin-left:.5rem;"></small>
+    </h3>
+
+    <table class="table" id="all-picks">
+        <thead>
+            <tr><th>Jogador</th><th>Palpite</th></tr>
+        </thead>
+        <tbody>
+          {% for p in picks %}
+            {% set score = p['home_goals'] ~ '-' ~ p['away_goals'] %}
+            {% set outcome = 'draw' if p['home_goals'] == p['away_goals']
+                             else ('home' if p['home_goals'] > p['away_goals'] else 'away') %}
+            <tr class="pick-row o-{{ outcome }}" data-score="{{ score }}"
+                style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};">
+              <td>{{ p['user_name'] }}</td>
+              <td>{{ p['home_goals'] }}–{{ p['away_goals'] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
 
 <script>
 (function(){
@@ -1569,5 +1641,6 @@ MATCH_BREAKDOWN = """
   <div style="margin-top:16px;">
     <a href="{{ back_url }}">&larr; Voltar</a>
   </div>
+  
 </div>
 """
