@@ -64,7 +64,7 @@ BASE = """<!doctype html>
   main {
     max-width: 1600px; /* Wider for modern screens */
     margin: 0 auto;
-    padding: 0 clamp(16px, 4vw, 48px); /* Responsive padding */
+    padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -90,14 +90,16 @@ BASE = """<!doctype html>
     font-size: clamp(1.75rem, 4vw, 2.5rem); /* Larger headings */
     color: var(--primary-blue);
     font-weight: 800;
-    margin: 0 0 24px 0;
+    margin: clamp(48px, 5vw, 64px) 0 clamp(32px, 3vw, 40px) 0;
     line-height: 1.2;
+    padding-top: clamp(16px, 2vw, 24px);
   }
 
   h3 {
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 700;
-    margin: 0 0 16px 0;
+    margin: clamp(32px, 4vw, 48px) 0 clamp(20px, 2vw, 28px) 0;
+    padding-top: clamp(12px, 1.5vw, 16px);
   }
 
   /* Enhanced buttons - Larger FIFA style */
@@ -200,8 +202,8 @@ BASE = """<!doctype html>
   /* Enhanced full-width header - FIFA style */
   header {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    padding: clamp(32px, 5vw, 64px) clamp(16px, 4vw, 48px);
-    margin-bottom: 48px;
+    padding: clamp(48px, 7vw, 96px) clamp(24px, 5vw, 64px);
+    margin-bottom: clamp(56px, 6vw, 80px);
     box-shadow: var(--shadow-lg);
     border-bottom: 6px solid var(--accent-gold);
     position: relative;
@@ -226,17 +228,19 @@ BASE = """<!doctype html>
   }
 
   header h1 {
-    margin: 0 0 16px 0;
+    margin: 0 0 clamp(24px, 3vw, 36px) 0;
     color: white;
     background: none;
     -webkit-text-fill-color: white;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    padding-bottom: clamp(12px, 2vw, 20px);
   }
 
   header small, header a {
     color: rgba(255, 255, 255, 0.95);
     font-size: clamp(0.9rem, 2vw, 1.1rem);
     font-weight: 500;
+    line-height: 1.8;
   }
 
   header a {
@@ -252,12 +256,13 @@ BASE = """<!doctype html>
 
   header p {
     background: rgba(255, 255, 255, 0.15);
-    padding: 16px 20px;
+    padding: clamp(18px, 2.5vw, 24px) clamp(24px, 3vw, 32px);
     border-radius: 12px;
     border-left: 6px solid var(--accent-gold);
     backdrop-filter: blur(10px);
     font-size: clamp(0.95rem, 2vw, 1.05rem);
-    margin: 12px 0;
+    margin: clamp(16px, 2vw, 24px) 0;
+    line-height: 1.6;
   }
 
   /* Container - Full width FIFA style */
