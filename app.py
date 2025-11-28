@@ -3,7 +3,7 @@ import sqlite3, os
 from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING, MATCH_BREAKDOWN
 from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _fetch_user_bets, _fetch_phase_rows, \
     _select_match_ids, require_login, _calc_points, _compute_group_table_from_bets, phase_locked, rank_best_thirds, \
-    team_color, DRAW_COLOR
+    team_color, DRAW_COLOR, abbr3, fmt_kickoff_pt, _compute_group_table_real, _fetch_results
 from datetime import datetime
 from collections import defaultdict
 from constants import unlocks, PHASE_ROUTES, PHASE_PAGES
@@ -15,6 +15,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = APP_SECRET
 app.jinja_env.globals.update(flag=flag_url)
 app.jinja_env.filters["fmtkick"] = fmt_kickoff
+app.jinja_env.filters["abbr3"] = abbr3
+
+@app.template_filter("fmt_kickoff_pt")
+def _fmt_kickoff_pt_filter(iso_utc, tz="America/Sao_Paulo"):
+    # accents=False to match "SABADO"; set to True if you want "SÁBADO"
+    return fmt_kickoff_pt(iso_utc, tz=tz, accents=False)
+app.jinja_env.filters["fmt_kickoff_pt"] = fmt_kickoff_pt
 
 
 # ---------- Routes ----------
@@ -204,9 +211,9 @@ def match_detail(match_id: int):
         away_cnt = by.get("away", 0)
 
         stack = {
-            "home_pct": round(100.0 * home_cnt / tot, 1),
-            "draw_pct": round(100.0 * draw_cnt / tot, 1),
-            "away_pct": round(100.0 * away_cnt / tot, 1),
+            "home_pct": int(100 * home_cnt / tot),
+            "draw_pct": int(100 * draw_cnt / tot),
+            "away_pct": int(100 * away_cnt / tot),
             "home_cnt": home_cnt,
             "draw_cnt": draw_cnt,
             "away_cnt": away_cnt,
@@ -229,9 +236,9 @@ def match_detail(match_id: int):
     # colors = {"home": team_color(...), "draw": DRAW_COLOR, "away": team_color(...)}
 
     bg = {
-        "home": rgba(colors["home"], 0.12),  # soft tint
-        "draw": rgba(colors["draw"], 0.12),
-        "away": rgba(colors["away"], 0.12),
+        "home": rgba(colors["home"], 0.5),  # soft tint
+        "draw": rgba(colors["draw"], 0.2),
+        "away": rgba(colors["away"], 0.5),
     }
     # a stronger color for the left border accent
     edge = {
@@ -255,7 +262,6 @@ def match_detail(match_id: int):
     )
     return render_template_string(BASE, content=html)
 
-
 @app.route("/fase/<phase_slug>")
 def fase_page(phase_slug):
     if not session.get("id"):
@@ -271,6 +277,7 @@ def fase_page(phase_slug):
         conn.row_factory = sqlite3.Row
         rows = _fetch_phase_rows(conn, page["phases"])
         bets = _fetch_user_bets(conn, session["id"])
+        real_results = _fetch_results(conn)
 
     # lock policy
     locked = phase_locked("Groups") if phase_slug == "groups" else any(
@@ -303,14 +310,18 @@ def fase_page(phase_slug):
 
         # Build standings for ALL groups first
         standings_by_group = {}
+        standings_by_group_real = {}
         for gname, grows in groups.items():
             standings_by_group[gname] = _compute_group_table_from_bets(grows, bets)
+            standings_by_group_real[gname] = _compute_group_table_real(grows, real_results)
 
         # Determine the 8 best third-placed teams (by user bets)
         best3 = rank_best_thirds(standings_by_group)
+        best3_real = rank_best_thirds(standings_by_group_real)
 
         # The table to display is the selected group's table
         standings = standings_by_group.get(selected_group, [])
+        standings_real = standings_by_group_real.get(selected_group, [])
 
         html = render_template_string(
             MATCHES,
@@ -321,7 +332,9 @@ def fase_page(phase_slug):
             locked=locked,
             points=points,
             standings=standings,  # current group's table
+            standings_real=standings_real,  # current group's table
             best3=best3,  # <-- pass set of team names
+            best3_real=best3_real,  # <-- pass set of team names
         )
     else:
         matches = [dict(r) for r in rows]
