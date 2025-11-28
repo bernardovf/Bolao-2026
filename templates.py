@@ -1535,32 +1535,45 @@ MATCHES = """
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
 <div class="layout-grid">
-  <!-- Ranking Sidebar (Desktop: left, Mobile: below) -->
+  <!-- Group Standings Sidebar (Desktop: left, Mobile: below) -->
   <div class="layout-sidebar">
-    <h2>Ranking</h2>
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="center" style="width:40px;">Pos</th>
-            <th class="left">Jogador</th>
-            <th class="center">Pts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in ranking_rows %}
-            <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
-              <td class="center">{{ loop.index }}</td>
-              <td class="left">{{ r['user_name'] }}</td>
-              <td class="center"><strong>{{ r['total_points'] }}</strong></td>
+    {% if standings and standings|length >= 1 %}
+      <h3>Classificação (meu palpite)</h3>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="center" style="width:40px;">Pos</th>
+              <th class="left">Seleção</th>
+              <th class="center">J</th>
+              <th class="center">V</th>
+              <th class="center">E</th>
+              <th class="center">D</th>
+              <th class="center">GP</th>
+              <th class="center">GC</th>
+              <th class="center">SG</th>
+              <th class="center">Pts</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <p style="margin-top: 16px;">
-      <a class="button small" href="{{ url_for('ranking') }}">Ver Ranking Completo</a>
-    </p>
+          </thead>
+          <tbody>
+            {% for r in standings %}
+              <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
+                <td class="center">{{ r.rank }}</td>
+                <td class="left">{{ r.team }}</td>
+                <td class="center">{{ r.played }}</td>
+                <td class="center">{{ r.won }}</td>
+                <td class="center">{{ r.draw }}</td>
+                <td class="center">{{ r.lost }}</td>
+                <td class="center">{{ r.gf }}</td>
+                <td class="center">{{ r.ga }}</td>
+                <td class="center">{{ r.gd }}</td>
+                <td class="center"><strong>{{ r.pts }}</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
   </div>
 
   <!-- Main Content Area (Fixtures) -->
@@ -1692,44 +1705,6 @@ MATCHES = """
   {% endif %}
 </div>
 
-{% if standings and standings|length >= 1 %}
-  <h3 style="margin-top:1rem;">Classificação (meu palpite)</h3>
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th class="center" style="width:60px;">Pos</th>
-          <th class="left">Seleção</th>
-          <th class="center">J</th>
-          <th class="center">V</th>
-          <th class="center">E</th>
-          <th class="center">D</th>
-          <th class="center">GP</th>
-          <th class="center">GC</th>
-          <th class="center">SG</th>
-          <th class="center">Pts</th>
-        </tr>
-      </thead>
-    <tbody>
-      {% for r in standings %}
-        <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
-          <td class="center">{{ r.rank }}</td>
-          <td class="left">{{ r.team }}</td>
-          <td class="center">{{ r.played }}</td>
-          <td class="center">{{ r.won }}</td>
-          <td class="center">{{ r.draw }}</td>
-          <td class="center">{{ r.lost }}</td>
-          <td class="center">{{ r.gf }}</td>
-          <td class="center">{{ r.ga }}</td>
-          <td class="center">{{ r.gd }}</td>
-          <td class="center"><strong>{{ r.pts }}</strong></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-    </table>
-  </div>
-{% endif %}
-
 <style>
   input[disabled]{opacity:.6; cursor:not-allowed;}
   button[disabled]{opacity:.6; cursor:not-allowed;}
@@ -1828,38 +1803,7 @@ FLAT_PHASE_PAGE = """
 <h2>{{ title }}</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
-<div class="layout-grid">
-  <!-- Ranking Sidebar (Desktop: left, Mobile: below) -->
-  <div class="layout-sidebar">
-    <h2>Ranking</h2>
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="center" style="width:40px;">Pos</th>
-            <th class="left">Jogador</th>
-            <th class="center">Pts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in ranking_rows %}
-            <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
-              <td class="center">{{ loop.index }}</td>
-              <td class="left">{{ r['user_name'] }}</td>
-              <td class="center"><strong>{{ r['total_points'] }}</strong></td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <p style="margin-top: 16px;">
-      <a class="button small" href="{{ url_for('ranking') }}">Ver Ranking Completo</a>
-    </p>
-  </div>
-
-  <!-- Main Content Area (Fixtures) -->
-  <div class="layout-main">
-    <div class="fixtures">
+<div class="fixtures">
   <form method="post" action="{{ action_url or url_for('save_picks', phase_slug=phase_slug) }}">
 
     <div class="table-wrap">
@@ -1957,9 +1901,7 @@ FLAT_PHASE_PAGE = """
       {% endif %}
     </div>
   </form>
-    </div><!-- .fixtures -->
-  </div><!-- .layout-main -->
-</div><!-- .layout-grid -->
+</div>
 """
 
 MATCH_BREAKDOWN = """
