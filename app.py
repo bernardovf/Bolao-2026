@@ -277,6 +277,55 @@ def fase_page(phase_slug):
         phase_locked(p) for p in page["phases"]
     )
 
+    # Fetch ranking data for sidebar (to be shown on all phase pages)
+    ranking_sql = """
+    WITH scored AS (
+      SELECT
+        u.id        AS user_id,
+        u.user_name AS user_name,
+        f.phase,
+        CASE
+          WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+          WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
+          WHEN ((b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals) OR
+                (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals) OR
+                (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)) THEN 5
+          ELSE 0
+        END AS points,
+        CASE
+          WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+          WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 1
+          ELSE 0
+        END AS number_exact_matches,
+        CASE
+          WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+          WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 0
+          WHEN ((b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals) OR
+                (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals) OR
+                (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)) THEN 1
+          ELSE 0
+        END AS number_result_matches
+      FROM users u
+      LEFT JOIN bet b      ON b.user_id = u.id
+      LEFT JOIN fixtures f ON f.id      = b.match_id
+      WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
+    )
+    SELECT
+      user_id,
+      user_name,
+      COALESCE(SUM(points),0) AS total_points,
+      COALESCE(SUM(number_exact_matches),0) AS number_exact_matches,
+      COALESCE(SUM(number_result_matches),0) AS number_result_matches
+    FROM scored
+    GROUP BY user_id, user_name
+    ORDER BY total_points DESC, user_name ASC
+    LIMIT 10;
+    """
+
+    with get_conn() as conn2:
+        conn2.row_factory = sqlite3.Row
+        ranking_rows = conn2.execute(ranking_sql).fetchall()
+
     if page["template"] == "groups":
         groups = defaultdict(list)
         for r in rows:
@@ -322,6 +371,8 @@ def fase_page(phase_slug):
             points=points,
             standings=standings,  # current group's table
             best3=best3,  # <-- pass set of team names
+            ranking_rows=ranking_rows,  # <-- pass ranking for sidebar
+            current_id=session["id"],  # <-- for highlighting current user
         )
     else:
         matches = [dict(r) for r in rows]
@@ -345,6 +396,8 @@ def fase_page(phase_slug):
             locked=locked,
             action_url=None,
             points=points,  # <-- pass it
+            ranking_rows=ranking_rows,  # <-- pass ranking for sidebar
+            current_id=session["id"],  # <-- for highlighting current user
         )
 
     return render_template_string(BASE, content=html)

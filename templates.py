@@ -1024,7 +1024,72 @@ BASE = """<!doctype html>
   th.sortable::after { content:"⇅"; position:absolute; right:.35rem; opacity:.35; font-size:.85em; }
   th.sortable[data-order="asc"]::after  { content:"↑"; opacity:.85; }
   th.sortable[data-order="desc"]::after { content:"↓"; opacity:.85; }
-  
+
+  /* Two-column layout: Ranking sidebar + Main content (Desktop only) */
+  .layout-grid {
+    display: block; /* Mobile-first: stacked layout */
+    width: 100%;
+  }
+
+  /* Desktop: Ranking on the left, bets/fixtures on the right */
+  @media (min-width: 1024px) {
+    .layout-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 380px) 1fr;
+      gap: clamp(24px, 3vw, 48px);
+      align-items: start;
+    }
+
+    .layout-sidebar {
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    /* Compact ranking table in sidebar */
+    .layout-sidebar .table {
+      font-size: clamp(0.85rem, 1vw, 0.95rem);
+    }
+
+    .layout-sidebar .table thead th {
+      padding: clamp(10px, 1.2vw, 14px) clamp(8px, 1vw, 12px);
+      font-size: clamp(0.75rem, 1vw, 0.85rem);
+    }
+
+    .layout-sidebar .table tbody td {
+      padding: clamp(8px, 1vw, 12px) clamp(8px, 1vw, 12px);
+    }
+
+    .layout-sidebar h2 {
+      font-size: clamp(1.5rem, 2.5vw, 1.9rem);
+      margin-top: clamp(0px, 1vw, 16px);
+      margin-bottom: clamp(16px, 2vw, 24px);
+    }
+
+    .layout-main {
+      min-width: 0; /* Prevents grid overflow */
+    }
+  }
+
+  /* Mobile: Stack ranking above or below main content */
+  @media (max-width: 1023px) {
+    .layout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .layout-sidebar {
+      order: 2; /* Show ranking after fixtures on mobile */
+    }
+
+    .layout-main {
+      order: 1;
+    }
+  }
+
   .stack-wrap{ margin:14px 0 8px; }
 .stack-bar{
   height:14px; background:#eee; border-radius:999px; overflow:hidden;
@@ -1469,7 +1534,38 @@ MATCHES = """
 <h2>Copa do Mundo 2026</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
-<div class="fixtures">
+<div class="layout-grid">
+  <!-- Ranking Sidebar (Desktop: left, Mobile: below) -->
+  <div class="layout-sidebar">
+    <h2>Ranking</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="center" style="width:40px;">Pos</th>
+            <th class="left">Jogador</th>
+            <th class="center">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in ranking_rows %}
+            <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
+              <td class="center">{{ loop.index }}</td>
+              <td class="left">{{ r['user_name'] }}</td>
+              <td class="center"><strong>{{ r['total_points'] }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 16px;">
+      <a class="button small" href="{{ url_for('ranking') }}">Ver Ranking Completo</a>
+    </p>
+  </div>
+
+  <!-- Main Content Area (Fixtures) -->
+  <div class="layout-main">
+    <div class="fixtures">
 
   <!-- Sticky group selector -->
   <div class="toolbar">
@@ -1654,6 +1750,8 @@ MATCHES = """
     .official-result{ margin-top:.25rem; }
   }
 </style>
+  </div><!-- .layout-main -->
+</div><!-- .layout-grid -->
 """
 
 PALPITES = """
@@ -1730,7 +1828,38 @@ FLAT_PHASE_PAGE = """
 <h2>{{ title }}</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
-<div class="fixtures">
+<div class="layout-grid">
+  <!-- Ranking Sidebar (Desktop: left, Mobile: below) -->
+  <div class="layout-sidebar">
+    <h2>Ranking</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="center" style="width:40px;">Pos</th>
+            <th class="left">Jogador</th>
+            <th class="center">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in ranking_rows %}
+            <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
+              <td class="center">{{ loop.index }}</td>
+              <td class="left">{{ r['user_name'] }}</td>
+              <td class="center"><strong>{{ r['total_points'] }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 16px;">
+      <a class="button small" href="{{ url_for('ranking') }}">Ver Ranking Completo</a>
+    </p>
+  </div>
+
+  <!-- Main Content Area (Fixtures) -->
+  <div class="layout-main">
+    <div class="fixtures">
   <form method="post" action="{{ action_url or url_for('save_picks', phase_slug=phase_slug) }}">
 
     <div class="table-wrap">
@@ -1828,7 +1957,9 @@ FLAT_PHASE_PAGE = """
       {% endif %}
     </div>
   </form>
-</div>
+    </div><!-- .fixtures -->
+  </div><!-- .layout-main -->
+</div><!-- .layout-grid -->
 """
 
 MATCH_BREAKDOWN = """
