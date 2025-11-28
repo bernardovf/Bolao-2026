@@ -44,6 +44,19 @@ BASE = """<!doctype html>
     background: linear-gradient(135deg, #f8fafc 0%, #e8f0f7 100%);
     min-height: 100vh;
     color: var(--text-dark);
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Prevent horizontal overflow on all containers */
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Ensure all major containers don't overflow */
+  main, header, .fixtures, .table-wrap {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -83,6 +96,8 @@ BASE = """<!doctype html>
     text-decoration: none;
     display: inline-block;
     text-align: center;
+    min-height: 44px; /* iOS minimum touch target */
+    line-height: 1.4;
   }
 
   .button:hover, button:hover {
@@ -94,6 +109,17 @@ BASE = """<!doctype html>
   .button:active, button:active {
     transform: translateY(0);
     box-shadow: var(--shadow-sm);
+  }
+
+  /* Better touch targets for mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .button:hover, button:hover {
+      transform: none; /* Disable hover transform on touch devices */
+    }
+
+    .fixtures tbody tr:hover {
+      transform: none; /* Disable row hover on touch */
+    }
   }
 
   /* shared widgets */
@@ -437,44 +463,258 @@ BASE = """<!doctype html>
   input[type=number].score::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number].score { -moz-appearance: textfield; }
 
-/* ---------- Mobile layout for fixtures ONLY ---------- */
+/* ---------- Mobile layout optimizations ---------- */
+@media (max-width: 768px) {
+  /* Reduce header padding */
+  header {
+    padding: 16px var(--pad);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  /* Better spacing for mobile */
+  main {
+    padding: 0 8px;
+  }
+
+  h2, h3 {
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-size: 1.3rem;
+  }
+
+  /* Optimize toolbar for mobile */
+  .toolbar {
+    padding: 10px 8px;
+  }
+
+  .toolbar label {
+    font-size: 0.9rem;
+  }
+
+  .toolbar select {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  /* Better button sizing on mobile */
+  .button, button {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+
+  /* Fixtures table mobile adjustments */
+  .fixtures {
+    padding: 0 4px;
+  }
+
+  .fixtures tbody tr {
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .fixture-cell {
+    padding: 12px 8px;
+  }
+
+  .fixtures thead th {
+    padding: 10px 8px;
+    font-size: 0.75rem;
+  }
+}
+
 @media (max-width: 600px) {
-  /* limit to fixtures tables so ranking is unaffected */
+  /* Hide date column, show it inline */
   .fixtures .kick-col { display: none; }
   .fixtures thead th:first-child { display: none; }
   .fixtures .kick-mobile {
     display: block;
     text-align: center;
-    font-size: 0.9rem;
-    color: #6b7280;
-    margin: 0 0 6px 0;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin: 0 0 8px 0;
+    font-weight: 600;
   }
 
+  /* Tighter grid for mobile */
   .fixtures .fixture-row {
-    grid-template-columns:
-      minmax(0, 3fr) auto 10px auto minmax(0, 3fr);
-    column-gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto 8px auto minmax(0, 1fr);
+    column-gap: 4px;
+    row-gap: 4px;
   }
-  .fixtures .team .name { font-size: clamp(0.74rem, 3.2vw, 0.95rem); }
-  .fixtures .score { width: 32px !important; height: 24px; font-size: 13.5px; }
-  .fixtures .flagbox { width: 37px; height: 25px; }
-  
 
+  /* Adjust team names and flags */
+  .fixtures .team {
+    gap: 4px;
+  }
+
+  .fixtures .team .name {
+    font-size: clamp(0.75rem, 3vw, 0.9rem);
+  }
+
+  .fixtures .flagbox {
+    width: 24px;
+    height: 16px;
+  }
+
+  /* Optimize score inputs for mobile */
+  .fixtures .score {
+    width: 36px !important;
+    max-width: 36px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    font-size: 14px !important;
+    padding: 0 2px !important;
+  }
+
+  .fixtures .sep {
+    font-size: 14px;
+  }
+
+  /* Better pills on mobile */
+  .final-pill, .points-pill {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  /* Optimize save button for mobile */
+  .save-row {
+    padding: 12px 8px;
+  }
+
+  .save-row button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  /* Better table cards on mobile */
+  .table {
+    font-size: 0.85rem;
+  }
+
+  .table thead th {
+    padding: 10px 6px;
+    font-size: 0.7rem;
+  }
+
+  .table tbody td {
+    padding: 8px 6px;
+  }
+
+  /* Optimize home page buttons */
+  .button {
+    font-size: 0.9rem;
+    padding: 12px 16px;
+  }
+
+  /* Better form inputs on mobile */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 10px 12px;
+  }
 }
 
 
 
 
-  /* Very narrow phones */
-  @media (max-width: 360px) {
-    .fixture-row {
-      grid-template-columns:
-        minmax(0, 3.4fr) auto 8px auto minmax(0, 3.4fr);
-    }
-    .team .name { font-size: clamp(0.70rem, 3.6vw, 0.90rem); }
-    .score { width: 30px !important; height: 22px; font-size: 12.5px; }
-    .flagbox { width: 48px; height: 32px; }
+/* Very narrow phones (iPhone SE, small Android) */
+@media (max-width: 400px) {
+  /* Further reduce spacing */
+  header {
+    padding: 12px 8px;
   }
+
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  main {
+    padding: 0 4px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+
+  /* Ultra-compact fixture rows */
+  .fixtures .fixture-row {
+    grid-template-columns: minmax(0, 1fr) auto 6px auto minmax(0, 1fr);
+    column-gap: 3px;
+  }
+
+  .fixtures .team .name {
+    font-size: clamp(0.7rem, 3.5vw, 0.85rem);
+  }
+
+  .fixtures .flagbox {
+    width: 20px;
+    height: 14px;
+  }
+
+  .fixtures .score {
+    width: 32px !important;
+    max-width: 32px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+  }
+
+  .fixtures .sep {
+    font-size: 12px;
+  }
+
+  /* Smaller pills */
+  .final-pill, .points-pill {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  /* Compact table */
+  .table {
+    font-size: 0.75rem;
+  }
+
+  .table thead th {
+    padding: 8px 4px;
+    font-size: 0.65rem;
+  }
+
+  .table tbody td {
+    padding: 6px 4px;
+  }
+
+  /* Smaller buttons */
+  .button.small {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .save-row button {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  /* Toolbar compact */
+  .toolbar {
+    padding: 8px 4px;
+  }
+
+  .toolbar select {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
 </style>
 
 <style>
@@ -640,11 +880,50 @@ BASE = """<!doctype html>
 
 <style>
   /* --- Generic responsive table support (for Ranking etc.) --- */
-  .table-wrap{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .table{ width:100%; min-width:480px; }
-  @media (max-width:480px){
-    .table{ min-width:480px; }
-    th, td{ padding:8px 10px; }
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  /* Visual indicator for scrollable content on mobile */
+  @media (max-width: 768px) {
+    .table-wrap::after {
+      content: '← Arraste para ver mais →';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-light);
+      background: linear-gradient(to top, rgba(255,255,255,0.95), transparent);
+      padding: 8px 4px 4px;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .table-wrap.scrolled::after {
+      display: none; /* Hide hint after user scrolls */
+    }
+  }
+
+  .table {
+    width: 100%;
+    min-width: 480px;
+  }
+
+  @media (max-width: 480px) {
+    .table {
+      min-width: 320px; /* Allow table to be narrower on mobile */
+      font-size: 0.8rem;
+    }
+
+    th, td {
+      padding: 6px 4px;
+    }
   }
 
   /* Card layout under 420px (tables with class="responsive") */
