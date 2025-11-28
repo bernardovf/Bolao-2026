@@ -804,7 +804,7 @@ MATCHES_2 = """
   --bg:#fff;
   --ink:#0f172a;
   --muted:#6b7280;
-  --rule:#e5e7eb;
+  --rule:#000000;
   --card:#ffffff;
   --radius:10px;
   --gap:28px;        /* space between the two columns */
@@ -934,7 +934,7 @@ MATCHES = """
 
   <!-- LEFT: TABELA -->
   <aside class="left-card card">
-    <h3 class="card-title">TABELA</h3>
+    <h3 class="card-title">TABELA APOSTA</h3>
     {% if standings and standings|length >= 1 %}
     <div class="table-wrap">
       <table class="table standings">
@@ -973,6 +973,47 @@ MATCHES = """
     {% else %}
       <p>Sem classificação disponível.</p>
     {% endif %}
+    
+    <h3 class="card-title">TABELA REAL</h3>
+    {% if standings_real and standings_real|length >= 1 %}
+    <div class="table-wrap">
+      <table class="table standings">
+        <thead>
+          <tr>
+            <th class="center pos">#</th>
+            <th class="left">Seleção</th>
+            <th class="center">P</th>
+            <th class="center">J</th>
+            <th class="center">V</th>
+            <th class="center">SG</th>
+            <th class="center">GP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in standings_real %}
+          <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and (best3_real is defined and r.team in best3_real) %}best3_real{% endif %}">
+            <td class="center pos"><span class="cell">{{ r.rank }}</span></td>
+            <td class="left">
+              <div class="team">
+                {% set fu = flag(r.team) %}
+                {% if fu %}<img class="crest" src="{{ fu }}" alt="">{% endif %}
+                <span class="name">{{ r.team }}</span>
+              </div>
+            </td>
+            <td class="center"><strong class="mono">{{ r.pts }}</strong></td>
+            <td class="center mono">{{ r.played }}</td>
+            <td class="center mono">{{ r.won }}</td>
+            <td class="center mono">{{ r.gd }}</td>
+            <td class="center mono">{{ r.gf }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p>Sem classificação disponível.</p>
+    {% endif %}
+
   </aside>
 
   <!-- RIGHT: MATCHES -->
@@ -984,12 +1025,21 @@ MATCHES = """
 
         {% for m in groups[selected_group] %}
           {% set b = bets.get(m['id']) %}
+          {% set fh = m.get('final_home_goals') %}
+          {% set fa = m.get('final_away_goals') %}
+          {% set pts = points.get(m['id']) %}
+
           <div class="match-line">
             <!-- date (centered) -->
             <div class="meta">
               <span class="date">{{ m.kickoff_utc | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
               {% if m.get('stadium') %}
                 <span class="stadium">• {{ m['stadium'] }}</span>
+              {% endif %}
+              {% if fh is not none and fa is not none %}
+                {% if pts is not none %}
+                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
+                {% endif %}
               {% endif %}
             </div>
 
@@ -1030,6 +1080,7 @@ MATCHES = """
             </div>
             
             {% if m.get('final_home_goals') is not none and m.get('final_away_goals') is not none %}
+
               <div class="actual-line">
                 <div class="middle">
                   <span class="box box-static">{{ m.final_home_goals }}</span>
@@ -1037,16 +1088,19 @@ MATCHES = """
                   <span class="box box-static">{{ m.final_away_goals }}</span>
                 </div>
               </div>
+
             {% endif %}
 
-            <!-- Bets link -->
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
-                 Ver palpites
-              </a>
-            </td>
+
+            {% if locked %}
+              <div class="bets-row">
+                <a class="button small"
+                   href="{{ url_for('match_detail', match_id=m['id']) }}"
+                   aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                   Ver palpites
+                </a>
+              </div>
+            {% endif %}
 
           </div>
 
@@ -1093,8 +1147,6 @@ MATCHES = """
   align-items:start;
 }
 
-
-
 /* Make inner cards line up with each other */
 .left-card{
   width: 100%;
@@ -1102,6 +1154,8 @@ MATCHES = """
 .right-card{
   height: 100%;
 },
+
+
 
 /* Cards */
 .card{
@@ -1179,9 +1233,9 @@ tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,
 .match-line{
   display:grid;
   grid-template-columns: 1fr;
-  row-gap: 6px;
+  row-gap: 1px;
   padding: 12px 4px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 5px solid var(--rule);
 }
 .match-line .meta{
   justify-content: center;
@@ -1203,13 +1257,13 @@ tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,
   display:grid;
   grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
   align-items:center; 
-  column-gap: 20px; 
+  column-gap: 5px; 
   min-width:0;
 }
 .fixture-flat .middle{
-  margin-top: 8px;          /* try 4–8px to taste */
+  /*margin-top: 1px;  */        /* try 4–8px to taste */
   /* or: transform: translateY(4px);  */
-  /* or: position: relative; top: 4px; */
+  position: relative; top:3px;
 }
 
 .side{ display:flex; align-items:center; gap:6px; min-width:0; }
@@ -1234,7 +1288,7 @@ tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,
 }
 
 /* Score inputs */
-.middle{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.middle{ display:flex; align-items:center; justify-content:center; gap:8px; }
 
 /* make both input + static span use the same box model */
 .box,
@@ -1246,7 +1300,7 @@ tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-variant-numeric: tabular-nums;
-  line-height: 1;                /* avoid extra height differences */
+  line-height: 3;                /* avoid extra height differences */
 }
 
 /* inputs are replaced elements; align text like the spans */
@@ -1308,6 +1362,21 @@ select{ padding:6px 8px; border:1px solid #d1d5db; border-radius:8px; }
   height: 44px;
   padding: 0;
   margin: 0;  
+}
+
+.points-pill{
+    display:inline-block; padding:.15rem .5rem; border-radius:999px;
+    font-weight:900; font-variant-numeric:tabular-nums; white-space:nowrap;
+    border:1px solid transparent;
+    font-size: 1.0rem;
+}
+.points-pill.p10{ background:#90EE90; border-color:#90EE90; color:#008000; } /* green */
+.points-pill.p5 { background:#FFFF8F; border-color:#FFFF8F; color:#FFAA33; } /* yellow */
+.points-pill.p0 { background:#e5e7eb; border-color:#e5e7eb; color:#111827; } /* black */
+
+/* Exactly the gap you highlighted: after the first standings table */
+.left-card .table-wrap + .card-title {
+  margin-top: 40px;   /* increase as needed */
 }
 
 
@@ -1391,95 +1460,77 @@ FLAT_PHASE_PAGE = """
 
 <div class="fixtures">
   <form method="post" action="{{ action_url or url_for('save_picks', phase_slug=phase_slug) }}">
+    {% for m in matches %}
+      {% set b = bets.get(m['id']) %}
+      {% set pts = points.get(m['id']) %}
 
-    <div class="table-wrap">
-      <table>
-        <colgroup>
-          <col class="c-kick">     <!-- date/time -->
-          <col class="c-fixture">  <!-- match (flexes) -->
-          <col class="c-bets">     <!-- button -->
-        </colgroup>
+      <div class="match-line">
+        <!-- date (centered) -->
+        <div class="meta">
+          <span class="date">{{ m.kickoff_utc | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
+          {% if m.get('stadium') %}
+            <span class="stadium">• {{ m['stadium'] }}</span>
+          {% endif %}
+          {% if fh is not none and fa is not none %}
+            {% if pts is not none %}
+              <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
 
-        <thead>
-          <tr>
-            <th class="kick-col">Data</th>
-            <th>Jogo</th>
-            <th class="bets-col">Palpites</th>
-          </tr>
-        </thead>
+        <!-- teams + inputs -->
+        <div class="fixture-flat">
+          <!-- HOME -->
+          <div class="side home">
+            {% set fuh = flag(m['home']) %}
+            <span class="team-name full">{{ m['home'] }}</span>
+            <span class="team-name abbr">{{ m.get('home_abbr') or (m['home']|abbr3) }}</span>
+            {% if fuh %}<img class="crest" src="{{ fuh }}" alt="">{% endif %}
+          </div>
 
-        <tbody>
-        {% for m in matches %}
-          {% set b = bets.get(m['id']) %}
-          <tr>
-            <!-- Data -->
-            <td class="kick-col">
-                <div class="meta">
-                  <span class="date">{{ match.kickoff_iso | fmt_kickoff_pt('America/Sao_Paulo') }}</span>
-                </div>
-            </td>
+          <!-- Inputs -->
+          <div class="middle">
+            <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                   name="h_{{ m['id'] }}"
+                   value="{{ b['home_goals'] if b else '' }}"
+                   {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+            <span class="x">x</span>
+            <input class="box" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
+                   name="a_{{ m['id'] }}"
+                   value="{{ b['away_goals'] if b else '' }}"
+                   {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+          </div>
 
-            <!-- Fixture -->
-            <td class="fixture-cell">
-              <!-- Mobile-only date -->
-              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+          <!-- AWAY -->
+          <div class="side away">
+            {% set fua = flag(m['away']) %}
+            {% if fua %}<img class="crest" src="{{ fua }}" alt="">{% endif %}
+            <span class="team-name full">{{ m['away'] }}</span>
+            <span class="team-name abbr">{{ m.get('away_abbr') or (m['away']|abbr3) }}</span>
+          </div>
+        </div>
 
-              <div class="fixture-row">
-                <!-- HOME -->
-                <div class="team left">
-                  <span class="name">{{ m['home'] }}</span>
-                  {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                </div>
+        {% if m.get('final_home_goals') is not none and m.get('final_away_goals') is not none %}
+          <div class="actual-line">
+            <div class="middle">
+              <span class="box box-static">{{ m.final_home_goals }}</span>
+              <span class="x">x</span>
+              <span class="box box-static">{{ m.final_away_goals }}</span>
+            </div>
+          </div>
+        {% endif %}
 
-                <!-- Scores (aligned) -->
-                <div class="score-wrap" role="group" aria-label="Palpite de placar">
-                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
-                         name="h_{{ m['id'] }}"
-                         value="{{ b['home_goals'] if b else '' }}"
-                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                  <span class="sep" aria-hidden="true">x</span>
-                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
-                         name="a_{{ m['id'] }}"
-                         value="{{ b['away_goals'] if b else '' }}"
-                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                </div>
-
-                <!-- AWAY -->
-                <div class="team right">
-                  {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                  <span class="name">{{ m['away'] }}</span>
-                </div>
-              </div>
-
-              {# Official result + points #}
-              {% set fh = m.get('final_home_goals') %}
-              {% set fa = m.get('final_away_goals') %}
-              {% set pts = points.get(m['id']) %}
-              {% if fh is not none and fa is not none %}
-                <div class="result-line">
-                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-                  {% if pts is not none %}
-                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </td>
-
-            <!-- Bets link -->
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
-                 Ver palpites
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        {% if locked %}
+          <div class="bets-row">
+            <a class="button small"
+               href="{{ url_for('match_detail', match_id=m['id']) }}"
+               aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+               Ver palpites
+            </a>
+          </div>
+        {% endif %}
+      </div> <!-- ✅ properly closes .match-line -->
+    {% endfor %}
 
     <div class="save-row">
       {% if locked %}
@@ -1488,8 +1539,278 @@ FLAT_PHASE_PAGE = """
         <button class="button">{{ button_label }}</button>
       {% endif %}
     </div>
+    
   </form>
 </div>
+
+<style>
+/* ---- Design tokens (tweak here) ---- */
+:root{
+  --bg:#fff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --rule:#e5e7eb;
+  --card:#ffffff;
+  --radius:10px;
+  --gap:28px;        /* space between the two columns */
+  --colL: 520px;     /* wider min width for standings */
+  --colBias: 42%;    /* share of grid for left column */
+  --metaW: 220px;
+  --inputW: 40px;
+  --inputH: 35px;
+}
+
+/* Full layout grid with filter spanning both columns */
+.page-grid{
+  display:grid;
+  grid-template-columns: minmax(420px, 42%) 1fr;
+  gap: 28px;
+  align-items:start;
+}
+
+/* Make inner cards line up with each other */
+.left-card{
+  width: 100%;
+},
+.right-card{
+  height: 100%;
+},
+
+
+
+/* Cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid rgba(3,7,18,0.05);
+  box-shadow:0 6px 18px rgba(15,23,42,0.06);
+  padding:20px 16px 12px;
+}
+.card.flat{ box-shadow:none; border:1px solid rgba(3,7,18,0.04); }
+.card-title{ margin:0 0 10px; font-size:16px; color:var(--ink); }
+
+/* Table (standings) */
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;                 /* columns fill space evenly */
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* even column widths: #, Seleção, P, J, V, SG, GP */
+.table thead th{ width: calc(100% / 7); }
+
+.table th, .table td{
+  border-bottom: 1px solid var(--rule);  /* was 'solid var(--rule)' */
+  padding: 6px 8px;
+}
+
+
+.table th{
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #FFFFFF;
+  letter-spacing: .04em;
+}
+
+.center{ text-align: center; }
+.left{ text-align: left; }
+
+/* let the # column be natural (no forced 100%) */
+.pos{ /* no width here */ }
+
+/* team cell layout */
+.team{
+  display: flex;
+  align-items: center;
+  gap: 12px;                             /* slightly tighter than 18px */
+}
+
+.crest{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: cover;
+}
+
+.name{
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.mono{ font-variant-numeric: tabular-nums; }
+
+/* Highlighting */
+tr.top2{ background:linear-gradient(90deg, rgba(0,128,0,.06), rgba(0,128,0,.02)); }
+tr.best3{ background:linear-gradient(90deg, rgba(0,128,255,.06), rgba(0,128,255,.02)); }
+
+/* Matches list */
+.matches-compact{ width:100%;}
+.match-line{
+  display:grid;
+  grid-template-columns: 1fr;
+  row-gap: 1px;
+  padding: 12px 4px;
+  border-bottom: 5px solid var(--rule);
+}
+.match-line .meta{
+  justify-content: center;
+  text-align: center;
+}
+
+/* Meta/date */
+.meta{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.meta .date{ font-variant-numeric: tabular-nums; }
+
+/* Teams + inputs row */
+.fixture-flat{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
+  align-items:center; 
+  column-gap: 5px; 
+  min-width:0;
+}
+.fixture-flat .middle{
+  /*margin-top: 1px;  */        /* try 4–8px to taste */
+  /* or: transform: translateY(4px);  */
+  position: relative; top:3px;
+}
+
+.side{ display:flex; align-items:center; gap:6px; min-width:0; }
+.side.home{ justify-content:flex-end; }
+.team-name.full{ font-size: 1.05rem; font-weight:1000; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline; }
+.team-name.abbr{ font-weight:1000; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none; }
+
+/* actual result sits exactly under the input boxes (center lane) */
+.actual-line{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) 120px minmax(0,1fr);
+  align-items:center;
+  column-gap:20px;
+  margin-top:0;
+}
+.actual-line .middle{
+  grid-column:2;               /* center column */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+}
+
+/* Score inputs */
+.middle{ display:flex; align-items:center; justify-content:center; gap:8px; }
+
+/* make both input + static span use the same box model */
+.box,
+.box.box-static{
+  width: var(--inputW);
+  height: var(--inputH);
+  box-sizing: border-box;        /* include border in width/height */
+  padding: 0 6px;                /* same inner padding */
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  line-height: 3;                /* avoid extra height differences */
+}
+
+/* inputs are replaced elements; align text like the spans */
+input.box{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* static result boxes (spans) */
+.box.box-static{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #808080;          /* optional muted bg */
+}
+
+/* optional: remove number spinners which change sizing in some browsers */
+input[type="number"].box {
+  -moz-appearance: textfield;
+}
+input[type="number"].box::-webkit-outer-spin-button,
+input[type="number"].box::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Buttons / selects */
+.button-submit{
+  display:inline-block; padding:8px 14px; border-radius:8px;
+  background:#0ea5e9; color:white; border:0; cursor:pointer;
+  font-weight:600; text-decoration:none;
+}
+.button-submit[disabled]{ background:#9ca3af; cursor:not-allowed; }
+select{ padding:6px 8px; border:1px solid #d1d5db; border-radius:8px; }
+
+/* Utilities */
+.save-row.right{ padding-top:12px; text-align:right; }
+
+.filter-card{
+  grid-column: 1 / -1; /* full width */
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;          /* remove the ring of empty space */
+  margin: 0;
+}
+
+/* Let the select breathe a little, but fill width */
+.filter-card form{
+  padding: 0;
+  margin: 20px;
+}
+
+.filter-card select{
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0;
+  margin: 0;  
+}
+
+.points-pill{
+    display:inline-block; padding:.15rem .5rem; border-radius:999px;
+    font-weight:900; font-variant-numeric:tabular-nums; white-space:nowrap;
+    border:1px solid transparent;
+    font-size: 1.0rem;
+}
+.points-pill.p10{ background:#90EE90; border-color:#90EE90; color:#008000; } /* green */
+.points-pill.p5 { background:#FFFF8F; border-color:#FFFF8F; color:#FFAA33; } /* yellow */
+.points-pill.p0 { background:#e5e7eb; border-color:#e5e7eb; color:#111827; } /* black */
+
+/* Exactly the gap you highlighted: after the first standings table */
+.left-card .table-wrap + .card-title {
+  margin-top: 40px;   /* increase as needed */
+}
+
+
+/* Responsive */
+@media (max-width: 900px){
+  .page-grid{ grid-template-columns: 1fr; }
+  .left-card{ order:2; }
+  .right-card{ order:1; }
+  :root{ --metaW: 140px; --colBias: 100%; }
+  .team-name.full{ display:none; }
+  .team-name.abbr{ display:inline; }
+}
+
 """
 
 MATCH_BREAKDOWN = """

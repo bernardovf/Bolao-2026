@@ -128,7 +128,7 @@ DB_PATH  = os.getenv("DB_PATH", "bolao_2026_dev.db")
 
 PHASE_ROUTES = {
     "groups":        (["Group A", "Group B", "Group C", "Group D", "Group E", "Group F", "Group G", "Group H", "Group I", "Group J", "Group K", "Group L"], "fase_grupos"),
-    "decima_sexta":  (["Round of 32"], "decima_sexta_final"),
+    "decima_sexta":  (["Round of 32"], "decima_sexta"),
     "oitavas":       (["Round of 16"], "oitavas_final"),
     "quartas":       (["Quarterfinals"], "quartas_final"),
     "semi":          (["Semifinals"], "semi_final"),
@@ -146,7 +146,7 @@ PHASE_PAGES = {
 
 # Phase is closed for bets (on going or passed)
 PHASE_LOCKS = {
-    "Groups": False,
+    "Groups": True,
     "Round of 32": False,
     "Round of 16": False,
     "Quarterfinals": False,
@@ -157,9 +157,9 @@ PHASE_LOCKS = {
 
 # Phase is still not open
 unlocks = {
-    "decima_sexta": False,
-    "oitavas": False,
-    "quartas": False,
-    "semi": False,
-    "final3": False,
+    "decima_sexta": True,
+    "oitavas": True,
+    "quartas": True,
+    "semi": True,
+    "final3": True,
 }

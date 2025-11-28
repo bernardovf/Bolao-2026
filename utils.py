@@ -46,6 +46,13 @@ def _fetch_user_bets(conn, uid):
     """, (uid,)).fetchall()
     return {r["match_id"]: dict(r) for r in rows}
 
+def _fetch_results(conn):
+    rows = conn.execute("""
+        SELECT id, final_home_goals, final_away_goals
+        FROM fixtures
+    """,).fetchall()
+    return {r["id"]: dict(r) for r in rows}
+
 def _fetch_phase_rows(conn, phases):
     placeholders = ",".join("?" * len(phases))
     return conn.execute(f"""
@@ -252,6 +259,125 @@ def _compute_group_table_from_bets(fixtures_rows, bets_by_mid):
     for pos, row in enumerate(table, start=1):
         row["rank"] = pos
     return table
+
+def _compute_group_table_real(fixtures_rows, bets_by_mid):
+    """
+    fixtures_rows: iterable of dict/Row with keys: id, phase ('Group A'..), home, away
+    bets_by_mid:  {match_id: {'home_goals': int, 'away_goals': int}}
+    Returns: list[dict] standings sorted with FIFA tiebreakers including head-to-head.
+    """
+    # base stats
+    stats = {
+        # team -> aggregate
+        # we’ll also keep a per-opponent ledger for head-to-head recomputation
+    }
+    agg = defaultdict(lambda: {
+        "team": "",
+        "played": 0, "won": 0, "draw": 0, "lost": 0,
+        "gf": 0, "ga": 0, "gd": 0, "pts": 0,
+        "h2h": defaultdict(lambda: {"gf": 0, "ga": 0, "pts": 0})  # vs opponent
+    })
+
+    for m in fixtures_rows:
+        mid = m["id"]
+        bet = bets_by_mid.get(mid)
+        if not bet:  # no bet -> ignore for table (tournament hasn’t “happened” in user’s prediction)
+            continue
+        if bet.get("final_home_goals") is None or bet.get("final_away_goals") is None:
+            continue
+
+        home, away = m["home"], m["away"]
+        h, a = int(bet["final_home_goals"]), int(bet["final_away_goals"])
+        res = _match_outcome(h, a)
+
+        # init names
+        agg[home]["team"] = home
+        agg[away]["team"] = away
+
+        # played
+        agg[home]["played"] += 1
+        agg[away]["played"] += 1
+
+        # gf/ga
+        agg[home]["gf"] += h; agg[home]["ga"] += a
+        agg[away]["gf"] += a; agg[away]["ga"] += h
+
+        # results & points
+        if res == 1:
+            agg[home]["won"]  += 1; agg[away]["lost"] += 1
+            agg[home]["pts"]  += 3
+            agg[home]["h2h"][away]["pts"] += 3
+        elif res == -1:
+            agg[away]["won"]  += 1; agg[home]["lost"] += 1
+            agg[away]["pts"]  += 3
+            agg[away]["h2h"][home]["pts"] += 3
+        else:
+            agg[home]["draw"] += 1; agg[away]["draw"] += 1
+            agg[home]["pts"]  += 1; agg[away]["pts"]  += 1
+            agg[home]["h2h"][away]["pts"] += 1
+            agg[away]["h2h"][home]["pts"] += 1
+
+        # head-to-head gf/ga
+        agg[home]["h2h"][away]["gf"] += h; agg[home]["h2h"][away]["ga"] += a
+        agg[away]["h2h"][home]["gf"] += a; agg[away]["h2h"][home]["ga"] += h
+
+    # compute GD
+    for t in agg.values():
+        t["gd"] = t["gf"] - t["ga"]
+
+    # base sort (points, gd, gf)
+    table = list(agg.values())
+
+    def _base_key(t):
+        return (t["pts"], t["gd"], t["gf"])
+
+    table.sort(key=_base_key, reverse=True)
+
+    # head-to-head for tied clusters (2+ teams)
+    i = 0
+    while i < len(table):
+        # find tie cluster with same base key
+        j = i + 1
+        while j < len(table) and _base_key(table[j]) == _base_key(table[i]):
+            j += 1
+        if j - i >= 2:
+            # apply mini-league among tied teams
+            tied = table[i:j]
+            tied_names = {t["team"] for t in tied}
+
+            def mini_row(team_name):
+                pts = gd = gf = 0
+                # recompute using only matches between tied teams via stored h2h ledger
+                for opp in tied_names:
+                    if opp == team_name: continue
+                    r = agg[team_name]["h2h"][opp]
+                    pts += r["pts"]
+                    gf  += r["gf"]
+                    gd  += (r["gf"] - r["ga"])
+                return (pts, gd, gf)
+
+            tied.sort(key=lambda t: (*mini_row(t["team"]),), reverse=True)
+
+            # If still tied after h2h, keep current order or fallback to alphabetic:
+            k = 0
+            while k < len(tied):
+                l = k + 1
+                while l < len(tied) and mini_row(tied[l]["team"]) == mini_row(tied[k]["team"]):
+                    l += 1
+                if l - k >= 2:
+                    # fallback: alphabetical to keep deterministic (instead of fair play / drawing lots)
+                    tied[k:l] = sorted(tied[k:l], key=lambda t: t["team"])
+                k = l
+
+            # put back
+            table[i:j] = tied
+        i = j
+
+    # add rank
+    for pos, row in enumerate(table, start=1):
+        row["rank"] = pos
+    return table
+
 
 def rank_best_thirds(standings_by_group):
     """
