@@ -1035,8 +1035,8 @@ BASE = """<!doctype html>
   @media (min-width: 1024px) {
     .layout-grid {
       display: grid;
-      grid-template-columns: minmax(320px, 380px) 1fr;
-      gap: clamp(24px, 3vw, 48px);
+      grid-template-columns: minmax(400px, 480px) 1fr;
+      gap: clamp(32px, 4vw, 64px);
       align-items: start;
     }
 
@@ -1045,31 +1045,37 @@ BASE = """<!doctype html>
       top: 20px;
       max-height: calc(100vh - 40px);
       overflow-y: auto;
-      padding-right: 8px;
+      padding-right: 12px;
     }
 
-    /* Compact ranking table in sidebar */
+    /* Balanced table sizing in sidebar */
     .layout-sidebar .table {
-      font-size: clamp(0.85rem, 1vw, 0.95rem);
+      font-size: clamp(0.9rem, 1.2vw, 1rem);
     }
 
     .layout-sidebar .table thead th {
-      padding: clamp(10px, 1.2vw, 14px) clamp(8px, 1vw, 12px);
-      font-size: clamp(0.75rem, 1vw, 0.85rem);
+      padding: clamp(12px, 1.5vw, 16px) clamp(10px, 1.2vw, 14px);
+      font-size: clamp(0.8rem, 1.1vw, 0.9rem);
     }
 
     .layout-sidebar .table tbody td {
-      padding: clamp(8px, 1vw, 12px) clamp(8px, 1vw, 12px);
+      padding: clamp(10px, 1.3vw, 14px) clamp(10px, 1.2vw, 14px);
     }
 
-    .layout-sidebar h2 {
+    .layout-sidebar h2,
+    .layout-sidebar h3 {
       font-size: clamp(1.5rem, 2.5vw, 1.9rem);
       margin-top: clamp(0px, 1vw, 16px);
-      margin-bottom: clamp(16px, 2vw, 24px);
+      margin-bottom: clamp(20px, 2.5vw, 28px);
     }
 
     .layout-main {
       min-width: 0; /* Prevents grid overflow */
+    }
+
+    /* Balance heading sizes in main content */
+    .layout-main h3 {
+      font-size: clamp(1.3rem, 2.5vw, 1.75rem);
     }
   }
 
@@ -1531,28 +1537,30 @@ LOGIN = """
 """
 
 MATCHES = """
-<h2>Copa do Mundo 2026</h2>
-<p><a class="button" href="{{ url_for('index') }}">Home</a></p>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(24px, 3vw, 36px);">
+  <h2 style="margin: 0;">Fase de Grupos</h2>
+  <a class="button" href="{{ url_for('index') }}">Home</a>
+</div>
 
 <div class="layout-grid">
   <!-- Group Standings Sidebar (Desktop: left, Mobile: below) -->
   <div class="layout-sidebar">
     {% if standings and standings|length >= 1 %}
-      <h3>Classificação (meu palpite)</h3>
+      <h2>Classificação</h2>
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
-              <th class="center" style="width:40px;">Pos</th>
-              <th class="left">Seleção</th>
-              <th class="center">J</th>
-              <th class="center">V</th>
-              <th class="center">E</th>
-              <th class="center">D</th>
-              <th class="center">GP</th>
-              <th class="center">GC</th>
-              <th class="center">SG</th>
-              <th class="center">Pts</th>
+              <th class="center" style="width:36px;">#</th>
+              <th class="left">Time</th>
+              <th class="center" title="Jogos">J</th>
+              <th class="center" title="Vitórias">V</th>
+              <th class="center" title="Empates">E</th>
+              <th class="center" title="Derrotas">D</th>
+              <th class="center" title="Gols Pró">GP</th>
+              <th class="center" title="Gols Contra">GC</th>
+              <th class="center" title="Saldo de Gols">SG</th>
+              <th class="center" title="Pontos">Pts</th>
             </tr>
           </thead>
           <tbody>
@@ -1583,7 +1591,7 @@ MATCHES = """
   <!-- Sticky group selector -->
   <div class="toolbar">
     <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
-      <label>Group:&nbsp;
+      <label>Grupo:&nbsp;
         <select name="group" onchange="document.getElementById('groupFilter').submit()">
           {% for g in group_order %}
             <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
