@@ -2,11 +2,31 @@ BASE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
-  :root { --pad: 12px; }
+  :root {
+    --pad: 12px;
+    --font-body: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
   * { -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3, h4, h5, h6, .button {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  h1 {
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
 
   /* shared widgets */
   .result-line{
@@ -78,8 +98,14 @@ BASE = """<!doctype html>
   }
   .team.left  { justify-content: flex-end; text-align: right; }
   .team.right { justify-content: flex-start; text-align: left; }
-  .team .name { white-space: nowrap; font-weight: 600; line-height: 1.1;
-                font-size: clamp(0.78rem, 2.3vw, 1.0rem); }
+  .team .name {
+    white-space: nowrap;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: clamp(0.78rem, 2.3vw, 1.0rem);
+    letter-spacing: -0.01em;
+  }
 
   .sep { text-align: center; }
 
@@ -88,7 +114,12 @@ BASE = """<!doctype html>
     display: inline-block !important;
     width: 36px !important; max-width: 36px !important;
     height: 26px; line-height: 26px;
-    text-align: center; font-size: 14.5px; padding: 0 4px; margin: 0;
+    text-align: center;
+    font-size: 14.5px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    padding: 0 4px;
+    margin: 0;
     border-radius: 6px;
   }
 
