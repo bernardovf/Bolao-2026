@@ -4,13 +4,13 @@ BASE = """<!doctype html>
 <link rel="stylesheet" href="https://unpkg.com/mvp.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
   :root {
     --pad: 12px;
-    --font-body: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Advent Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Advent Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     /* FIFA-inspired color palette */
     --primary-blue: #0055A4;
@@ -272,55 +272,6 @@ BASE = """<!doctype html>
     padding: 0;
   }
 
-  /* Sticky toolbar (group filter) - More prominent */
-  .toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    backdrop-filter: saturate(180%) blur(15px);
-    background: rgba(255, 255, 255, 0.97);
-    padding: clamp(16px, 2vw, 24px) clamp(16px, 4vw, 48px);
-    border-bottom: 3px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    margin-bottom: clamp(20px, 3vw, 32px);
-  }
-
-  .toolbar form {
-    display: flex;
-    gap: clamp(12px, 2vw, 20px);
-    align-items: center;
-  }
-
-  .toolbar select {
-    font-size: clamp(1rem, 1.5vw, 1.15rem);
-    padding: clamp(12px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
-    border: 3px solid var(--border-color);
-    border-radius: 10px;
-    background: white;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    color: var(--text-dark);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .toolbar select:hover {
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 4px rgba(0, 85, 164, 0.1);
-  }
-
-  .toolbar select:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 5px rgba(0, 85, 164, 0.15);
-  }
-
-  .toolbar label {
-    font-family: var(--font-heading);
-    font-weight: 800;
-    color: var(--text-dark);
-    font-size: clamp(1rem, 1.5vw, 1.15rem);
-  }
 
   /* Table - Enhanced styling with more spacing */
   .fixtures table {
@@ -1050,16 +1001,27 @@ BASE = """<!doctype html>
 
     /* Balanced table sizing in sidebar */
     .layout-sidebar .table {
-      font-size: clamp(0.9rem, 1.2vw, 1rem);
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      width: 100%;
+      table-layout: auto;
     }
 
     .layout-sidebar .table thead th {
-      padding: clamp(12px, 1.5vw, 16px) clamp(10px, 1.2vw, 14px);
-      font-size: clamp(0.8rem, 1.1vw, 0.9rem);
+      padding: clamp(14px, 1.8vw, 18px) clamp(8px, 1vw, 12px);
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      white-space: nowrap;
     }
 
     .layout-sidebar .table tbody td {
-      padding: clamp(10px, 1.3vw, 14px) clamp(10px, 1.2vw, 14px);
+      padding: clamp(12px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+    }
+
+    /* Make sure team names don't get cut off */
+    .layout-sidebar .table tbody td.left {
+      max-width: none;
+      white-space: normal;
+      word-wrap: break-word;
     }
 
     .layout-sidebar h2,
@@ -1588,21 +1550,21 @@ MATCHES = """
   <div class="layout-main">
     <div class="fixtures">
 
-  <!-- Sticky group selector -->
-  <div class="toolbar">
-    <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
-      <label>Grupo:&nbsp;
-        <select name="group" onchange="document.getElementById('groupFilter').submit()">
-          {% for g in group_order %}
-            <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
-          {% endfor %}
-        </select>
-      </label>
-    </form>
-  </div>
-
   {% if groups.get(selected_group) %}
-    <h3>{{ selected_group }}</h3>
+    <!-- Group header with filter -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(20px, 3vw, 32px);">
+      <h3 style="margin: 0;">{{ selected_group }}</h3>
+      <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}" style="margin: 0;">
+        <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+          <span style="font-family: var(--font-heading); font-weight: 700; font-size: clamp(0.95rem, 1.5vw, 1.1rem);">Grupo:</span>
+          <select name="group" onchange="document.getElementById('groupFilter').submit()" style="min-width: 140px;">
+            {% for g in group_order %}
+              <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </form>
+    </div>
 
     <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
       <!-- keep user on the same group after saving -->
