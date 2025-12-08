@@ -90,6 +90,80 @@ TEAM_COLOR_FALLBACKS = {
 }
 
 TEAM_TO_CODE = {
+    # 2026 World Cup Teams - Group Stage
+    # Group A
+    "Mexico": "mx",
+    "South Africa": "za",
+    "Korea Republic": "kr",
+    "UEFA Playoff D": "eu",  # Czechia, Denmark, North Macedonia or Republic of Ireland
+
+    # Group B
+    "Canada": "ca",
+    "UEFA Playoff A": "eu",  # Bosnia and Herzegovina, Italy, Northern Ireland or Wales
+    "Qatar": "qa",
+    "Switzerland": "ch",
+
+    # Group C
+    "Brazil": "br",
+    "Morocco": "ma",
+    "Haiti": "ht",
+    "Scotland": "gb-sct",
+
+    # Group D
+    "USA": "us",
+    "Paraguay": "py",
+    "Australia": "au",
+    "UEFA Playoff C": "eu",  # Kosovo, Romania, Slovakia or Türkiye
+
+    # Group E
+    "Germany": "de",
+    "Curaçao": "cw",
+    "Côte d'Ivoire": "ci",
+    "Ecuador": "ec",
+
+    # Group F
+    "Netherlands": "nl",
+    "Japan": "jp",
+    "UEFA Playoff B": "eu",  # Albania, Poland, Sweden or Ukraine
+    "Tunisia": "tn",
+
+    # Group G
+    "Belgium": "be",
+    "Egypt": "eg",
+    "Iran": "ir",
+    "New Zealand": "nz",
+
+    # Group H
+    "Spain": "es",
+    "Cabo Verde": "cv",
+    "Saudi Arabia": "sa",
+    "Uruguay": "uy",
+
+    # Group I
+    "France": "fr",
+    "Senegal": "sn",
+    "FIFA Playoff 2": "xx",  # Bolivia, Iraq or Suriname
+    "Norway": "no",
+
+    # Group J
+    "Argentina": "ar",
+    "Algeria": "dz",
+    "Austria": "at",
+    "Jordan": "jo",
+
+    # Group K
+    "Portugal": "pt",
+    "FIFA Playoff 1": "xx",  # DR Congo, Jamaica or New Caledonia
+    "Uzbekistan": "uz",
+    "Colombia": "co",
+
+    # Group L
+    "England": "gb-eng",
+    "Croatia": "hr",
+    "Ghana": "gh",
+    "Panama": "pa",
+
+    # Legacy teams (kept for backwards compatibility if referenced elsewhere)
     "Qatar": "qa",
     "Ecuador": "ec",
     "Senegal": "sn",
