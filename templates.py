@@ -67,6 +67,24 @@ BASE = """<!doctype html>
     padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
   }
 
+  /* Mobile-specific container fixes */
+  @media (max-width: 768px) {
+    main {
+      padding: 16px 12px;
+      overflow-x: hidden;
+    }
+
+    * {
+      max-width: 100%;
+    }
+
+    /* Ensure all content stays within viewport */
+    .layout-grid, .layout-main, .layout-sidebar, .fixtures {
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 700;
@@ -564,6 +582,11 @@ BASE = """<!doctype html>
 
   .fixtures .team .name {
     font-size: clamp(0.75rem, 3vw, 0.9rem);
+    white-space: normal; /* Allow wrapping on mobile */
+    word-break: break-word;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .fixtures .flagbox {
@@ -666,6 +689,10 @@ BASE = """<!doctype html>
 
   .fixtures .team .name {
     font-size: clamp(0.7rem, 3.5vw, 0.85rem);
+    white-space: normal; /* Allow wrapping on very small screens */
+    word-break: break-word;
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
 
   .fixtures .flagbox {
@@ -893,31 +920,16 @@ BASE = """<!doctype html>
   /* --- Generic responsive table support (for Ranking etc.) --- */
   .table-wrap {
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden; /* Prevent horizontal scroll */
     position: relative;
     margin-bottom: 16px;
   }
 
-  /* Visual indicator for scrollable content on mobile */
-  @media (max-width: 768px) {
-    .table-wrap::after {
-      content: '← Arraste para ver mais →';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 0.7rem;
-      color: var(--text-light);
-      background: linear-gradient(to top, rgba(255,255,255,0.95), transparent);
-      padding: 8px 4px 4px;
-      pointer-events: none;
-      opacity: 0.8;
-    }
-
-    .table-wrap.scrolled::after {
-      display: none; /* Hide hint after user scrolls */
+  /* Allow overflow only on desktop */
+  @media (min-width: 769px) {
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
   }
 
@@ -926,14 +938,33 @@ BASE = """<!doctype html>
     min-width: 480px;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     .table {
-      min-width: 320px; /* Allow table to be narrower on mobile */
-      font-size: 0.8rem;
+      min-width: 100%; /* Force table to fit viewport width */
+      font-size: 0.75rem;
     }
 
     th, td {
-      padding: 6px 4px;
+      padding: 4px 2px;
+      font-size: 0.7rem;
+    }
+
+    /* Make table cells more compact */
+    .table th {
+      font-size: 0.65rem;
+      padding: 6px 3px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .table {
+      min-width: 100%; /* Force table to fit viewport */
+      font-size: 0.7rem;
+    }
+
+    th, td {
+      padding: 4px 2px;
+      font-size: 0.65rem;
     }
   }
 
