@@ -1499,10 +1499,22 @@ LOGIN = """
 """
 
 MATCHES = """
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(24px, 3vw, 36px);">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(16px, 2vw, 24px);">
   <h2 style="margin: 0;">Fase de Grupos</h2>
   <a class="button" href="{{ url_for('index') }}">Home</a>
 </div>
+
+<!-- Group filter at the top -->
+<form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}" style="margin-bottom: clamp(24px, 3vw, 36px);">
+  <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
+    <span style="font-family: var(--font-heading); font-weight: 700; font-size: clamp(0.95rem, 1.5vw, 1.1rem);">Grupo:</span>
+    <select name="group" onchange="document.getElementById('groupFilter').submit()" style="min-width: 140px;">
+      {% for g in group_order %}
+        <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</form>
 
 <div class="layout-grid">
   <!-- Group Standings Sidebar (Desktop: left, Mobile: below) -->
@@ -1529,7 +1541,7 @@ MATCHES = """
             {% for r in standings %}
               <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
                 <td class="center">{{ r.rank }}</td>
-                <td class="left">{{ r.team }}</td>
+                <td class="left">{{ r.team|translate_team }}</td>
                 <td class="center">{{ r.played }}</td>
                 <td class="center">{{ r.won }}</td>
                 <td class="center">{{ r.draw }}</td>
@@ -1551,20 +1563,6 @@ MATCHES = """
     <div class="fixtures">
 
   {% if groups.get(selected_group) %}
-    <!-- Group header with filter -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(20px, 3vw, 32px);">
-      <h3 style="margin: 0;">{{ selected_group }}</h3>
-      <form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}" style="margin: 0;">
-        <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
-          <span style="font-family: var(--font-heading); font-weight: 700; font-size: clamp(0.95rem, 1.5vw, 1.1rem);">Grupo:</span>
-          <select name="group" onchange="document.getElementById('groupFilter').submit()" style="min-width: 140px;">
-            {% for g in group_order %}
-              <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
-            {% endfor %}
-          </select>
-        </label>
-      </form>
-    </div>
 
     <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
       <!-- keep user on the same group after saving -->
@@ -1603,7 +1601,7 @@ MATCHES = """
               <div class="fixture-row">
                 <!-- HOME -->
                 <div class="team left">
-                  <span class="name">{{ m['home'] }}</span>
+                  <span class="name">{{ m['home']|translate_team }}</span>
                   {% set fu = flag(m['home']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
                 </div>
@@ -1624,7 +1622,7 @@ MATCHES = """
                 <div class="team right">
                   {% set fu = flag(m['away']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                  <span class="name">{{ m['away'] }}</span>
+                  <span class="name">{{ m['away']|translate_team }}</span>
                 </div>
               </div>
 
@@ -1650,7 +1648,7 @@ MATCHES = """
             <td class="bets-col">
               <a class="button small"
                  href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                 aria-label="Ver palpites de {{ m['home']|translate_team }} x {{ m['away']|translate_team }}">
                 Ver palpites
               </a>
             </td>
@@ -1809,7 +1807,7 @@ FLAT_PHASE_PAGE = """
               <div class="fixture-row">
                 <!-- HOME -->
                 <div class="team left">
-                  <span class="name">{{ m['home'] }}</span>
+                  <span class="name">{{ m['home']|translate_team }}</span>
                   {% set fu = flag(m['home']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
                 </div>
@@ -1831,7 +1829,7 @@ FLAT_PHASE_PAGE = """
                 <div class="team right">
                   {% set fu = flag(m['away']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                  <span class="name">{{ m['away'] }}</span>
+                  <span class="name">{{ m['away']|translate_team }}</span>
                 </div>
               </div>
 
@@ -1853,7 +1851,7 @@ FLAT_PHASE_PAGE = """
             <td class="bets-col">
               <a class="button small"
                  href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home'] }} x {{ m['away'] }}">
+                 aria-label="Ver palpites de {{ m['home']|translate_team }} x {{ m['away']|translate_team }}">
                  Ver palpites
               </a>
             </td>
@@ -1876,7 +1874,7 @@ FLAT_PHASE_PAGE = """
 
 MATCH_BREAKDOWN = """
 <div class="section">
-  <h2 style="margin: 0 0 6px 0;">{{ fixture['home'] }} x {{ fixture['away'] }}</h2>
+  <h2 style="margin: 0 0 6px 0;">{{ fixture['home']|translate_team }} x {{ fixture['away']|translate_team }}</h2>
   <div style="color:#666; font-size:14px; margin-bottom:10px;"></div>
 
   {% if total_bets == 0 %}
@@ -1885,20 +1883,20 @@ MATCH_BREAKDOWN = """
     <!-- Stacked bar -->
     <div class="stack-wrap" aria-label="Distribuição de palpites">
       <div class="stack-bar" role="img"
-           aria-label="{{ fixture['home'] }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away'] }} {{ stack.away_pct }} por cento">
+           aria-label="{{ fixture['home']|translate_team }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away']|translate_team }} {{ stack.away_pct }} por cento">
         <div class="seg" style="width: {{ stack.home_pct }}%; background: {{ colors.home }};"
-             title="{{ fixture['home'] }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
+             title="{{ fixture['home']|translate_team }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
         <div class="seg" style="width: {{ stack.draw_pct }}%; background: {{ colors.draw }};"
              title="Empate: {{ stack.draw_cnt }} ({{ stack.draw_pct }}%)"></div>
         <div class="seg" style="width: {{ stack.away_pct }}%; background: {{ colors.away }};"
-             title="{{ fixture['away'] }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
+             title="{{ fixture['away']|translate_team }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
       </div>
 
       <!-- Legend with flags -->
       <div class="stack-legend">
         <div class="legend-item">
           {% set fhome = flag(fixture['home']) %}
-          {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home'] }}">{% else %}<span class="abbr">{{ fixture['home'] }}</span>{% endif %}
+          {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home']|translate_team }}">{% else %}<span class="abbr">{{ fixture['home']|translate_team }}</span>{% endif %}
           <span class="color-dot" style="background: {{ colors.home }};"></span>
           <span class="muted">{{ stack.home_pct }}%</span>
         </div>
@@ -1909,7 +1907,7 @@ MATCH_BREAKDOWN = """
         </div>
         <div class="legend-item">
           {% set faway = flag(fixture['away']) %}
-          {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away'] }}">{% else %}<span class="abbr">{{ fixture['away'] }}</span>{% endif %}
+          {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away']|translate_team }}">{% else %}<span class="abbr">{{ fixture['away']|translate_team }}</span>{% endif %}
           <span class="color-dot" style="background: {{ colors.away }};"></span>
           <span class="muted">{{ stack.away_pct }}%</span>
         </div>
