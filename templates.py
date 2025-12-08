@@ -70,7 +70,7 @@ BASE = """<!doctype html>
   /* Mobile-specific container fixes */
   @media (max-width: 768px) {
     main {
-      padding: 16px 12px;
+      padding: 12px 8px;
       overflow-x: hidden;
     }
 
@@ -537,7 +537,7 @@ BASE = """<!doctype html>
 
   /* Fixtures table mobile adjustments */
   .fixtures {
-    padding: 0 4px;
+    padding: 0;
   }
 
   .fixtures tbody tr {
@@ -546,11 +546,11 @@ BASE = """<!doctype html>
   }
 
   .fixture-cell {
-    padding: 12px 8px;
+    padding: 10px 6px;
   }
 
   .fixtures thead th {
-    padding: 10px 8px;
+    padding: 10px 6px;
     font-size: 0.75rem;
   }
 }
@@ -568,47 +568,47 @@ BASE = """<!doctype html>
     font-weight: 600;
   }
 
-  /* Tighter grid for mobile */
+  /* Tighter grid for mobile - use full width */
   .fixtures .fixture-row {
-    grid-template-columns: minmax(80px, 1fr) auto 6px auto minmax(80px, 1fr);
-    column-gap: 3px;
+    grid-template-columns: 1fr auto 6px auto 1fr;
+    column-gap: 4px;
     row-gap: 4px;
+    width: 100%;
   }
 
   /* Adjust team names and flags */
   .fixtures .team {
-    gap: 3px;
-    min-width: 80px;
+    gap: 4px;
+    min-width: 0;
   }
 
   .fixtures .team .name {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
   }
 
   .fixtures .flagbox {
-    width: 20px;
-    height: 14px;
+    width: 22px;
+    height: 15px;
     flex-shrink: 0;
   }
 
   /* Smaller score inputs for mobile to give more space to team names */
   .fixtures .score {
-    width: 28px !important;
-    max-width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
-    font-size: 13px !important;
+    width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    font-size: 14px !important;
     padding: 0 !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 12px;
-    margin: 0 1px;
+    font-size: 13px;
+    margin: 0 2px;
   }
 
   /* Better pills on mobile */
@@ -684,41 +684,42 @@ BASE = """<!doctype html>
     font-size: 1rem;
   }
 
-  /* Ultra-compact fixture rows */
+  /* Ultra-compact fixture rows - still use full width */
   .fixtures .fixture-row {
-    grid-template-columns: minmax(70px, 1fr) auto 5px auto minmax(70px, 1fr);
-    column-gap: 2px;
+    grid-template-columns: 1fr auto 5px auto 1fr;
+    column-gap: 3px;
+    width: 100%;
   }
 
   .fixtures .team {
-    min-width: 70px;
-    gap: 2px;
+    min-width: 0;
+    gap: 3px;
   }
 
   .fixtures .team .name {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .fixtures .flagbox {
-    width: 18px;
-    height: 12px;
+    width: 20px;
+    height: 13px;
     flex-shrink: 0;
   }
 
   .fixtures .score {
-    width: 26px !important;
-    max-width: 26px !important;
-    height: 26px !important;
-    line-height: 26px !important;
-    font-size: 12px !important;
-    border-width: 1px !important;
+    width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+    border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   /* Smaller pills */
