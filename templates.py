@@ -570,42 +570,45 @@ BASE = """<!doctype html>
 
   /* Tighter grid for mobile */
   .fixtures .fixture-row {
-    grid-template-columns: minmax(0, 1fr) auto 8px auto minmax(0, 1fr);
-    column-gap: 4px;
+    grid-template-columns: minmax(80px, 1fr) auto 6px auto minmax(80px, 1fr);
+    column-gap: 3px;
     row-gap: 4px;
   }
 
   /* Adjust team names and flags */
   .fixtures .team {
-    gap: 4px;
+    gap: 3px;
+    min-width: 80px;
   }
 
   .fixtures .team .name {
-    font-size: clamp(0.75rem, 3vw, 0.9rem);
-    white-space: normal; /* Allow wrapping on mobile */
-    word-break: break-word;
-    hyphens: auto;
-    overflow-wrap: break-word;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     max-width: 100%;
   }
 
   .fixtures .flagbox {
-    width: 24px;
-    height: 16px;
+    width: 20px;
+    height: 14px;
+    flex-shrink: 0;
   }
 
-  /* Optimize score inputs for mobile */
+  /* Smaller score inputs for mobile to give more space to team names */
   .fixtures .score {
-    width: 36px !important;
-    max-width: 36px !important;
-    height: 32px !important;
-    line-height: 32px !important;
-    font-size: 14px !important;
-    padding: 0 2px !important;
+    width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 13px !important;
+    padding: 0 !important;
+    border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 14px;
+    font-size: 12px;
+    margin: 0 1px;
   }
 
   /* Better pills on mobile */
@@ -683,33 +686,39 @@ BASE = """<!doctype html>
 
   /* Ultra-compact fixture rows */
   .fixtures .fixture-row {
-    grid-template-columns: minmax(0, 1fr) auto 6px auto minmax(0, 1fr);
-    column-gap: 3px;
+    grid-template-columns: minmax(70px, 1fr) auto 5px auto minmax(70px, 1fr);
+    column-gap: 2px;
+  }
+
+  .fixtures .team {
+    min-width: 70px;
+    gap: 2px;
   }
 
   .fixtures .team .name {
-    font-size: clamp(0.7rem, 3.5vw, 0.85rem);
-    white-space: normal; /* Allow wrapping on very small screens */
-    word-break: break-word;
-    hyphens: auto;
-    overflow-wrap: break-word;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .fixtures .flagbox {
-    width: 20px;
-    height: 14px;
+    width: 18px;
+    height: 12px;
+    flex-shrink: 0;
   }
 
   .fixtures .score {
-    width: 32px !important;
-    max-width: 32px !important;
-    height: 30px !important;
-    line-height: 30px !important;
-    font-size: 13px !important;
+    width: 26px !important;
+    max-width: 26px !important;
+    height: 26px !important;
+    line-height: 26px !important;
+    font-size: 12px !important;
+    border-width: 1px !important;
   }
 
   .fixtures .sep {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   /* Smaller pills */
