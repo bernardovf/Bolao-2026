@@ -568,47 +568,54 @@ BASE = """<!doctype html>
     font-weight: 600;
   }
 
-  /* Tighter grid for mobile - use full width */
+  /* Mobile layout - allow names to wrap to 2 lines */
   .fixtures .fixture-row {
-    grid-template-columns: 1fr auto 6px auto 1fr;
-    column-gap: 4px;
+    grid-template-columns: 1fr auto auto auto 1fr;
+    column-gap: 3px;
     row-gap: 4px;
     width: 100%;
+    align-items: center;
   }
 
   /* Adjust team names and flags */
   .fixtures .team {
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
+    align-items: center;
   }
 
   .fixtures .team .name {
-    font-size: 0.75rem;
-    white-space: nowrap;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .fixtures .flagbox {
-    width: 22px;
-    height: 15px;
+    width: 20px;
+    height: 14px;
     flex-shrink: 0;
   }
 
-  /* Smaller score inputs for mobile to give more space to team names */
+  /* Compact score inputs for mobile */
   .fixtures .score {
-    width: 32px !important;
-    max-width: 32px !important;
-    height: 32px !important;
-    line-height: 32px !important;
-    font-size: 14px !important;
+    width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 13px !important;
     padding: 0 !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 13px;
-    margin: 0 2px;
+    font-size: 12px;
+    margin: 0;
   }
 
   /* Better pills on mobile */
@@ -684,42 +691,50 @@ BASE = """<!doctype html>
     font-size: 1rem;
   }
 
-  /* Ultra-compact fixture rows - still use full width */
+  /* Ultra-compact - allow 2-line wrapping */
   .fixtures .fixture-row {
-    grid-template-columns: 1fr auto 5px auto 1fr;
-    column-gap: 3px;
+    grid-template-columns: 1fr auto auto auto 1fr;
+    column-gap: 2px;
     width: 100%;
+    align-items: center;
   }
 
   .fixtures .team {
     min-width: 0;
-    gap: 3px;
+    gap: 2px;
+    align-items: center;
   }
 
   .fixtures .team .name {
-    font-size: 0.7rem;
-    white-space: nowrap;
+    font-size: 0.65rem;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .fixtures .flagbox {
-    width: 20px;
-    height: 13px;
+    width: 18px;
+    height: 12px;
     flex-shrink: 0;
   }
 
   .fixtures .score {
-    width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-    line-height: 30px !important;
-    font-size: 13px !important;
-    border-width: 2px !important;
+    width: 26px !important;
+    max-width: 26px !important;
+    height: 26px !important;
+    line-height: 26px !important;
+    font-size: 12px !important;
+    border-width: 1px !important;
   }
 
   .fixtures .sep {
-    font-size: 12px;
+    font-size: 11px;
+    margin: 0;
   }
 
   /* Smaller pills */
