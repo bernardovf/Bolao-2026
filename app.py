@@ -6,7 +6,7 @@ from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _
     team_color, DRAW_COLOR
 from datetime import datetime
 from collections import defaultdict
-from constants import unlocks, PHASE_ROUTES, PHASE_PAGES, TEAM_TRANSLATIONS
+from constants import unlocks, PHASE_ROUTES, PHASE_PAGES, TEAM_TRANSLATIONS, FIFA_CODES
 
 
 APP_SECRET = os.environ.get("SECRET_KEY", "dev-secret")
@@ -16,6 +16,7 @@ app.config["SECRET_KEY"] = APP_SECRET
 app.jinja_env.globals.update(flag=flag_url)
 app.jinja_env.filters["fmtkick"] = fmt_kickoff
 app.jinja_env.filters["translate_team"] = lambda team: TEAM_TRANSLATIONS.get(team, team)
+app.jinja_env.filters["fifa_code"] = lambda team: FIFA_CODES.get(team, team[:3].upper())
 
 
 # ---------- Routes ----------

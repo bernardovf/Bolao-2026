@@ -356,11 +356,13 @@ BASE = """<!doctype html>
     white-space: nowrap;
   }
   .kickoff {
-    font-size: clamp(0.85rem, 1.2vw, 1rem);
+    font-size: clamp(0.95rem, 1.4vw, 1.15rem);
     color: var(--text-gray);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    line-height: 1.4;
+    white-space: pre-line;
   }
   .kick-mobile { display: none; } /* hidden on desktop */
 
@@ -396,6 +398,10 @@ BASE = """<!doctype html>
     letter-spacing: -0.02em;
     color: var(--text-dark);
   }
+
+  /* Show full names on desktop, FIFA codes on mobile */
+  .name-mobile { display: none; }
+  .name-desktop { display: inline; }
 
   .sep {
     text-align: center;
@@ -568,54 +574,70 @@ BASE = """<!doctype html>
     font-weight: 600;
   }
 
-  /* Mobile layout - allow names to wrap to 2 lines */
+  /* Mobile: Show FIFA codes instead of full names */
+  .name-mobile { display: inline; }
+  .name-desktop { display: none; }
+
+  /* Mobile layout - centered score-wrap with equal team columns */
   .fixtures .fixture-row {
-    grid-template-columns: 1fr auto auto auto 1fr;
-    column-gap: 3px;
-    row-gap: 4px;
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    width: 100%;
+    gap: 4px;
   }
 
   /* Adjust team names and flags */
   .fixtures .team {
-    gap: 3px;
+    gap: 4px;
+    flex: 1;
     min-width: 0;
     align-items: center;
   }
 
+  .fixtures .team.left {
+    justify-content: flex-end;
+  }
+
+  .fixtures .team.right {
+    justify-content: flex-start;
+  }
+
   .fixtures .team .name {
-    font-size: 0.7rem;
-    line-height: 1.2;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
   }
 
   .fixtures .flagbox {
-    width: 20px;
-    height: 14px;
+    width: 22px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+  /* Centered score-wrap on mobile */
+  .fixtures .score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 3px;
     flex-shrink: 0;
   }
 
   /* Compact score inputs for mobile */
   .fixtures .score {
-    width: 28px !important;
-    max-width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
-    font-size: 13px !important;
+    width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    font-size: 14px !important;
     padding: 0 !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 12px;
-    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
   }
 
   /* Better pills on mobile */
@@ -691,50 +713,35 @@ BASE = """<!doctype html>
     font-size: 1rem;
   }
 
-  /* Ultra-compact - allow 2-line wrapping */
+  /* Ultra-compact for very small screens */
   .fixtures .fixture-row {
-    grid-template-columns: 1fr auto auto auto 1fr;
-    column-gap: 2px;
-    width: 100%;
-    align-items: center;
+    gap: 3px;
   }
 
   .fixtures .team {
-    min-width: 0;
-    gap: 2px;
-    align-items: center;
+    gap: 3px;
   }
 
   .fixtures .team .name {
-    font-size: 0.65rem;
-    line-height: 1.2;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.7rem;
   }
 
   .fixtures .flagbox {
-    width: 18px;
-    height: 12px;
-    flex-shrink: 0;
+    width: 20px;
+    height: 13px;
   }
 
   .fixtures .score {
-    width: 26px !important;
-    max-width: 26px !important;
-    height: 26px !important;
-    line-height: 26px !important;
-    font-size: 12px !important;
-    border-width: 1px !important;
+    width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+    border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 11px;
-    margin: 0;
+    font-size: 13px;
   }
 
   /* Smaller pills */
@@ -1657,7 +1664,8 @@ MATCHES = """
               <div class="fixture-row">
                 <!-- HOME -->
                 <div class="team left">
-                  <span class="name">{{ m['home']|translate_team }}</span>
+                  <span class="name name-desktop">{{ m['home']|translate_team }}</span>
+                  <span class="name name-mobile">{{ m['home']|fifa_code }}</span>
                   {% set fu = flag(m['home']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
                 </div>
@@ -1678,7 +1686,8 @@ MATCHES = """
                 <div class="team right">
                   {% set fu = flag(m['away']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                  <span class="name">{{ m['away']|translate_team }}</span>
+                  <span class="name name-desktop">{{ m['away']|translate_team }}</span>
+                  <span class="name name-mobile">{{ m['away']|fifa_code }}</span>
                 </div>
               </div>
 
@@ -1863,7 +1872,8 @@ FLAT_PHASE_PAGE = """
               <div class="fixture-row">
                 <!-- HOME -->
                 <div class="team left">
-                  <span class="name">{{ m['home']|translate_team }}</span>
+                  <span class="name name-desktop">{{ m['home']|translate_team }}</span>
+                  <span class="name name-mobile">{{ m['home']|fifa_code }}</span>
                   {% set fu = flag(m['home']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
                 </div>
@@ -1885,7 +1895,8 @@ FLAT_PHASE_PAGE = """
                 <div class="team right">
                   {% set fu = flag(m['away']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                  <span class="name">{{ m['away']|translate_team }}</span>
+                  <span class="name name-desktop">{{ m['away']|translate_team }}</span>
+                  <span class="name name-mobile">{{ m['away']|fifa_code }}</span>
                 </div>
               </div>
 

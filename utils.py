@@ -58,7 +58,7 @@ def _day_suffix(d):
 
 def fmt_kickoff(value):
     """
-    Render ISO datetime (e.g., '2022-11-20T12:00:00Z' or '+00:00') as 'dd/mm HH:MM'.
+    Render ISO datetime (e.g., '2022-11-20T12:00:00Z' or '+00:00') as 'dd/mm\nHH:MM'.
     Keeps it in UTC (as your field name suggests). Adjust here if you want a TZ.
     """
     if not value:
@@ -77,7 +77,7 @@ def fmt_kickoff(value):
             dt = datetime.fromisoformat(s)
         else:
             return str(value)
-    return dt.strftime("%d/%m %H:%M")
+    return dt.strftime("%d/%m\n%H:%M")
 
 def check_password(pwd, real_password):
     if pwd == real_password:
