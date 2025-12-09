@@ -62,7 +62,7 @@ BASE = """<!doctype html>
   }
 
   main {
-    max-width: 1600px; /* Wider for modern screens */
+    max-width: 2000px; /* Wider for modern screens */
     margin: 0 auto;
     padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
   }
@@ -82,6 +82,7 @@ BASE = """<!doctype html>
     .layout-grid, .layout-main, .layout-sidebar, .fixtures {
       overflow-x: hidden;
       max-width: 100%;
+      width: 100%;
     }
   }
 
@@ -729,9 +730,13 @@ BASE = """<!doctype html>
   }
 
   .fixtures .team .name {
-    font-size: 0.75rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  display: inline-block;    /* or block */
+  width: 70px;              /* fixed width */
+  /* max-width: 80%;               fixed width */
+  font-size: 0.75rem;
+  white-space: nowrap;      /* no wrapping */
+  overflow: hidden;         /* cut extra */
+  text-overflow: ellipsis;  /* show "..." */
   }
 
   .fixtures .flagbox {
@@ -950,9 +955,12 @@ BASE = """<!doctype html>
 
   /* Better kickoff time styling */
   .kickoff {
-    font-size: 0.8rem;
+    font-size: 1.0rem;
     color: var(--text-light);
-    font-weight: 500;
+    font-weight: 5000;
+    align-items: right;
+    vertical-align: middle;
+    horizontal-align: middle;
   }
 </style>
 
@@ -1673,7 +1681,7 @@ MATCHES = """
                 <!-- HOME -->
                 <div class="team left">
                   <span class="name name-desktop">{{ m['home']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['home']|fifa_code }}</span>
+                  <span class="name name-mobile">{{ m['home']|translate_team }}</span>
                   {% set fu = flag(m['home']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
                 </div>
@@ -1695,7 +1703,7 @@ MATCHES = """
                   {% set fu = flag(m['away']) %}
                   {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
                   <span class="name name-desktop">{{ m['away']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['away']|fifa_code }}</span>
+                  <span class="name name-mobile">{{ m['away']|translate_team }}</span>
                 </div>
               </div>
 
