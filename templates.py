@@ -351,18 +351,21 @@ BASE = """<!doctype html>
 
   /* Desktop/Tablet: two columns (Date/Time + Fixture) */
   .kick-col {
-    width: clamp(140px, 15vw, 180px);
+    width: clamp(140px, 15vw, 200px);
     text-align: center;
     white-space: nowrap;
+    vertical-align: middle;
   }
   .kickoff {
-    font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+    font-size: clamp(1.1rem, 1.8vw, 1.4rem);
     color: var(--text-gray);
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    line-height: 1.4;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
     white-space: pre-line;
+    text-align: center;
+    display: inline-block;
   }
   .kick-mobile { display: none; } /* hidden on desktop */
 
@@ -578,18 +581,18 @@ BASE = """<!doctype html>
   .name-mobile { display: inline; }
   .name-desktop { display: none; }
 
-  /* Mobile layout - centered score-wrap with equal team columns */
+  /* Mobile layout - dynamic sizing to fit screen */
   .fixtures .fixture-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 4px;
+    gap: clamp(4px, 1.5vw, 8px);
   }
 
-  /* Adjust team names and flags */
+  /* Adjust team names and flags - dynamic sizing */
   .fixtures .team {
-    gap: 4px;
+    gap: clamp(4px, 1.5vw, 8px);
     flex: 1;
     min-width: 0;
     align-items: center;
@@ -604,39 +607,39 @@ BASE = """<!doctype html>
   }
 
   .fixtures .team .name {
-    font-size: 0.75rem;
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
     font-weight: 800;
     white-space: nowrap;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
   }
 
   .fixtures .flagbox {
-    width: 22px;
-    height: 15px;
+    width: clamp(24px, 6vw, 32px);
+    height: clamp(16px, 4vw, 22px);
     flex-shrink: 0;
   }
 
-  /* Centered score-wrap on mobile */
+  /* Centered score-wrap on mobile - dynamic sizing */
   .fixtures .score-wrap {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: clamp(3px, 1vw, 6px);
     flex-shrink: 0;
   }
 
-  /* Compact score inputs for mobile */
+  /* Dynamic score inputs for mobile */
   .fixtures .score {
-    width: 32px !important;
-    max-width: 32px !important;
-    height: 32px !important;
-    line-height: 32px !important;
-    font-size: 14px !important;
+    width: clamp(36px, 9vw, 48px) !important;
+    max-width: clamp(36px, 9vw, 48px) !important;
+    height: clamp(36px, 9vw, 48px) !important;
+    line-height: clamp(36px, 9vw, 48px) !important;
+    font-size: clamp(0.95rem, 4vw, 1.2rem) !important;
     padding: 0 !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 14px;
+    font-size: clamp(0.95rem, 4vw, 1.2rem);
     font-weight: 800;
   }
 
@@ -713,35 +716,35 @@ BASE = """<!doctype html>
     font-size: 1rem;
   }
 
-  /* Ultra-compact for very small screens */
+  /* Ultra-compact for very small screens - still dynamic */
   .fixtures .fixture-row {
-    gap: 3px;
+    gap: clamp(3px, 1.2vw, 6px);
   }
 
   .fixtures .team {
-    gap: 3px;
+    gap: clamp(3px, 1.2vw, 6px);
   }
 
   .fixtures .team .name {
-    font-size: 0.7rem;
+    font-size: clamp(0.8rem, 3vw, 1rem);
   }
 
   .fixtures .flagbox {
-    width: 20px;
-    height: 13px;
+    width: clamp(20px, 5.5vw, 28px);
+    height: clamp(13px, 3.5vw, 19px);
   }
 
   .fixtures .score {
-    width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-    line-height: 30px !important;
-    font-size: 13px !important;
+    width: clamp(32px, 8.5vw, 44px) !important;
+    max-width: clamp(32px, 8.5vw, 44px) !important;
+    height: clamp(32px, 8.5vw, 44px) !important;
+    line-height: clamp(32px, 8.5vw, 44px) !important;
+    font-size: clamp(0.85rem, 3.5vw, 1.1rem) !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: 13px;
+    font-size: clamp(0.85rem, 3.5vw, 1.1rem);
   }
 
   /* Smaller pills */
