@@ -577,9 +577,9 @@ BASE = """<!doctype html>
     font-weight: 600;
   }
 
-  /* Mobile: Show FIFA codes instead of full names */
-  .name-mobile { display: inline !important; }
-  .name-desktop { display: none !important; }
+  /* Mobile: Show full Portuguese names (same as desktop) */
+  .name-mobile { display: none !important; }
+  .name-desktop { display: inline !important; }
 
   /* Mobile layout - FIXED consistent sizing across all groups */
   .fixtures .fixture-row {
@@ -607,10 +607,13 @@ BASE = """<!doctype html>
   }
 
   .fixtures .team .name {
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: 800;
     white-space: nowrap;
-    letter-spacing: 0.03em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.02em;
+    max-width: 100%;
   }
 
   .fixtures .flagbox {
@@ -726,7 +729,9 @@ BASE = """<!doctype html>
   }
 
   .fixtures .team .name {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .fixtures .flagbox {
