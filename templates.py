@@ -566,34 +566,102 @@ BASE = """<!doctype html>
 }
 
 @media (max-width: 600px) {
-  /* Hide date column, show it inline */
+  /* ULTRA-COMPACT MODE: Fit everything on screen without scrolling */
+
+  /* Hide date column entirely to save space */
   .fixtures .kick-col { display: none; }
   .fixtures thead th:first-child { display: none; }
   .fixtures .kick-mobile {
     display: block;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     color: var(--text-light);
-    margin: 0 0 8px 0;
+    margin: 0 0 3px 0;
     font-weight: 600;
+    line-height: 1.1;
   }
 
   /* Mobile: Show full Portuguese names (same as desktop) */
   .name-mobile { display: none !important; }
   .name-desktop { display: inline !important; }
 
-  /* Mobile layout - FIXED consistent sizing across all groups */
+  /* Drastically reduce ALL spacing */
+  .content-box {
+    padding: 6px !important;
+    margin: 6px auto !important;
+  }
+
+  /* Compact header */
+  h2 {
+    font-size: 1rem !important;
+    margin: 0 0 6px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  h3 {
+    font-size: 0.9rem !important;
+    margin: 6px 0 4px 0 !important;
+  }
+
+  /* Compact buttons */
+  .button {
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Ultra-compact group filter */
+  #groupFilter {
+    margin-bottom: 6px !important;
+  }
+
+  #groupFilter label {
+    gap: 4px !important;
+    margin: 0 !important;
+  }
+
+  #groupFilter label span {
+    font-size: 0.75rem !important;
+  }
+
+  #groupFilter select {
+    min-width: 90px !important;
+    padding: 3px 6px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Hide standings table on mobile to save massive space */
+  .layout-sidebar {
+    display: none !important;
+  }
+
+  /* Compact fixtures list */
+  .fixtures {
+    display: flex;
+    flex-direction: column;
+    gap: 2px !important;
+    margin-top: 4px !important;
+  }
+
+  /* Ultra-compact match rows */
   .fixtures .fixture-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 6px;
+    gap: 2px;
+    padding: 3px 0 !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 
-  /* Adjust team names and flags - FIXED sizes */
+  .fixtures .fixture-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Minimal team containers */
   .fixtures .team {
-    gap: 5px;
+    gap: 3px;
     flex: 1;
     min-width: 0;
     align-items: center;
@@ -607,55 +675,65 @@ BASE = """<!doctype html>
     justify-content: flex-start;
   }
 
+  /* Tiny team names */
   .fixtures .team .name {
-    font-size: 0.8rem;
-    font-weight: 800;
+    font-size: 0.65rem;
+    font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
     max-width: 100%;
+    line-height: 1.2;
   }
 
+  /* Tiny flags */
   .fixtures .flagbox {
-    width: 28px;
-    height: 19px;
+    width: 18px;
+    height: 12px;
     flex-shrink: 0;
   }
 
-  /* Centered score-wrap on mobile - FIXED sizing */
+  /* Minimal score-wrap */
   .fixtures .score-wrap {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     flex-shrink: 0;
   }
 
-  /* FIXED score inputs for mobile - consistent across all groups */
+  /* Tiny score inputs */
   .fixtures .score {
-    width: 42px !important;
-    max-width: 42px !important;
-    height: 42px !important;
-    line-height: 42px !important;
-    font-size: 1.05rem !important;
+    width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 0.75rem !important;
     padding: 0 !important;
-    border-width: 2px !important;
+    border-width: 1px !important;
   }
 
+  /* Tiny separator */
   .fixtures .sep {
-    font-size: 1.05rem;
-    font-weight: 800;
-  }
-
-  /* Better pills on mobile */
-  .final-pill, .points-pill {
     font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
+    font-weight: 700;
   }
 
-  /* Optimize save button for mobile */
+  /* Compact pills */
+  .final-pill, .points-pill {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
+  }
+
+  /* Compact save button */
   .save-row {
-    padding: 12px 8px;
+    padding: 8px 6px !important;
+    margin-top: 6px !important;
+  }
+
+  .save-row .button {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
   }
 
   .save-row button {
