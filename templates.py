@@ -184,6 +184,14 @@ BASE = """<!doctype html>
     box-shadow: var(--shadow-md);
   }
 
+  .button.disabled {
+    pointer-events: none;
+    color: #9aa0a6;
+    opacity: .6;
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+
   /* Better touch targets for mobile */
   @media (hover: none) and (pointer: coarse) {
     .button:hover, button:hover {
@@ -829,182 +837,151 @@ BASE = """<!doctype html>
     padding: 6px 10px;
   }
 }
-</style>
 
-<style>
-  /* Enhanced table styling for rankings and standings */
-  .table {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
+/* Enhanced table styling for rankings and standings */
+.table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.table thead th {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  color: white;
+  padding: 14px 12px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--bg-light);
+}
+
+/* Highlight top 2 teams */
+.table .top2 td {
+  background: linear-gradient(135deg, var(--success-green-light) 0%, #d4f4dd 100%);
+  font-weight: 600;
+}
+
+.table .top2 td:first-child {
+  border-left: 4px solid var(--success-green);
+}
+
+/* Highlight 3rd place if qualified */
+.table .best3 td {
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  font-weight: 600;
+}
+
+.table .best3 td:first-child {
+  border-left: 4px solid #0ea5e9;
+}
+
+/* Highlight the logged-in user's row in Ranking */
+.table .me td {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.table .me td:first-child {
+  border-left: 4px solid var(--accent-gold);
+}
+
+/* Enhanced form inputs */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+  font-family: var(--font-body);
+  padding: 12px 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  background: white;
+  color: var(--text-dark);
+}
+
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--primary-blue-light);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
+}
+
+label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Smooth page animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .table thead th {
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    color: white;
-    padding: 14px 12px;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  .table tbody td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s ease;
-  }
+main {
+  animation: fadeIn 0.4s ease-out;
+}
 
-  .table tbody tr:last-child td {
-    border-bottom: none;
-  }
+/* Link styling */
+a {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
 
-  .table tbody tr:hover {
-    background: var(--bg-light);
-  }
+a:hover {
+  color: var(--primary-blue-light);
+  text-decoration: underline;
+}
 
-  /* Highlight top 2 teams */
-  .table .top2 td {
-    background: linear-gradient(135deg, var(--success-green-light) 0%, #d4f4dd 100%);
-    font-weight: 600;
-  }
+/* --- Generic responsive table support (for Ranking etc.) --- */
+.table-wrap {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  position: relative;
+  margin-bottom: 16px;
+}
 
-  .table .top2 td:first-child {
-    border-left: 4px solid var(--success-green);
-  }
-
-  /* Highlight 3rd place if qualified */
-  .table .best3 td {
-    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
-    font-weight: 600;
-  }
-
-  .table .best3 td:first-child {
-    border-left: 4px solid #0ea5e9;
-  }
-</style>
-
-<style>
-  /* Highlight the logged-in user's row in Ranking */
-  .table .me td {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    font-weight: 800;
-    color: var(--text-dark);
-  }
-
-  .table .me td:first-child {
-    border-left: 4px solid var(--accent-gold);
-  }
-
-  /* Enhanced form inputs */
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  select,
-  textarea {
-    font-family: var(--font-body);
-    padding: 12px 14px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 15px;
-    transition: all 0.2s ease;
-    background: white;
-    color: var(--text-dark);
-  }
-
-  input[type="text"]:hover,
-  input[type="password"]:hover,
-  input[type="email"]:hover,
-  select:hover,
-  textarea:hover {
-    border-color: var(--primary-blue-light);
-  }
-
-  input[type="text"]:focus,
-  input[type="password"]:focus,
-  input[type="email"]:focus,
-  select:focus,
-  textarea:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
-  }
-
-  label {
-    font-family: var(--font-heading);
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 6px;
-    display: block;
-  }
-
-  /* Small buttons for "Ver palpites" etc */
-  .button.small {
-    padding: 8px 14px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    border-radius: 6px;
-    letter-spacing: 0;
-  }
-
-  /* Smooth page animations */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  main {
-    animation: fadeIn 0.4s ease-out;
-  }
-
-  /* Link styling */
-  a {
-    color: var(--primary-blue);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-  }
-
-  a:hover {
-    color: var(--primary-blue-light);
-    text-decoration: underline;
-  }
-
-  /* Improved section spacing */
-  h2, h3 {
-    margin-top: 32px;
-    margin-bottom: 16px;
-  }
-
-  /* Better kickoff time styling */
-  .kickoff {
-    font-size: 1.0rem;
-    color: var(--text-light);
-    font-weight: 5000;
-    align-items: right;
-    vertical-align: middle;
-    horizontal-align: middle;
-  }
-</style>
-
-<style>
-  /* --- Generic responsive table support (for Ranking etc.) --- */
-  .table-wrap {
-    width: 100%;
-    overflow-x: hidden; /* Prevent horizontal scroll */
-    position: relative;
-    margin-bottom: 16px;
-  }
-
-  /* Allow overflow only on desktop */
+/* Allow overflow only on desktop */
   @media (min-width: 769px) {
     .table-wrap {
       overflow-x: auto;
@@ -1234,227 +1211,6 @@ BASE = """<!doctype html>
     }
   }
 
-  .stack-wrap{ margin:14px 0 8px; }
-.stack-bar{
-  height:14px; background:#eee; border-radius:999px; overflow:hidden;
-  display:flex; box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
-}
-.seg{ height:100%; }
-.seg-home{ background:#6366f1; }   /* indigo */
-.seg-draw{ background:#a3a3a3; }   /* neutral */
-.seg-away{ background:#22c55e; }   /* green  */
-.stack-legend{
-  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
-}
-.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
-.dot{
-  width:10px; height:10px; border-radius:50%;
-  display:inline-block;
-}
-.dot-home{ background:#6366f1; }
-.dot-draw{ background:#a3a3a3; }
-.dot-away{ background:#22c55e; }
-.muted{ color:#666; }
-@media (max-width: 640px){
-  .stack-legend{ grid-template-columns: 1fr; }
-}
-
-.stack-legend{
-  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
-}
-.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
-.flag{ width:48px; height:32px; object-fit:cover; border:1px solid #ddd; border-radius:2px; }
-.abbr{ font-weight:600; } /* fallback text if no flag URL */
-.badge-draw{
-  padding:2px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb;
-  font-weight:600; font-size:13px;
-}
-@media (max-width: 640px){
-  .stack-legend{ grid-template-columns: 1fr; }
-}
-
-</style>
-
-<style>
-.stack-wrap{ margin:14px 0 8px; }
-.stack-bar{
-  height:14px; background:#eee; border-radius:999px; overflow:hidden;
-  display:flex; box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
-}
-.seg{ height:100%; }
-
-.stack-legend{
-  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
-}
-.legend-item{ display:flex; align-items:center; gap:8px; font-size:14px; }
-.flag{ width:48px; height:32px; object-fit:cover; border:1px solid #ddd; border-radius:2px; }
-.abbr{ font-weight:600; }
-.badge-draw{
-  padding:2px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb;
-  font-weight:600; font-size:13px;
-}
-.color-dot{
-  width:10px; height:10px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.06);
-}
-@media (max-width: 640px){
-  .stack-legend{ grid-template-columns: 1fr; }
-}
-</style>
-
-<style>
-/* Horizontal slider container */
-.table-hscroll{
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* smooth iOS/Android swipe */
-  scrollbar-width: thin;             /* Firefox */
-}
-
-/* Ensure content can overflow to trigger scroll */
-.table-hscroll > table{
-  min-width: 640px;   /* tweak if needed: 600–720px works well */
-}
-
-/* Optional: a subtle right-edge fade to hint scrollability */
-.table-hscroll{
-  position: relative;
-}
-.table-hscroll:after{
-  content: "";
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 24px;
-  pointer-events: none;
-  background: linear-gradient(to left, rgba(255,255,255,0.9), rgba(255,255,255,0));
-}
-
-/* Tighten inputs on small screens so less overflow happens */
-@media (max-width: 520px){
-  .score{
-    width: 2.2rem;   /* was larger; shrink slightly */
-    padding: .25rem .35rem;
-  }
-  .sep{ margin: 0 .25rem; }
-  .fixture-row .name{ font-size: .95rem; }
-}
-
-/* Keep “Ver palpites” readable but compact on mobile */
-.button.small{
-  padding: .35rem .55rem;
-  font-size: .9rem;
-}
-
-</style>
-
-<style>
-/* Remove the thin white vertical line */
-table {
-  border-collapse: collapse;     /* unify background colors between cells */
-  width: 100%;
-}
-
-tr, th, td {
-  border: none;                  /* prevent tiny cell borders */
-  background-clip: padding-box;  /* ensures background extends fully */
-}
-
-/* If your header uses a gradient or color */
-th {
-  background-color: #007BFF;     /* or your desired header color */
-  color: white;
-}
-
-/* Optional: unify the background of alternating rows */
-tbody tr:nth-child(even) {
-  background-color: #f8f9fa;     /* light gray */
-}
-tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
-.fixture-row {
-  background-color: inherit;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-/* tables render consistently and no seams between cells */
-.fixtures table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-
-/* columns */
-th.kick-col, td.kick-col { width: 88px; white-space: nowrap; }
-th.bets-col, td.bets-col { width: 120px; text-align: center; }
-td.fixture-cell { width: auto; }  /* takes the remaining space */
-
-/* make the middle cell actually fill */
-.fixtures td.fixture-cell { display: table-cell; width: auto; }
-.fixture-row  { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-
-/* inputs compact on mobile so less spillover */
-@media (max-width:520px){
-  .score { width: 2.3rem; padding: .25rem .35rem; }
-  .sep { margin: 0 .25rem; }
-}
-
-/* remove tiny borders/gaps some mobiles render */
-.fixtures table td, .fixtures table th {
-  border: 0;
-  background-clip: padding-box;
-}
-
-</style>
-<style>
-    .fixture-row{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
-    .score-wrap{ display:flex; align-items:center; gap:6px; }
-    .score{ width:44px; height:36px; line-height:36px; text-align:center; font-variant-numeric:tabular-nums; box-sizing:border-box; }
-    .sep{ display:flex; align-items:center; justify-content:center; width:14px; height:36px; }
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-    input[type=number]{ -moz-appearance:textfield; }
-    @media (max-width:520px){ .score{ width:38px; height:34px; line-height:34px; } .sep{ height:34px; } }
-    
-    /* Horizontal slider on mobile */
-
-/* --- general: do NOT clip the table horizontally --- */
-.fixtures, .table-wrap { overflow: visible; }      /* ensure parents don't clip */
-.table-wrap{
-  overflow-x: auto;                                /* horizontal slider on phones */
-  -webkit-overflow-scrolling: touch;
-}
-
-/* desktop / default: let content decide widths */
-.table-wrap > table{
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-  min-width: 0;
-}
-
-/* column model: compact sides, flexible middle */
-.c-kick   { width: 96px; }
-.c-bets   { width: 132px; }
-.c-fixture{ width: 100%; }
-
-th.kick-col, td.kick-col,
-th.bets-col, td.bets-col { white-space: nowrap; }
-
-/* prevent the middle cell from overflowing into the right one */
-td.fixture-cell{ overflow: hidden; }
-
-/* subtle zebra applied to the whole row (prevents seams) */
-.fixtures table tbody tr:nth-child(even) td { background:#f6f9ff; }
-.fixtures table tbody tr:nth-child(odd)  td { background:#fff; }
-
-/* inner layout for scores (keeps inputs aligned) */
-.fixture-row{
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;  /* team | score | team */
-  align-items: center;
-  gap: 8px;
-}
-.score-wrap{ display:flex; align-items:center; gap:6px; }
-.score{ width:44px; height:36px; line-height:36px; text-align:center; font-variant-numeric:tabular-nums; box-sizing:border-box; }
-.sep{ display:flex; align-items:center; justify-content:center; width:14px; height:36px; }
-
 /* tighter on small phones; keep scroll instead of squeezing */
 @media (max-width: 500px){
   .table-wrap > table{
@@ -1559,13 +1315,6 @@ RANKING = """
   </table>
 </div>
 
-<style>
-  th.sortable { cursor: pointer; user-select: none; position: relative; padding-right: 1.1rem; }
-  th.sortable::after { content: "⇅"; position: absolute; right: .35rem; opacity: .35; font-size: .85em; }
-  th.sortable[data-order="asc"]::after  { content: "↑"; opacity: .85; }
-  th.sortable[data-order="desc"]::after { content: "↓"; opacity: .85; }
-</style>
-
 <script>
 (function () {
   const table = document.getElementById('rankTable');
@@ -1618,10 +1367,6 @@ HOME = """
   </p>
 {% else %}
   <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
-    <style>
-      .button.disabled { pointer-events:none; color:#9aa0a6; opacity:.6; cursor:not-allowed; text-decoration:none; }
-    </style>
-
     <a class="button" href="{{ url_for('ranking') }}">Ranking</a>
     <a class="button" href="{{ url_for('fase_page', phase_slug='groups') }}">Fase de Grupos</a>
     <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
@@ -1850,27 +1595,6 @@ MATCHES = """
     <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
   {% endif %}
 </div>
-
-<style>
-  input[disabled]{opacity:.6; cursor:not-allowed;}
-  button[disabled]{opacity:.6; cursor:not-allowed;}
-  .button.small{ padding:.3rem .6rem; font-size:.9rem; }
-
-  .official-result{
-    display:flex;
-    justify-content:center;
-    margin-top:.35rem;     /* puts it just below the inputs */
-  }
-  .final-pill{
-    display:inline-block; margin-left:.0rem; padding:.15rem .45rem;
-    border-radius:999px; font-weight:600; font-variant-numeric:tabular-nums;
-    background:#eef2ff; border:1px solid #c7d2fe; color:#1f2937;
-    white-space:nowrap;
-  }
-  @media (max-width: 520px){
-    .official-result{ margin-top:.25rem; }
-  }
-</style>
   </div><!-- .layout-main -->
 </div><!-- .layout-grid -->
 """
@@ -1939,10 +1663,6 @@ PALPITES = """
     {% endif %}
   </div>
 </form>
-
-<style>
-  input[disabled], select[disabled], button[disabled] { opacity:.6; cursor:not-allowed; }
-</style>
 """
 
 FLAT_PHASE_PAGE = """
