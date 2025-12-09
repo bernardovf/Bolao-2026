@@ -578,21 +578,21 @@ BASE = """<!doctype html>
   }
 
   /* Mobile: Show FIFA codes instead of full names */
-  .name-mobile { display: inline; }
-  .name-desktop { display: none; }
+  .name-mobile { display: inline !important; }
+  .name-desktop { display: none !important; }
 
-  /* Mobile layout - dynamic sizing to fit screen */
+  /* Mobile layout - FIXED consistent sizing across all groups */
   .fixtures .fixture-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: clamp(4px, 1.5vw, 8px);
+    gap: 6px;
   }
 
-  /* Adjust team names and flags - dynamic sizing */
+  /* Adjust team names and flags - FIXED sizes */
   .fixtures .team {
-    gap: clamp(4px, 1.5vw, 8px);
+    gap: 5px;
     flex: 1;
     min-width: 0;
     align-items: center;
@@ -607,39 +607,39 @@ BASE = """<!doctype html>
   }
 
   .fixtures .team .name {
-    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    font-size: 1rem;
     font-weight: 800;
     white-space: nowrap;
     letter-spacing: 0.03em;
   }
 
   .fixtures .flagbox {
-    width: clamp(24px, 6vw, 32px);
-    height: clamp(16px, 4vw, 22px);
+    width: 28px;
+    height: 19px;
     flex-shrink: 0;
   }
 
-  /* Centered score-wrap on mobile - dynamic sizing */
+  /* Centered score-wrap on mobile - FIXED sizing */
   .fixtures .score-wrap {
     display: flex;
     align-items: center;
-    gap: clamp(3px, 1vw, 6px);
+    gap: 4px;
     flex-shrink: 0;
   }
 
-  /* Dynamic score inputs for mobile */
+  /* FIXED score inputs for mobile - consistent across all groups */
   .fixtures .score {
-    width: clamp(36px, 9vw, 48px) !important;
-    max-width: clamp(36px, 9vw, 48px) !important;
-    height: clamp(36px, 9vw, 48px) !important;
-    line-height: clamp(36px, 9vw, 48px) !important;
-    font-size: clamp(0.95rem, 4vw, 1.2rem) !important;
+    width: 42px !important;
+    max-width: 42px !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    font-size: 1.05rem !important;
     padding: 0 !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: clamp(0.95rem, 4vw, 1.2rem);
+    font-size: 1.05rem;
     font-weight: 800;
   }
 
@@ -716,35 +716,35 @@ BASE = """<!doctype html>
     font-size: 1rem;
   }
 
-  /* Ultra-compact for very small screens - still dynamic */
+  /* Ultra-compact for very small screens - FIXED sizes */
   .fixtures .fixture-row {
-    gap: clamp(3px, 1.2vw, 6px);
+    gap: 5px;
   }
 
   .fixtures .team {
-    gap: clamp(3px, 1.2vw, 6px);
+    gap: 4px;
   }
 
   .fixtures .team .name {
-    font-size: clamp(0.8rem, 3vw, 1rem);
+    font-size: 0.9rem;
   }
 
   .fixtures .flagbox {
-    width: clamp(20px, 5.5vw, 28px);
-    height: clamp(13px, 3.5vw, 19px);
+    width: 24px;
+    height: 16px;
   }
 
   .fixtures .score {
-    width: clamp(32px, 8.5vw, 44px) !important;
-    max-width: clamp(32px, 8.5vw, 44px) !important;
-    height: clamp(32px, 8.5vw, 44px) !important;
-    line-height: clamp(32px, 8.5vw, 44px) !important;
-    font-size: clamp(0.85rem, 3.5vw, 1.1rem) !important;
+    width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+    font-size: 0.95rem !important;
     border-width: 2px !important;
   }
 
   .fixtures .sep {
-    font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+    font-size: 0.95rem;
   }
 
   /* Smaller pills */
