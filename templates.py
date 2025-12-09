@@ -67,6 +67,37 @@ BASE = """<!doctype html>
     padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
   }
 
+  /* Desktop: Compact mode to fit everything on screen without scrolling */
+  @media (min-width: 1024px) {
+    main {
+      padding: 12px 24px !important; /* Reduce padding */
+      max-height: 100vh;
+      overflow-y: hidden;
+    }
+
+    /* Compact all headings */
+    h2 {
+      font-size: 1.3rem !important;
+      margin: 0 0 8px 0 !important;
+    }
+
+    h3 {
+      font-size: 1.1rem !important;
+      margin: 8px 0 6px 0 !important;
+    }
+
+    /* Compact group filter */
+    #groupFilter {
+      margin-bottom: 10px !important;
+    }
+
+    /* Compact header section */
+    .content-box {
+      padding: 10px !important;
+      margin-bottom: 10px !important;
+    }
+  }
+
   /* Mobile-specific container fixes */
   @media (max-width: 768px) {
     main {
@@ -566,102 +597,34 @@ BASE = """<!doctype html>
 }
 
 @media (max-width: 600px) {
-  /* ULTRA-COMPACT MODE: Fit everything on screen without scrolling */
-
-  /* Hide date column entirely to save space */
+  /* Hide date column, show it inline */
   .fixtures .kick-col { display: none; }
   .fixtures thead th:first-child { display: none; }
   .fixtures .kick-mobile {
     display: block;
     text-align: center;
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     color: var(--text-light);
-    margin: 0 0 3px 0;
+    margin: 0 0 8px 0;
     font-weight: 600;
-    line-height: 1.1;
   }
 
   /* Mobile: Show full Portuguese names (same as desktop) */
   .name-mobile { display: none !important; }
   .name-desktop { display: inline !important; }
 
-  /* Drastically reduce ALL spacing */
-  .content-box {
-    padding: 6px !important;
-    margin: 6px auto !important;
-  }
-
-  /* Compact header */
-  h2 {
-    font-size: 1rem !important;
-    margin: 0 0 6px 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  h3 {
-    font-size: 0.9rem !important;
-    margin: 6px 0 4px 0 !important;
-  }
-
-  /* Compact buttons */
-  .button {
-    padding: 4px 10px !important;
-    font-size: 0.75rem !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Ultra-compact group filter */
-  #groupFilter {
-    margin-bottom: 6px !important;
-  }
-
-  #groupFilter label {
-    gap: 4px !important;
-    margin: 0 !important;
-  }
-
-  #groupFilter label span {
-    font-size: 0.75rem !important;
-  }
-
-  #groupFilter select {
-    min-width: 90px !important;
-    padding: 3px 6px !important;
-    font-size: 0.75rem !important;
-  }
-
-  /* Hide standings table on mobile to save massive space */
-  .layout-sidebar {
-    display: none !important;
-  }
-
-  /* Compact fixtures list */
-  .fixtures {
-    display: flex;
-    flex-direction: column;
-    gap: 2px !important;
-    margin-top: 4px !important;
-  }
-
-  /* Ultra-compact match rows */
+  /* Mobile layout - Smaller sizes to fit everything on screen */
   .fixtures .fixture-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 2px;
-    padding: 3px 0 !important;
-    margin: 0 !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    gap: 4px;
   }
 
-  .fixtures .fixture-row:last-child {
-    border-bottom: none;
-  }
-
-  /* Minimal team containers */
+  /* Adjust team names and flags - Smaller to fit */
   .fixtures .team {
-    gap: 3px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
     align-items: center;
@@ -675,65 +638,55 @@ BASE = """<!doctype html>
     justify-content: flex-start;
   }
 
-  /* Tiny team names */
   .fixtures .team .name {
-    font-size: 0.65rem;
-    font-weight: 700;
+    font-size: 0.7rem;
+    font-weight: 800;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: 0;
+    letter-spacing: 0.01em;
     max-width: 100%;
-    line-height: 1.2;
   }
 
-  /* Tiny flags */
   .fixtures .flagbox {
-    width: 18px;
-    height: 12px;
+    width: 24px;
+    height: 16px;
     flex-shrink: 0;
   }
 
-  /* Minimal score-wrap */
+  /* Centered score-wrap on mobile - Smaller to fit */
   .fixtures .score-wrap {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     flex-shrink: 0;
   }
 
-  /* Tiny score inputs */
+  /* Smaller score inputs to ensure fit on mobile */
   .fixtures .score {
-    width: 28px !important;
-    max-width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
-    font-size: 0.75rem !important;
+    width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 0.9rem !important;
     padding: 0 !important;
-    border-width: 1px !important;
+    border-width: 2px !important;
   }
 
-  /* Tiny separator */
   .fixtures .sep {
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-weight: 800;
   }
 
-  /* Compact pills */
+  /* Better pills on mobile */
   .final-pill, .points-pill {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.3rem;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
   }
 
-  /* Compact save button */
+  /* Optimize save button for mobile */
   .save-row {
-    padding: 8px 6px !important;
-    margin-top: 6px !important;
-  }
-
-  .save-row .button {
-    padding: 6px 12px !important;
-    font-size: 0.8rem !important;
+    padding: 12px 8px;
   }
 
   .save-row button {
@@ -1143,35 +1096,36 @@ BASE = """<!doctype html>
   @media (min-width: 1024px) {
     .layout-grid {
       display: grid;
-      grid-template-columns: minmax(400px, 480px) 1fr;
-      gap: clamp(32px, 4vw, 64px);
+      grid-template-columns: minmax(320px, 380px) 1fr; /* Narrower sidebar */
+      gap: 16px !important; /* Much smaller gap */
       align-items: start;
     }
 
     .layout-sidebar {
       position: sticky;
-      top: 20px;
-      max-height: calc(100vh - 40px);
+      top: 10px;
+      max-height: calc(100vh - 20px);
       overflow-y: auto;
-      padding-right: 12px;
+      padding-right: 8px;
     }
 
-    /* Balanced table sizing in sidebar */
+    /* Compact table sizing in sidebar */
     .layout-sidebar .table {
-      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      font-size: 0.8rem !important;
       width: 100%;
       table-layout: auto;
     }
 
     .layout-sidebar .table thead th {
-      padding: clamp(14px, 1.8vw, 18px) clamp(8px, 1vw, 12px);
-      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      padding: 6px 4px !important;
+      font-size: 0.75rem !important;
       white-space: nowrap;
     }
 
     .layout-sidebar .table tbody td {
-      padding: clamp(12px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
-      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      padding: 5px 4px !important;
+      font-size: 0.8rem !important;
+      line-height: 1.2;
     }
 
     /* Make sure team names don't get cut off */
@@ -1183,18 +1137,83 @@ BASE = """<!doctype html>
 
     .layout-sidebar h2,
     .layout-sidebar h3 {
-      font-size: clamp(1.5rem, 2.5vw, 1.9rem);
-      margin-top: clamp(0px, 1vw, 16px);
-      margin-bottom: clamp(20px, 2.5vw, 28px);
+      font-size: 1.1rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 8px !important;
     }
 
     .layout-main {
       min-width: 0; /* Prevents grid overflow */
     }
 
-    /* Balance heading sizes in main content */
+    /* Compact heading sizes in main content */
     .layout-main h3 {
-      font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+      font-size: 1.1rem !important;
+      margin: 6px 0 !important;
+    }
+
+    /* Compact fixtures */
+    .fixtures tbody tr {
+      height: auto;
+    }
+
+    .fixtures .fixture-row {
+      padding: 4px 0 !important;
+    }
+
+    .fixtures .kickoff {
+      font-size: 0.85rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .fixtures .team .name {
+      font-size: 0.85rem !important;
+    }
+
+    .fixtures .flagbox {
+      width: 24px !important;
+      height: 16px !important;
+    }
+
+    .fixtures .score {
+      width: 40px !important;
+      height: 40px !important;
+      font-size: 0.95rem !important;
+    }
+
+    /* Compact save button */
+    .save-row {
+      padding: 8px 0 !important;
+      margin-top: 8px !important;
+    }
+
+    /* Make header with title and Home button more compact */
+    div[style*="margin-bottom: clamp(16px"] {
+      margin-bottom: 8px !important;
+    }
+
+    /* Make group filter more compact */
+    form#groupFilter {
+      margin-bottom: 10px !important;
+    }
+
+    form#groupFilter label {
+      gap: 6px !important;
+    }
+
+    form#groupFilter label span {
+      font-size: 0.9rem !important;
+    }
+
+    form#groupFilter select {
+      padding: 4px 8px !important;
+      font-size: 0.85rem !important;
+    }
+
+    /* Compact button */
+    .button {
+      padding: 6px 12px !important;
+      font-size: 0.85rem !important;
     }
   }
 
