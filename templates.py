@@ -647,6 +647,7 @@ MATCHES = """
 
   <!-- Matches -->
   <div class="layout-main">
+    {% set fixtures = groups.get(selected_group, []) %}
     {% if fixtures and fixtures|length > 0 %}
       <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
         <input type="hidden" name="group" value="{{ selected_group }}">
