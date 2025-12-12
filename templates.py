@@ -1,1266 +1,68 @@
+# ============================================================================
+# BASE TEMPLATE - Minimal global styles only
+# ============================================================================
 BASE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://unpkg.com/mvp.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
+  /* ========== GLOBAL CSS VARIABLES ========== */
   :root {
-    --pad: 12px;
-    --font-body: 'Advent Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-heading: 'Advent Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-    /* FIFA-inspired color palette */
+    /* Colors - FIFA inspired */
     --primary-blue: #0055A4;
     --primary-blue-dark: #003d7a;
-    --primary-blue-light: #1a6bb8;
     --accent-gold: #FFB81C;
-    --accent-gold-dark: #E5A419;
-    --accent-red: #E31E24;
     --success-green: #00B140;
-    --success-green-light: #e8f5e9;
     --text-dark: #1a1a1a;
     --text-gray: #4a5568;
-    --text-light: #6b7280;
-    --bg-light: #f8fafc;
-    --bg-white: #ffffff;
     --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    /* Font */
+    --font-main: 'Advent Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
+  /* ========== GLOBAL RESET ========== */
   * {
-    -webkit-tap-highlight-color: transparent;
     box-sizing: border-box;
   }
 
   body {
     margin: 0;
-    font-family: var(--font-body);
-    letter-spacing: 0.01em;
+    font-family: var(--font-main);
     background: linear-gradient(135deg, #f8fafc 0%, #e8f0f7 100%);
-    min-height: 100vh;
-    color: var(--text-dark);
-    overflow-x: hidden; /* Prevent horizontal scroll */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  }
-
-  /* Prevent horizontal overflow on all containers */
-  html {
-    overflow-x: hidden;
-    font-size: 16px; /* Base font size */
-  }
-
-  /* Full-width immersive layout - FIFA style */
-  main, header, .fixtures, .table-wrap {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  main {
-    max-width: 2000px; /* Wider for modern screens */
-    margin: 0 auto;
-    padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
-  }
-
-  /* Desktop: Compact mode to fit everything on screen without scrolling */
-  @media (min-width: 1024px) {
-    main {
-      padding: 12px 24px !important; /* Reduce padding */
-      max-height: 100vh;
-      overflow-y: hidden;
-    }
-
-    /* Compact all headings */
-    h2 {
-      font-size: 1.3rem !important;
-      margin: 0 0 8px 0 !important;
-    }
-
-    h3 {
-      font-size: 1.1rem !important;
-      margin: 8px 0 6px 0 !important;
-    }
-
-    /* Compact group filter */
-    #groupFilter {
-      margin-bottom: 10px !important;
-    }
-
-    /* Compact header section */
-    .content-box {
-      padding: 10px !important;
-      margin-bottom: 10px !important;
-    }
-  }
-
-  /* Mobile-specific container fixes */
-  @media (max-width: 768px) {
-    main {
-      padding: 12px 8px;
-      overflow-x: hidden;
-    }
-
-    * {
-      max-width: 100%;
-    }
-
-    /* Ensure all content stays within viewport */
-    .layout-grid, .layout-main, .layout-sidebar, .fixtures {
-      overflow-x: hidden;
-      max-width: 100%;
-      width: 100%;
-    }
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    letter-spacing: -0.02em;
     color: var(--text-dark);
   }
 
-  h1 {
-    font-size: clamp(2rem, 5vw, 3.5rem); /* Large, responsive */
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-    line-height: 1.1;
-  }
-
-  h2 {
-    font-size: clamp(1.75rem, 4vw, 2.5rem); /* Larger headings */
-    color: var(--primary-blue);
-    font-weight: 800;
-    margin: clamp(48px, 5vw, 64px) 0 clamp(32px, 3vw, 40px) 0;
-    line-height: 1.2;
-    padding-top: clamp(16px, 2vw, 24px);
-  }
-
-  h3 {
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 700;
-    margin: clamp(32px, 4vw, 48px) 0 clamp(20px, 2vw, 28px) 0;
-    padding-top: clamp(12px, 1.5vw, 16px);
-  }
-
-  /* Enhanced buttons - Larger FIFA style */
+  /* ========== BASIC BUTTONS ========== */
   .button, button {
-    font-family: var(--font-heading);
-    font-weight: 800;
-    letter-spacing: 0;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    font-family: var(--font-main);
+    font-weight: 700;
+    background: var(--primary-blue);
     color: white;
     border: none;
-    padding: clamp(14px, 2vw, 18px) clamp(28px, 4vw, 40px);
-    border-radius: 12px;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-md);
     text-decoration: none;
     display: inline-block;
-    text-align: center;
-    min-height: 48px; /* iOS minimum touch target */
-    line-height: 1.4;
-    font-size: clamp(1rem, 1.8vw, 1.2rem);
   }
 
   .button:hover, button:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+    background: var(--primary-blue-dark);
   }
 
-  .button:active, button:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-md);
-  }
-
-  .button.disabled {
-    pointer-events: none;
-    color: #9aa0a6;
-    opacity: .6;
-    cursor: not-allowed;
+  /* ========== BASIC LINKS ========== */
+  a {
+    color: var(--primary-blue);
     text-decoration: none;
   }
 
-  /* Better touch targets for mobile */
-  @media (hover: none) and (pointer: coarse) {
-    .button:hover, button:hover {
-      transform: none; /* Disable hover transform on touch devices */
-    }
-
-    .fixtures tbody tr:hover {
-      transform: none; /* Disable row hover on touch */
-    }
-  }
-
-  /* shared widgets */
-  .result-line{
-    display:flex; align-items:center; justify-content:center; gap:.5rem;
-    margin-top:.35rem;
-  }
-  .final-pill{
-    display:inline-block;
-    padding: clamp(0.3rem, 1vw, 0.5rem) clamp(0.7rem, 1.5vw, 1rem);
-    border-radius:999px;
-    font-weight:800;
-    font-variant-numeric:tabular-nums;
-    background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
-    border: 2px solid #93c5fd;
-    color: var(--primary-blue);
-    white-space:nowrap;
-    box-shadow: var(--shadow-md);
-    font-size: clamp(0.95rem, 1.5vw, 1.15rem);
-  }
-  .points-pill{
-    display:inline-block;
-    padding: clamp(0.3rem, 1vw, 0.5rem) clamp(0.7rem, 1.5vw, 1rem);
-    border-radius:999px;
-    font-weight:900;
-    font-variant-numeric:tabular-nums;
-    white-space:nowrap;
-    border:3px solid;
-    box-shadow: var(--shadow-md);
-    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-    transition: all 0.2s ease;
-  }
-  .points-pill.p10{
-    background: linear-gradient(135deg, var(--success-green) 0%, #00953d 100%);
-    border-color: var(--success-green);
-    color: white;
-  }
-  .points-pill.p5 {
-    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
-    border-color: var(--accent-gold-dark);
-    color: var(--text-dark);
-  }
-  .points-pill.p0 {
-    background: #e5e7eb;
-    border-color: #9ca3af;
-    color: var(--text-gray);
-  }
-
-  /* inputs/buttons disabled look */
-  input[disabled]{opacity:.6; cursor:not-allowed;}
-  button[disabled]{opacity:.6; cursor:not-allowed;}
-
-  @media (max-width: 520px){
-    .result-line{ margin-top:.25rem; }
-  }
-
-  /* Enhanced full-width header - FIFA style */
-  header {
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    padding: clamp(48px, 7vw, 96px) clamp(24px, 5vw, 64px);
-    margin-bottom: clamp(56px, 6vw, 80px);
-    box-shadow: var(--shadow-lg);
-    border-bottom: 6px solid var(--accent-gold);
-    position: relative;
-  }
-
-  header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></svg>');
-    background-size: 200px 200px;
-    opacity: 0.3;
-    pointer-events: none;
-  }
-
-  header > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  header h1 {
-    margin: 0 0 clamp(24px, 3vw, 36px) 0;
-    color: white;
-    background: none;
-    -webkit-text-fill-color: white;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    padding-bottom: clamp(12px, 2vw, 20px);
-  }
-
-  header small, header a {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-    font-weight: 500;
-    line-height: 1.8;
-  }
-
-  header a {
+  a:hover {
     text-decoration: underline;
-    transition: all 0.2s ease;
-    font-weight: 600;
   }
-
-  header a:hover {
-    color: var(--accent-gold);
-    text-shadow: 0 0 10px rgba(255, 184, 28, 0.5);
-  }
-
-  header p {
-    background: rgba(255, 255, 255, 0.15);
-    padding: clamp(18px, 2.5vw, 24px) clamp(24px, 3vw, 32px);
-    border-radius: 12px;
-    border-left: 6px solid var(--accent-gold);
-    backdrop-filter: blur(10px);
-    font-size: clamp(0.95rem, 2vw, 1.05rem);
-    margin: clamp(16px, 2vw, 24px) 0;
-    line-height: 1.6;
-  }
-
-  /* Container - Full width FIFA style */
-  .fixtures {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0;
-  }
-
-
-  /* Table - Enhanced styling with more spacing */
-  .fixtures table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 clamp(12px, 2vw, 20px);
-    margin-top: -12px;
-  }
-
-  .fixtures tbody tr {
-    background: white;
-    box-shadow: var(--shadow-md);
-    border-radius: 16px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .fixtures tbody tr:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .fixtures tbody tr td:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-  }
-
-  .fixtures tbody tr td:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-  }
-
-  .fixture-cell {
-    padding: clamp(20px, 3vw, 32px) clamp(16px, 2vw, 24px);
-    overflow: visible;
-    background: white;
-  }
-
-  /* Table headers - Larger and more prominent */
-  .fixtures thead th {
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    color: white;
-    padding: clamp(16px, 2vw, 24px) clamp(16px, 2vw, 24px);
-    font-family: var(--font-heading);
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-    letter-spacing: 0.08em;
-    border: none;
-  }
-
-  .fixtures thead th:first-child {
-    border-top-left-radius: 8px;
-  }
-
-  .fixtures thead th:last-child {
-    border-top-right-radius: 8px;
-  }
-
-  /* Desktop/Tablet: two columns (Date/Time + Fixture) */
-  .kick-col {
-    width: clamp(140px, 15vw, 200px);
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
-  }
-  .kickoff {
-    font-size: clamp(1.1rem, 1.8vw, 1.4rem);
-    color: var(--text-gray);
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    line-height: 1.5;
-    white-space: pre-line;
-    text-align: center;
-    display: inline-block;
-  }
-  .kick-mobile { display: none; } /* hidden on desktop */
-
-  /* Fixture row grid */
-  .fixture-row {
-    display: grid;
-    grid-template-columns:
-      minmax(0, 2.4fr)  /* left team */
-      auto              /* left score */
-      12px              /* "x" */
-      auto              /* right score */
-      minmax(0, 2.4fr); /* right team */
-    align-items: center;
-    column-gap: 8px;
-  }
-
-
-  /* Team: larger, more prominent */
-  .team {
-    display: flex;
-    align-items: center;
-    gap: clamp(8px, 1.5vw, 12px);
-    min-width: 0;
-  }
-  .team.left  { justify-content: flex-end; text-align: right; }
-  .team.right { justify-content: flex-start; text-align: left; }
-  .team .name {
-    white-space: nowrap;
-    font-family: var(--font-heading);
-    font-weight: 800;
-    line-height: 1.2;
-    font-size: clamp(1rem, 2.5vw, 1.35rem);
-    letter-spacing: -0.02em;
-    color: var(--text-dark);
-  }
-
-  /* Show full names on desktop, FIFA codes on mobile */
-  .name-mobile { display: none; }
-  .name-desktop { display: inline; }
-
-  .sep {
-    text-align: center;
-    font-weight: 800;
-    color: var(--text-gray);
-    font-size: clamp(1.1rem, 2vw, 1.5rem);
-  }
-
-  /* Enhanced score inputs - Larger and more prominent */
-  .score {
-    display: inline-block !important;
-    width: clamp(48px, 6vw, 64px) !important;
-    max-width: clamp(48px, 6vw, 64px) !important;
-    height: clamp(44px, 5vw, 56px);
-    line-height: clamp(44px, 5vw, 56px);
-    text-align: center;
-    font-size: clamp(1.1rem, 2vw, 1.5rem);
-    font-family: var(--font-heading);
-    font-weight: 800;
-    padding: 0;
-    margin: 0;
-    border-radius: 10px;
-    border: 3px solid var(--border-color);
-    background: white;
-    transition: all 0.3s ease;
-    color: var(--primary-blue);
-  }
-
-  .score:hover:not([disabled]) {
-    border-color: var(--primary-blue-light);
-    box-shadow: 0 0 0 4px rgba(0, 85, 164, 0.15);
-    transform: scale(1.05);
-  }
-
-  .score:focus {
-    outline: none;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 6px rgba(0, 85, 164, 0.2);
-    transform: scale(1.05);
-  }
-
-  /* Enhanced flags - Larger */
-  .flagbox {
-    flex: 0 0 auto;
-    display: inline-block;
-    width: clamp(36px, 4vw, 48px);
-    height: clamp(24px, 2.6vw, 32px);
-    line-height: 0;
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: var(--shadow-md);
-    border: 2px solid var(--border-color);
-    overflow: hidden;
-  }
-  .flagbox > img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  /* Enhanced Sticky Save bar - More prominent */
-  .save-row {
-    position: sticky;
-    bottom: 0;
-    z-index: 4;
-    background: linear-gradient(to top, white 0%, rgba(255, 255, 255, 0.98) 100%);
-    padding: clamp(20px, 3vw, 32px) clamp(16px, 4vw, 48px);
-    border-top: 3px solid var(--accent-gold);
-    box-shadow: 0 -6px 12px -2px rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(15px);
-  }
-
-  .save-row button {
-    width: 100%;
-    padding: clamp(18px, 2.5vw, 24px) clamp(28px, 4vw, 40px);
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    font-weight: 900;
-    border-radius: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
-    color: var(--text-dark);
-    box-shadow: var(--shadow-lg);
-    border: 3px solid var(--accent-gold-dark);
-  }
-
-  .save-row button:hover:not([disabled]) {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Hide number spinners */
-  input[type=number].score::-webkit-outer-spin-button,
-  input[type=number].score::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  input[type=number].score { -moz-appearance: textfield; }
-
-/* ---------- Mobile layout optimizations ---------- */
-@media (max-width: 768px) {
-  /* Reduce header padding */
-  header {
-    padding: 16px var(--pad);
-    margin-bottom: 20px;
-  }
-
-  header h1 {
-    font-size: 1.5rem;
-  }
-
-  /* Better spacing for mobile */
-  main {
-    padding: 0 8px;
-  }
-
-  h2, h3 {
-    margin-top: 20px;
-    margin-bottom: 12px;
-    font-size: 1.3rem;
-  }
-
-  /* Optimize toolbar for mobile */
-  .toolbar {
-    padding: 10px 8px;
-  }
-
-  .toolbar label {
-    font-size: 0.9rem;
-  }
-
-  .toolbar select {
-    font-size: 14px;
-    padding: 8px 12px;
-  }
-
-  /* Better button sizing on mobile */
-  .button, button {
-    padding: 10px 18px;
-    font-size: 0.9rem;
-  }
-
-  /* Fixtures table mobile adjustments */
-  .fixtures {
-    padding: 0;
-  }
-
-  .fixtures tbody tr {
-    border-radius: 10px;
-    margin-bottom: 8px;
-  }
-
-  .fixture-cell {
-    padding: 10px 6px;
-  }
-
-  .fixtures thead th {
-    padding: 10px 6px;
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 600px) {
-  /* Hide date column, show it inline */
-  .fixtures .kick-col { display: none; }
-  .fixtures thead th:first-child { display: none; }
-  .fixtures .kick-mobile {
-    display: block;
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--text-light);
-    margin: 0 0 8px 0;
-    font-weight: 600;
-  }
-
-  /* Mobile: Show full Portuguese names (same as desktop) */
-  .name-mobile { display: none !important; }
-  .name-desktop { display: inline !important; }
-
-  /* Mobile layout - Smaller sizes to fit everything on screen */
-  .fixtures .fixture-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 4px;
-  }
-
-  /* Adjust team names and flags - Smaller to fit */
-  .fixtures .team {
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-    align-items: center;
-  }
-
-  .fixtures .team.left {
-    justify-content: flex-end;
-  }
-
-  .fixtures .team.right {
-    justify-content: flex-start;
-  }
-
-  .fixtures .team .name {
-    font-size: 0.7rem;
-    font-weight: 800;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: 0.01em;
-    max-width: 100%;
-  }
-
-  .fixtures .flagbox {
-    width: 24px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-
-  /* Centered score-wrap on mobile - Smaller to fit */
-  .fixtures .score-wrap {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    flex-shrink: 0;
-  }
-
-  /* Smaller score inputs to ensure fit on mobile */
-  .fixtures .score {
-    width: 36px !important;
-    max-width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    font-size: 0.9rem !important;
-    padding: 0 !important;
-    border-width: 2px !important;
-  }
-
-  .fixtures .sep {
-    font-size: 0.9rem;
-    font-weight: 800;
-  }
-
-  /* Better pills on mobile */
-  .final-pill, .points-pill {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
-  }
-
-  /* Optimize save button for mobile */
-  .save-row {
-    padding: 12px 8px;
-  }
-
-  .save-row button {
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-
-  /* Better table cards on mobile */
-  .table {
-    font-size: 0.85rem;
-  }
-
-  .table thead th {
-    padding: 10px 6px;
-    font-size: 0.7rem;
-  }
-
-  .table tbody td {
-    padding: 8px 6px;
-  }
-
-  /* Optimize home page buttons */
-  .button {
-    font-size: 0.9rem;
-    padding: 12px 16px;
-  }
-
-  /* Better form inputs on mobile */
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  select,
-  textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-    padding: 10px 12px;
-  }
-}
-
-
-
-
-/* Very narrow phones (iPhone SE, small Android) */
-@media (max-width: 400px) {
-  /* Further reduce spacing */
-  header {
-    padding: 12px 8px;
-  }
-
-  header h1 {
-    font-size: 1.3rem;
-  }
-
-  main {
-    padding: 0 4px;
-  }
-
-  h2 {
-    font-size: 1.2rem;
-  }
-
-  h3 {
-    font-size: 1rem;
-  }
-
-  /* Ultra-compact for very small screens - FIXED sizes */
-  .fixtures .fixture-row {
-    gap: 5px;
-  }
-
-  .fixtures .team {
-    gap: 4px;
-  }
-
-  .fixtures .team .name {
-  display: inline-block;    /* or block */
-  width: 70px;              /* fixed width */
-  /* max-width: 80%;               fixed width */
-  font-size: 0.75rem;
-  white-space: nowrap;      /* no wrapping */
-  overflow: hidden;         /* cut extra */
-  text-overflow: ellipsis;  /* show "..." */
-  }
-
-  .fixtures .flagbox {
-    width: 24px;
-    height: 16px;
-  }
-
-  .fixtures .score {
-    width: 38px !important;
-    max-width: 38px !important;
-    height: 38px !important;
-    line-height: 38px !important;
-    font-size: 0.95rem !important;
-    border-width: 2px !important;
-  }
-
-  .fixtures .sep {
-    font-size: 0.95rem;
-  }
-
-  /* Smaller pills */
-  .final-pill, .points-pill {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.35rem;
-  }
-
-  /* Compact table */
-  .table {
-    font-size: 0.75rem;
-  }
-
-  .table thead th {
-    padding: 8px 4px;
-    font-size: 0.65rem;
-  }
-
-  .table tbody td {
-    padding: 6px 4px;
-  }
-
-  /* Smaller buttons */
-  .button.small {
-    padding: 6px 10px;
-    font-size: 0.75rem;
-  }
-
-  .save-row button {
-    padding: 12px 16px;
-    font-size: 14px;
-  }
-
-  /* Toolbar compact */
-  .toolbar {
-    padding: 8px 4px;
-  }
-
-  .toolbar select {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
-}
-
-/* Enhanced table styling for rankings and standings */
-.table {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-.table thead th {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-  color: white;
-  padding: 14px 12px;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-}
-
-.table tbody td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.2s ease;
-}
-
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.table tbody tr:hover {
-  background: var(--bg-light);
-}
-
-/* Highlight top 2 teams */
-.table .top2 td {
-  background: linear-gradient(135deg, var(--success-green-light) 0%, #d4f4dd 100%);
-  font-weight: 600;
-}
-
-.table .top2 td:first-child {
-  border-left: 4px solid var(--success-green);
-}
-
-/* Highlight 3rd place if qualified */
-.table .best3 td {
-  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
-  font-weight: 600;
-}
-
-.table .best3 td:first-child {
-  border-left: 4px solid #0ea5e9;
-}
-
-/* Highlight the logged-in user's row in Ranking */
-.table .me td {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  font-weight: 800;
-  color: var(--text-dark);
-}
-
-.table .me td:first-child {
-  border-left: 4px solid var(--accent-gold);
-}
-
-/* Enhanced form inputs */
-input[type="text"],
-input[type="password"],
-input[type="email"],
-select,
-textarea {
-  font-family: var(--font-body);
-  padding: 12px 14px;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 15px;
-  transition: all 0.2s ease;
-  background: white;
-  color: var(--text-dark);
-}
-
-input[type="text"]:hover,
-input[type="password"]:hover,
-input[type="email"]:hover,
-select:hover,
-textarea:hover {
-  border-color: var(--primary-blue-light);
-}
-
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="email"]:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
-}
-
-label {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  color: var(--text-dark);
-  margin-bottom: 6px;
-  display: block;
-}
-
-/* Smooth page animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-main {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* Link styling */
-a {
-  color: var(--primary-blue);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-a:hover {
-  color: var(--primary-blue-light);
-  text-decoration: underline;
-}
-
-/* --- Generic responsive table support (for Ranking etc.) --- */
-.table-wrap {
-  width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  position: relative;
-  margin-bottom: 16px;
-}
-
-/* Allow overflow only on desktop */
-  @media (min-width: 769px) {
-    .table-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-  }
-
-  .table {
-    width: 100%;
-    min-width: 480px;
-  }
-
-  @media (max-width: 600px) {
-    .table {
-      min-width: 100%; /* Force table to fit viewport width */
-      font-size: 0.75rem;
-    }
-
-    th, td {
-      padding: 4px 2px;
-      font-size: 0.7rem;
-    }
-
-    /* Make table cells more compact */
-    .table th {
-      font-size: 0.65rem;
-      padding: 6px 3px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .table {
-      min-width: 100%; /* Force table to fit viewport */
-      font-size: 0.7rem;
-    }
-
-    th, td {
-      padding: 4px 2px;
-      font-size: 0.65rem;
-    }
-  }
-
-  /* Card layout under 420px (tables with class="responsive") */
-  @media (max-width: 420px){
-    table.responsive{ display:block; border-collapse:separate; border-spacing:0; }
-    table.responsive thead{ display:none; }
-    table.responsive tbody{ display:block; }
-    table.responsive tr{
-      display:block;
-      background:#fff;
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      margin:10px 0;
-      padding:8px 10px;
-      box-shadow:0 1px 2px rgba(0,0,0,.04);
-    }
-    table.responsive td{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:6px 4px;
-      border:0;
-    }
-    table.responsive td::before{
-      content: attr(data-label);
-      color:#6b7280;
-      font-weight:500;
-      margin-right:12px;
-      text-align:left;
-    }
-    table.responsive td.left{ justify-content:flex-start; }
-    table.responsive td.center{ justify-content:space-between; }
-    table.responsive td[data-label="Jogador"]{ font-weight:600; }
-  }
-
-  /* optional: global styles for sortable headers */
-  th.sortable { cursor:pointer; user-select:none; position:relative; padding-right:1.1rem; }
-  th.sortable::after { content:"⇅"; position:absolute; right:.35rem; opacity:.35; font-size:.85em; }
-  th.sortable[data-order="asc"]::after  { content:"↑"; opacity:.85; }
-  th.sortable[data-order="desc"]::after { content:"↓"; opacity:.85; }
-
-  /* Two-column layout: Ranking sidebar + Main content (Desktop only) */
-  .layout-grid {
-    display: block; /* Mobile-first: stacked layout */
-    width: 100%;
-  }
-
-  /* Desktop: Ranking on the left, bets/fixtures on the right */
-  @media (min-width: 1024px) {
-    .layout-grid {
-      display: grid;
-      grid-template-columns: minmax(320px, 380px) 1fr; /* Narrower sidebar */
-      gap: 16px !important; /* Much smaller gap */
-      align-items: start;
-    }
-
-    .layout-sidebar {
-      position: sticky;
-      top: 10px;
-      max-height: calc(100vh - 20px);
-      overflow-y: auto;
-      padding-right: 8px;
-    }
-
-    /* Compact table sizing in sidebar */
-    .layout-sidebar .table {
-      font-size: 0.8rem !important;
-      width: 100%;
-      table-layout: auto;
-    }
-
-    .layout-sidebar .table thead th {
-      padding: 6px 4px !important;
-      font-size: 0.75rem !important;
-      white-space: nowrap;
-    }
-
-    .layout-sidebar .table tbody td {
-      padding: 5px 4px !important;
-      font-size: 0.8rem !important;
-      line-height: 1.2;
-    }
-
-    /* Make sure team names don't get cut off */
-    .layout-sidebar .table tbody td.left {
-      max-width: none;
-      white-space: normal;
-      word-wrap: break-word;
-    }
-
-    .layout-sidebar h2,
-    .layout-sidebar h3 {
-      font-size: 1.1rem !important;
-      margin-top: 0 !important;
-      margin-bottom: 8px !important;
-    }
-
-    .layout-main {
-      min-width: 0; /* Prevents grid overflow */
-    }
-
-    /* Compact heading sizes in main content */
-    .layout-main h3 {
-      font-size: 1.1rem !important;
-      margin: 6px 0 !important;
-    }
-
-    /* Compact fixtures */
-    .fixtures tbody tr {
-      height: auto;
-    }
-
-    .fixtures .fixture-row {
-      padding: 4px 0 !important;
-    }
-
-    .fixtures .kickoff {
-      font-size: 0.85rem !important;
-      line-height: 1.2 !important;
-    }
-
-    .fixtures .team .name {
-      font-size: 0.85rem !important;
-    }
-
-    .fixtures .flagbox {
-      width: 24px !important;
-      height: 16px !important;
-    }
-
-    .fixtures .score {
-      width: 40px !important;
-      height: 40px !important;
-      font-size: 0.95rem !important;
-    }
-
-    /* Compact save button */
-    .save-row {
-      padding: 8px 0 !important;
-      margin-top: 8px !important;
-    }
-
-    /* Make header with title and Home button more compact */
-    div[style*="margin-bottom: clamp(16px"] {
-      margin-bottom: 8px !important;
-    }
-
-    /* Make group filter more compact */
-    form#groupFilter {
-      margin-bottom: 10px !important;
-    }
-
-    form#groupFilter label {
-      gap: 6px !important;
-    }
-
-    form#groupFilter label span {
-      font-size: 0.9rem !important;
-    }
-
-    form#groupFilter select {
-      padding: 4px 8px !important;
-      font-size: 0.85rem !important;
-    }
-
-    /* Compact button */
-    .button {
-      padding: 6px 12px !important;
-      font-size: 0.85rem !important;
-    }
-  }
-
-  /* Mobile: Stack ranking above or below main content */
-  @media (max-width: 1023px) {
-    .layout-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .layout-sidebar {
-      order: 2; /* Show ranking after fixtures on mobile */
-    }
-
-    .layout-main {
-      order: 1;
-    }
-  }
-
-/* tighter on small phones; keep scroll instead of squeezing */
-@media (max-width: 500px){
-  .table-wrap > table{
-    table-layout: auto;     /* honor the colgroup widths */
-    min-width: 350px;        /* force horizontal scroll; no overlap, nothing cut off */
-  }
-  .c-kick   { width: 100%; }
-  .c-bets   { width: 100%; }
-  .c-fixture   { width: 0px; }
-  .score{ width:70px; height:4px; line-height:34px; }
-  .sep{ height:34px; }
-}
-
-/* input spinner removal */
-input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-input[type=number]{ -moz-appearance:textfield; }
-
-.clickable{ cursor:pointer; }
-.score-row.active{ outline:2px solid #2563eb; background: #eff6ff; }
-.pick-row[style*="display: none"] { /* nothing; just to remind what's happening */ }
-
-/* Row tint on ALL cells */
-.score-row td,
-.pick-row  td{
-  background: var(--bg) !important;   /* light fill across the row */
-}
-
-/* Nice colored edge using a pseudo element (more reliable than border-left) */
-.score-row,
-.pick-row{
-  position: relative;
-}
-.score-row::before,
-.pick-row::before{
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 1px;
-  background: var(--edge);
-  border-top-left-radius: 0px;   /* match your table’s rounding if any */
-  border-bottom-left-radius: 0px;
-}
-
-/* Keep hover/active without changing the background tint */
-.score-row:hover{ filter: brightness(0.985); }
-.score-row.active{
-  box-shadow: 0 0 0 5px #2563eb inset;  /* focus ring, does not override bg */
-}
-
-
 </style>
 
 <main>
@@ -1276,7 +78,92 @@ input[type=number]{ -moz-appearance:textfield; }
 </main>
 """
 
+
+# ============================================================================
+# RANKING TEMPLATE
+# ============================================================================
 RANKING = """
+<style>
+  /* Header styling */
+  h2 {
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Table container */
+  .table-wrap {
+    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 2rem 0;
+  }
+
+  /* Table styling */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table thead th {
+    background: var(--primary-blue);
+    color: white;
+    padding: 14px 12px;
+    text-align: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+  }
+
+  .table tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  .table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  /* Highlight current user */
+  .table .me td {
+    background: #fef3c7;
+    font-weight: 800;
+  }
+
+  /* Column alignment */
+  .table .left {
+    text-align: left;
+  }
+
+  .table .center {
+    text-align: center;
+  }
+
+  /* Sortable columns */
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th.sortable::after {
+    content: "⇅";
+    margin-left: 8px;
+    opacity: 0.3;
+  }
+
+  th.sortable[data-order="asc"]::after {
+    content: "↑";
+    opacity: 1;
+  }
+
+  th.sortable[data-order="desc"]::after {
+    content: "↓";
+    opacity: 1;
+  }
+</style>
+
 <h2>Ranking</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
@@ -1284,8 +171,8 @@ RANKING = """
   <table id="rankTable" class="table">
     <thead>
       <tr>
-        <th class="center" style="width:60px;">Pos</th>  {# no 'sortable' here #}
-        <th class="sortable left"  data-type="text">Jogador</th>
+        <th class="center">Pos</th>
+        <th class="sortable left" data-type="text">Jogador</th>
         <th class="sortable center" data-type="num">Resultados Exatos</th>
         <th class="sortable center" data-type="num">Resultados Parciais</th>
         <th class="sortable center" data-type="num">Total Pontos</th>
@@ -1294,21 +181,11 @@ RANKING = """
     <tbody>
       {% for r in rows %}
         <tr class="{% if r['user_id'] == current_id %}me{% endif %}">
-          <td class="center" data-label="Pos" data-val="{{ loop.index }}">
-            <span class="cell-value">{{ loop.index }}</span>
-          </td>
-          <td class="left" data-label="Jogador">
-            <span class="cell-value">{{ r['user_name'] }}</span>
-          </td>
-          <td class="center" data-label="Resultados Exatos" data-val="{{ r['number_exact_matches'] }}">
-            <span class="cell-value">{{ r['number_exact_matches'] }}</span>
-          </td>
-          <td class="center" data-label="Resultados Parciais" data-val="{{ r['number_result_matches'] }}">
-            <span class="cell-value">{{ r['number_result_matches'] }}</span>
-          </td>
-          <td class="center" data-label="Total Pontos" data-val="{{ r['total_points'] }}">
-            <span class="cell-value">{{ r['total_points'] }}</span>
-          </td>
+          <td class="center">{{ loop.index }}</td>
+          <td class="left">{{ r['user_name'] }}</td>
+          <td class="center">{{ r['number_exact_matches'] }}</td>
+          <td class="center">{{ r['number_result_matches'] }}</td>
+          <td class="center">{{ r['total_points'] }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -1320,39 +197,42 @@ RANKING = """
   const table = document.getElementById('rankTable');
   if (!table) return;
   const tbody = table.tBodies[0];
+  const headers = table.querySelectorAll('th.sortable');
 
-  const getCellVal = (row, idx) => {
-    const cell = row.children[idx];
-    return (cell.dataset && cell.dataset.val !== undefined)
-      ? cell.dataset.val
-      : cell.textContent.trim();
-  };
-  const toNum = (v) => {
-    const n = parseFloat(String(v).replace(/[^0-9.\\-]/g, ''));
-    return isNaN(n) ? Number.NEGATIVE_INFINITY : n;
-  };
-
-  table.querySelectorAll('th.sortable').forEach((th, idx) => {
+  headers.forEach(th => {
     th.addEventListener('click', () => {
-      const type = th.dataset.type || 'text';
-      const nextOrder = th.dataset.order === 'asc' ? 'desc' : 'asc';
-      table.querySelectorAll('th.sortable').forEach(h => h.removeAttribute('data-order'));
-      th.setAttribute('data-order', nextOrder);
+      const type = th.getAttribute('data-type') || 'text';
+      const colIndex = Array.from(th.parentNode.children).indexOf(th);
+      const order = th.getAttribute('data-order') === 'asc' ? 'desc' : 'asc';
 
-      const rows = Array.from(tbody.querySelectorAll('tr'));
+      // Clear other headers
+      headers.forEach(h => h.removeAttribute('data-order'));
+      th.setAttribute('data-order', order);
+
+      // Get rows
+      const rows = Array.from(tbody.rows);
+
+      // Sort
       rows.sort((a, b) => {
-        let A = getCellVal(a, idx), B = getCellVal(b, idx);
-        if (type === 'num') { A = toNum(A); B = toNum(B); }
-        else { A = String(A).toLowerCase(); B = String(B).toLowerCase(); }
-        if (A < B) return nextOrder === 'asc' ? -1 : 1;
-        if (A > B) return nextOrder === 'asc' ? 1 : -1;
-        return 0;
+        const aVal = a.cells[colIndex].textContent.trim();
+        const bVal = b.cells[colIndex].textContent.trim();
+
+        let comparison = 0;
+        if (type === 'num') {
+          comparison = parseFloat(aVal || 0) - parseFloat(bVal || 0);
+        } else {
+          comparison = aVal.localeCompare(bVal);
+        }
+
+        return order === 'asc' ? comparison : -comparison;
       });
-      rows.forEach(r => tbody.appendChild(r));
-      // re-number Pos after sort
-      Array.from(tbody.querySelectorAll('tr')).forEach((tr, i) => {
-        tr.children[0].textContent = i + 1;
-        tr.children[0].dataset.val = i + 1;
+
+      // Re-append rows
+      rows.forEach(row => tbody.appendChild(row));
+
+      // Update position numbers
+      rows.forEach((row, idx) => {
+        row.cells[0].textContent = idx + 1;
       });
     });
   });
@@ -1360,17 +240,55 @@ RANKING = """
 </script>
 """
 
+
+# ============================================================================
+# HOME TEMPLATE
+# ============================================================================
 HOME = """
+<style>
+  /* Header styling */
+  header {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    padding: 3rem 2rem;
+    margin: -2rem -2rem 2rem -2rem;
+    border-bottom: 4px solid var(--accent-gold);
+    text-align: center;
+  }
+
+  header h1 {
+    color: white;
+    font-size: 2.5rem;
+    margin: 0;
+  }
+
+  header small, header a {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Navigation buttons */
+  .nav-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .button.disabled {
+    background: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+</style>
+
 {% if not session.get('id') %}
-  <p>
-    <a class="button" href="{{ url_for('login') }}">Login</a>
-  </p>
+  <p><a class="button" href="{{ url_for('login') }}">Login</a></p>
 {% else %}
-  <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
+  <div class="nav-buttons">
     <a class="button" href="{{ url_for('ranking') }}">Ranking</a>
     <a class="button" href="{{ url_for('fase_page', phase_slug='groups') }}">Fase de Grupos</a>
     <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
-    
+
     {% if unlocks.decima_sexta %}
       <a class="button" href="{{ url_for('fase_page', phase_slug='decima_sexta') }}">16-Avos de Final</a>
     {% else %}
@@ -1389,26 +307,70 @@ HOME = """
       <span class="button disabled">Quartas de Final</span>
     {% endif %}
 
-    {% if unlocks.semi %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='semi') }}">Semi Final</a>
+    {% if unlocks.semis %}
+      <a class="button" href="{{ url_for('fase_page', phase_slug='semis') }}">Semifinais</a>
     {% else %}
-      <span class="button disabled">Semi Final</span>
+      <span class="button disabled">Semifinais</span>
     {% endif %}
 
-    {% if unlocks.final3 %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='final') }}">Final e Terceiro Lugar</a>
+    {% if unlocks.terceiro %}
+      <a class="button" href="{{ url_for('fase_page', phase_slug='terceiro') }}">3º Lugar</a>
     {% else %}
-      <span class="button disabled">Final e Terceiro Lugar</span>
+      <span class="button disabled">3º Lugar</span>
     {% endif %}
 
-    <a class="button" href="{{ url_for('logout') }}">Sair</a>
+    {% if unlocks.final %}
+      <a class="button" href="{{ url_for('fase_page', phase_slug='final') }}">Final</a>
+    {% else %}
+      <span class="button disabled">Final</span>
+    {% endif %}
   </div>
 {% endif %}
 """
 
+
+# ============================================================================
+# LOGIN TEMPLATE
+# ============================================================================
 LOGIN = """
+<style>
+  /* Form styling */
+  form {
+    max-width: 400px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-family: var(--font-main);
+    margin-bottom: 1rem;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+  }
+
+  button {
+    width: 100%;
+  }
+</style>
+
 <h2>Login</h2>
-<form method="post" action="{{ url_for('login') }}">
+<form method="post">
   <label>Usuário
     <input type="text" name="user_name">
   </label>
@@ -1419,17 +381,223 @@ LOGIN = """
 </form>
 """
 
+
+# ============================================================================
+# MATCHES TEMPLATE - Fase de Grupos
+# ============================================================================
 MATCHES = """
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(16px, 2vw, 24px);">
-  <h2 style="margin: 0;">Fase de Grupos</h2>
+<style>
+  /* Page header */
+  h2 {
+    color: var(--primary-blue);
+    font-size: 2rem;
+  }
+
+  /* Group filter */
+  #groupFilter {
+    margin: 1rem 0;
+  }
+
+  #groupFilter label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #groupFilter select {
+    padding: 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-family: var(--font-main);
+  }
+
+  /* Layout: Sidebar + Main content */
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    .layout-grid {
+      grid-template-columns: 350px 1fr;
+    }
+  }
+
+  /* Standings table */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table thead th {
+    background: var(--primary-blue);
+    color: white;
+    padding: 10px 8px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .table tbody td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  .table .left {
+    text-align: left;
+  }
+
+  /* Highlight top 2 teams */
+  .table .top2 td {
+    background: #d4f4dd;
+    font-weight: 600;
+    border-left: 3px solid var(--success-green);
+  }
+
+  /* Fixtures table */
+  .fixtures {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .fixture-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .fixture-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Team display */
+  .team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .team.left {
+    justify-content: flex-end;
+  }
+
+  .team .name {
+    font-weight: 700;
+  }
+
+  .flagbox {
+    width: 32px;
+    height: 21px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .flagbox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Score inputs */
+  .score {
+    width: 50px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--primary-blue);
+  }
+
+  .score:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+  }
+
+  .sep {
+    font-weight: 700;
+    color: var(--text-gray);
+  }
+
+  /* Date/time on mobile */
+  .kick-mobile {
+    display: none;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+  }
+
+  .kickoff {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    text-align: center;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 600px) {
+    .kick-col {
+      display: none;
+    }
+
+    .kick-mobile {
+      display: block;
+    }
+
+    .fixture-row {
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6px;
+    }
+
+    .team .name {
+      font-size: 0.85rem;
+    }
+
+    .flagbox {
+      width: 24px;
+      height: 16px;
+    }
+
+    .score {
+      width: 40px;
+      height: 35px;
+      font-size: 1rem;
+    }
+  }
+
+  /* Save button */
+  .save-row {
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  .save-row button {
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+  <h2>Fase de Grupos</h2>
   <a class="button" href="{{ url_for('index') }}">Home</a>
 </div>
 
-<!-- Group filter at the top -->
-<form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}" style="margin-bottom: clamp(24px, 3vw, 36px);">
-  <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
-    <span style="font-family: var(--font-heading); font-weight: 700; font-size: clamp(0.95rem, 1.5vw, 1.1rem);">Grupo:</span>
-    <select name="group" onchange="document.getElementById('groupFilter').submit()" style="min-width: 140px;">
+<!-- Group filter -->
+<form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
+  <label>
+    <span>Grupo:</span>
+    <select name="group" onchange="document.getElementById('groupFilter').submit()">
       {% for g in group_order %}
         <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
       {% endfor %}
@@ -1438,168 +606,155 @@ MATCHES = """
 </form>
 
 <div class="layout-grid">
-  <!-- Group Standings Sidebar (Desktop: left, Mobile: below) -->
+  <!-- Standings Sidebar -->
   <div class="layout-sidebar">
     {% if standings and standings|length >= 1 %}
-      <h2>Classificação</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th class="center" style="width:36px;">#</th>
-              <th class="left">Time</th>
-              <th class="center" title="Jogos">J</th>
-              <th class="center" title="Vitórias">V</th>
-              <th class="center" title="Empates">E</th>
-              <th class="center" title="Derrotas">D</th>
-              <th class="center" title="Gols Pró">GP</th>
-              <th class="center" title="Gols Contra">GC</th>
-              <th class="center" title="Saldo de Gols">SG</th>
-              <th class="center" title="Pontos">Pts</th>
+      <h3>Classificação</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="left">Time</th>
+            <th>J</th>
+            <th>V</th>
+            <th>E</th>
+            <th>D</th>
+            <th>GP</th>
+            <th>GC</th>
+            <th>SG</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in standings %}
+            <tr class="{% if r.rank <= 2 %}top2{% endif %}">
+              <td>{{ r.rank }}</td>
+              <td class="left">{{ r.team|translate_team }}</td>
+              <td>{{ r.played }}</td>
+              <td>{{ r.won }}</td>
+              <td>{{ r.draw }}</td>
+              <td>{{ r.lost }}</td>
+              <td>{{ r.gf }}</td>
+              <td>{{ r.ga }}</td>
+              <td>{{ r.gd }}</td>
+              <td>{{ r.pts }}</td>
             </tr>
-          </thead>
-          <tbody>
-            {% for r in standings %}
-              <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
-                <td class="center">{{ r.rank }}</td>
-                <td class="left">{{ r.team|translate_team }}</td>
-                <td class="center">{{ r.played }}</td>
-                <td class="center">{{ r.won }}</td>
-                <td class="center">{{ r.draw }}</td>
-                <td class="center">{{ r.lost }}</td>
-                <td class="center">{{ r.gf }}</td>
-                <td class="center">{{ r.ga }}</td>
-                <td class="center">{{ r.gd }}</td>
-                <td class="center"><strong>{{ r.pts }}</strong></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          {% endfor %}
+        </tbody>
+      </table>
     {% endif %}
   </div>
 
-  <!-- Main Content Area (Fixtures) -->
+  <!-- Matches -->
   <div class="layout-main">
-    <div class="fixtures">
+    {% if fixtures and fixtures|length > 0 %}
+      <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
+        <input type="hidden" name="group" value="{{ selected_group }}">
 
-  {% if groups.get(selected_group) %}
+        <div class="fixtures">
+          {% for m in fixtures %}
+            {% set b = bets.get(m['id']) %}
 
-    <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
-      <!-- keep user on the same group after saving -->
-      <input type="hidden" name="group" value="{{ selected_group }}">
-      <div class="table-wrap">
-      <table>
-      {% set show_bets_col = locked %}
+            <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
 
-    <colgroup>
-      <col class="c-kick">
-      <col class="c-fixture">
-      {% if show_bets_col %}<col class="c-bets">{% endif %}
-    </colgroup>
+            <div class="fixture-row">
+              <!-- Date (desktop only) -->
+              <div class="kick-col kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
 
-<thead>
-  <tr>
-    <th class="kick-col">Data</th>
-    <th>Jogo</th>
-    {% if show_bets_col %}<th class="bets-col">Palpites</th>{% endif %}
-  </tr>
-</thead>
-        <tbody>
-        {% for m in groups[selected_group] %}
-          {% set b = bets.get(m['id']) %}
-          <tr>
-            <!-- Desktop/Tablet: Data column -->
-            <td class="kick-col">
-              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
-            </td>
-
-            <!-- Fixture column -->
-            <td class="fixture-cell">
-              <!-- Mobile-only Data -->
-              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
-
-              <div class="fixture-row">
-                <!-- HOME -->
-                <div class="team left">
-                  <span class="name name-desktop">{{ m['home']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['home']|translate_team }}</span>
-                  {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                </div>
-
-            <div class="score-wrap" role="group" aria-label="Palpite de placar">
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="h_{{ m['id'] }}"
-                     value="{{ b['home_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-              <span class="sep" aria-hidden="true">x</span>
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="a_{{ m['id'] }}"
-                     value="{{ b['away_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-            </div>
-
-                <!-- AWAY -->
-                <div class="team right">
-                  {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                  <span class="name name-desktop">{{ m['away']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['away']|translate_team }}</span>
-                </div>
+              <!-- Home team -->
+              <div class="team left">
+                <span class="name">{{ m['home']|translate_team }}</span>
+                {% set fu = flag(m['home']) %}
+                {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
               </div>
 
-              {# Official result below, centered #}
-              {% set fh = m.get('final_home_goals') %}
-              {% set fa = m.get('final_away_goals') %}
-              {# NEW: points pill (shows only if we can score this pick) #}
-              {% set pts = points.get(m['id']) %}
-              {# Show result line only if there is an official result #}
-              {% if fh is not none and fa is not none %}
-                <div class="result-line">
-                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
+              <!-- Scores -->
+              <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+                     value="{{ b['home_goals'] if b else '' }}"
+                     {{ 'disabled' if locked else '' }}>
 
-                  {# points to the right of the result #}
-                  {% if pts is not none %}
-                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </td>
+              <span class="sep">×</span>
 
-          {% if show_bets_col %}
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home']|translate_team }} x {{ m['away']|translate_team }}">
-                Ver palpites
-              </a>
-            </td>
-          {% endif %}
-            
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
+              <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+                     value="{{ b['away_goals'] if b else '' }}"
+                     {{ 'disabled' if locked else '' }}>
 
-      <div class="save-row">
-        {% if locked %}
-          <button type="button" class="button" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
-        {% else %}
-          <button class="button">Salvar {{ selected_group }}</button>
-        {% endif %}
-      </div>
-    </form>
-  {% else %}
-    <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
-  {% endif %}
+              <!-- Away team -->
+              <div class="team right">
+                {% set fu = flag(m['away']) %}
+                {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                <span class="name">{{ m['away']|translate_team }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="save-row">
+          <button type="submit" {{ 'disabled' if locked else '' }}>
+            {{ 'Palpites Encerrados' if locked else 'Salvar Palpites' }}
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <p>Nenhum jogo encontrado.</p>
+    {% endif %}
+  </div>
 </div>
-  </div><!-- .layout-main -->
-</div><!-- .layout-grid -->
 """
 
+
+# ============================================================================
+# PALPITES TEMPLATE
+# ============================================================================
 PALPITES = """
+<style>
+  h2 {
+    color: var(--primary-blue);
+  }
+
+  form {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-family: var(--font-main);
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+  }
+
+  button {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  input[disabled], select[disabled], button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+
 <h2>Palpites Gerais</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
@@ -1608,315 +763,256 @@ PALPITES = """
     <label>Artilheiro</label>
     <input type="text" name="artilheiro"
            value="{{ (row['artilheiro'] if row else '') }}"
-           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+           {% if locked %}disabled{% endif %}>
   </div>
 
   <div class="field">
     <label>Melhor Jogador</label>
     <input type="text" name="melhor_jogador"
            value="{{ (row['melhor_jogador'] if row else '') }}"
-           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+           {% if locked %}disabled{% endif %}>
   </div>
 
   <div class="field">
     <label>Melhor Jogador Jovem</label>
     <input type="text" name="melhor_jogador_jovem"
            value="{{ (row['melhor_jogador_jovem'] if row else '') }}"
-           {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+           {% if locked %}disabled{% endif %}>
   </div>
 
   <div class="field">
     <label>Campeão</label>
-    <select name="campeao" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
+    <select name="campeao" {% if locked %}disabled{% endif %}>
       <option value=""></option>
       {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row['campeao']==t else '' }}>{{ t }}</option>
+        <option value="{{ t }}" {{ 'selected' if (row and row['campeao']==t) else '' }}>
+          {{ t|translate_team }}
+        </option>
       {% endfor %}
     </select>
   </div>
 
-  <div class="field">
-    <label>Vice-Campeão</label>
-    <select name="vice_campeao" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
-      <option value=""></option>
-      {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row['vice_campeao']==t else '' }}>{{ t }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Terceiro Colocado</label>
-    <select name="terceiro_colocado" {% if locked %}disabled aria-disabled="true" title="Palpites encerrados"{% endif %}>
-      <option value=""></option>
-      {% for t in teams %}
-        <option value="{{ t }}" {{ 'selected' if row and row['terceiro_colocado']==t else '' }}>{{ t }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <div class="save-row">
+  <div>
     {% if locked %}
-      <button type="button" class="button" disabled title="Palpites encerrados">Salvar Palpites</button>
+      <button type="button" disabled>Palpites Encerrados</button>
     {% else %}
-      <button class="button">Salvar Palpites</button>
+      <button>Salvar Palpites</button>
     {% endif %}
   </div>
 </form>
 """
 
+
+# ============================================================================
+# FLAT_PHASE_PAGE TEMPLATE - Knockout stages
+# ============================================================================
 FLAT_PHASE_PAGE = """
+<style>
+  h2 {
+    color: var(--primary-blue);
+  }
+
+  .fixtures {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .fixture-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .team.left {
+    justify-content: flex-end;
+  }
+
+  .team .name {
+    font-weight: 700;
+  }
+
+  .flagbox {
+    width: 32px;
+    height: 21px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .flagbox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .score {
+    width: 50px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--primary-blue);
+  }
+
+  .sep {
+    font-weight: 700;
+    color: var(--text-gray);
+  }
+
+  .kickoff {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+  }
+
+  .save-row {
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  .save-row button {
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem;
+  }
+</style>
+
 <h2>{{ title }}</h2>
 <p><a class="button" href="{{ url_for('index') }}">Home</a></p>
 
 <div class="fixtures">
   <form method="post" action="{{ action_url or url_for('save_picks', phase_slug=phase_slug) }}">
+    {% for m in matches %}
+      {% set b = bets.get(m['id']) %}
 
-    <div class="table-wrap">
-      <table>
-        <colgroup>
-          <col class="c-kick">     <!-- date/time -->
-          <col class="c-fixture">  <!-- match (flexes) -->
-          <col class="c-bets">     <!-- button -->
-        </colgroup>
+      <div class="fixture-row">
+        <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
 
-        <thead>
-          <tr>
-            <th class="kick-col">Data</th>
-            <th>Jogo</th>
-            <th class="bets-col">Palpites</th>
-          </tr>
-        </thead>
+        <div class="team left">
+          <span class="name">{{ m['home']|translate_team }}</span>
+          {% set fu = flag(m['home']) %}
+          {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+        </div>
 
-        <tbody>
-        {% for m in matches %}
-          {% set b = bets.get(m['id']) %}
-          <tr>
-            <!-- Data -->
-            <td class="kick-col">
-              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
-            </td>
+        <input class="score" type="number" min="0" name="h_{{ m['id'] }}"
+               value="{{ b['home_goals'] if b else '' }}"
+               {{ 'disabled' if locked else '' }}>
 
-            <!-- Fixture -->
-            <td class="fixture-cell">
-              <!-- Mobile-only date -->
-              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+        <span class="sep">×</span>
 
-              <div class="fixture-row">
-                <!-- HOME -->
-                <div class="team left">
-                  <span class="name name-desktop">{{ m['home']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['home']|fifa_code }}</span>
-                  {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                </div>
+        <input class="score" type="number" min="0" name="a_{{ m['id'] }}"
+               value="{{ b['away_goals'] if b else '' }}"
+               {{ 'disabled' if locked else '' }}>
 
-                <!-- Scores (aligned) -->
-                <div class="score-wrap" role="group" aria-label="Palpite de placar">
-                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
-                         name="h_{{ m['id'] }}"
-                         value="{{ b['home_goals'] if b else '' }}"
-                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                  <span class="sep" aria-hidden="true">x</span>
-                  <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\\d*"
-                         name="a_{{ m['id'] }}"
-                         value="{{ b['away_goals'] if b else '' }}"
-                         {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-                </div>
-
-                <!-- AWAY -->
-                <div class="team right">
-                  {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt="">{% endif %}
-                  <span class="name name-desktop">{{ m['away']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['away']|fifa_code }}</span>
-                </div>
-              </div>
-
-              {# Official result + points #}
-              {% set fh = m.get('final_home_goals') %}
-              {% set fa = m.get('final_away_goals') %}
-              {% set pts = points.get(m['id']) %}
-              {% if fh is not none and fa is not none %}
-                <div class="result-line">
-                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-                  {% if pts is not none %}
-                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </td>
-
-            <!-- Bets link -->
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home']|translate_team }} x {{ m['away']|translate_team }}">
-                 Ver palpites
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        <div class="team right">
+          {% set fu = flag(m['away']) %}
+          {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+          <span class="name">{{ m['away']|translate_team }}</span>
+        </div>
+      </div>
+    {% endfor %}
 
     <div class="save-row">
-      {% if locked %}
-        <button type="button" class="button" disabled title="Apostas encerradas">{{ button_label }}</button>
-      {% else %}
-        <button class="button">{{ button_label }}</button>
-      {% endif %}
+      <button type="submit" {{ 'disabled' if locked else '' }}>
+        {{ 'Palpites Encerrados' if locked else 'Salvar Palpites' }}
+      </button>
     </div>
   </form>
 </div>
 """
 
+
+# ============================================================================
+# MATCH_BREAKDOWN TEMPLATE
+# ============================================================================
 MATCH_BREAKDOWN = """
-<div class="section">
-  <h2 style="margin: 0 0 6px 0;">{{ fixture['home']|translate_team }} x {{ fixture['away']|translate_team }}</h2>
-  <div style="color:#666; font-size:14px; margin-bottom:10px;"></div>
+<style>
+  h2 {
+    color: var(--primary-blue);
+  }
 
-  {% if total_bets == 0 %}
-    <p style="color:#666">No bets for this match yet.</p>
-  {% else %}
-    <!-- Stacked bar -->
-    <div class="stack-wrap" aria-label="Distribuição de palpites">
-      <div class="stack-bar" role="img"
-           aria-label="{{ fixture['home']|translate_team }} {{ stack.home_pct }} por cento, Empate {{ stack.draw_pct }} por cento, {{ fixture['away']|translate_team }} {{ stack.away_pct }} por cento">
-        <div class="seg" style="width: {{ stack.home_pct }}%; background: {{ colors.home }};"
-             title="{{ fixture['home']|translate_team }}: {{ stack.home_cnt }} ({{ stack.home_pct }}%)"></div>
-        <div class="seg" style="width: {{ stack.draw_pct }}%; background: {{ colors.draw }};"
-             title="Empate: {{ stack.draw_cnt }} ({{ stack.draw_pct }}%)"></div>
-        <div class="seg" style="width: {{ stack.away_pct }}%; background: {{ colors.away }};"
-             title="{{ fixture['away']|translate_team }}: {{ stack.away_cnt }} ({{ stack.away_pct }}%)"></div>
-      </div>
+  .match-info {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    text-align: center;
+  }
 
-      <!-- Legend with flags -->
-      <div class="stack-legend">
-        <div class="legend-item">
-          {% set fhome = flag(fixture['home']) %}
-          {% if fhome %}<img class="flag" src="{{ fhome }}" alt="{{ fixture['home']|translate_team }}">{% else %}<span class="abbr">{{ fixture['home']|translate_team }}</span>{% endif %}
-          <span class="color-dot" style="background: {{ colors.home }};"></span>
-          <span class="muted">{{ stack.home_pct }}%</span>
-        </div>
-        <div class="legend-item">
-          <span class="badge-draw">Empate</span>
-          <span class="color-dot" style="background: {{ colors.draw }};"></span>
-          <span class="muted">{{ stack.draw_pct }}%</span>
-        </div>
-        <div class="legend-item">
-          {% set faway = flag(fixture['away']) %}
-          {% if faway %}<img class="flag" src="{{ faway }}" alt="{{ fixture['away']|translate_team }}">{% else %}<span class="abbr">{{ fixture['away']|translate_team }}</span>{% endif %}
-          <span class="color-dot" style="background: {{ colors.away }};"></span>
-          <span class="muted">{{ stack.away_pct }}%</span>
-        </div>
-      </div>
-    </div>
+  .match-info h3 {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table thead th {
+    background: var(--primary-blue);
+    color: white;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .table tbody td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  .table .left {
+    text-align: left;
+  }
+</style>
+
+<h2>Palpites do Jogo</h2>
+<p><a class="button" href="{{ url_for('fase_page', phase_slug=phase_slug) }}">Voltar</a></p>
+
+<div class="match-info">
+  <h3>{{ match['home']|translate_team }} × {{ match['away']|translate_team }}</h3>
+  <p>{{ match['kickoff_utc']|fmtkick }}</p>
+  {% if match['home_goals'] is not none %}
+    <p><strong>Resultado: {{ match['home_goals'] }} - {{ match['away_goals'] }}</strong></p>
   {% endif %}
-
-<!-- Top exact-score picks -->
-<table class="table" id="top-scores">
-  <thead>
-    <tr><th>Score</th><th>Picks</th><th>%</th></tr>
-  </thead>
-<tbody>
-  {% for r in top_scores %}
-    {% set score = r['home_goals'] ~ '-' ~ r['away_goals'] %}
-    {% set outcome = 'draw' if r['home_goals'] == r['away_goals']
-                     else ('home' if r['home_goals'] > r['away_goals'] else 'away') %}
-    <tr class="score-row clickable o-{{ outcome }}"
-        data-score="{{ score }}"
-        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};"
-        title="Mostrar quem apostou {{ score }}">
-      <td>{{ r['home_goals'] }}–{{ r['away_goals'] }}</td>
-      <td>{{ r['cnt'] }}</td>
-      <td>{{ (100.0 * r['cnt'] / total_bets) | round(1) }}%</td>
-    </tr>
-  {% endfor %}
-</tbody>
-</table>
-
-<h3 style="margin-top:18px;">
-  All picks
-  <small id="filter-chip" style="display:none; margin-left:.5rem;"></small>
-</h3>
-<table class="table" id="all-picks">
-  <thead>
-    <tr><th>Jogador</th><th>Palpite</th></tr>
-  </thead>
-<tbody>
-  {% for p in picks %}
-    {% set score = p['home_goals'] ~ '-' ~ p['away_goals'] %}
-    {% set outcome = 'draw' if p['home_goals'] == p['away_goals']
-                     else ('home' if p['home_goals'] > p['away_goals'] else 'away') %}
-    <tr class="pick-row o-{{ outcome }}" data-score="{{ score }}"
-        style="--bg: {{ bg[outcome] }}; --edge: {{ edge[outcome] }};">
-      <td>{{ p['user_name'] }}</td>
-      <td>{{ p['home_goals'] }}–{{ p['away_goals'] }}</td>
-    </tr>
-  {% endfor %}
-</tbody>
-</table>
-
-<script>
-(function(){
-  const scoreRows = Array.from(document.querySelectorAll('#top-scores .score-row'));
-  const pickRows  = Array.from(document.querySelectorAll('#all-picks .pick-row'));
-
-  // Create the chip if missing to avoid null errors
-  let chip = document.getElementById('filter-chip');
-  if (!chip) {
-    const h3 = document.querySelector('h3 + table#all-picks')?.previousElementSibling;
-    chip = document.createElement('small');
-    chip.id = 'filter-chip'; chip.style.display = 'none'; chip.style.marginLeft = '.5rem';
-    if (h3) h3.appendChild(chip);
-  }
-
-  let active = null; // e.g. "2-1"
-
-  function updateChip(){
-    if (!chip) return;
-    if (!active){
-      chip.style.display = 'none';
-      chip.textContent = '';
-      return;
-    }
-    const visible = pickRows.filter(tr => tr.style.display !== 'none').length;
-    chip.style.display = '';
-    chip.innerHTML = `Filtro: <strong>${active}</strong> • ${visible} usuário(s)
-      <a href="#" id="clear-filter" style="margin-left:.4rem;">limpar</a>`;
-    chip.querySelector('#clear-filter').addEventListener('click', function(e){
-      e.preventDefault(); clearFilter();
-    }, {once:true});
-  }
-
-  function applyFilter(score){
-    active = score;
-    scoreRows.forEach(tr => tr.classList.toggle('active', tr.dataset.score === score));
-    pickRows.forEach(tr => { tr.style.display = (tr.dataset.score === score) ? '' : 'none'; });
-    updateChip();
-    document.getElementById('all-picks').scrollIntoView({behavior:'smooth', block:'start'});
-  }
-
-  function clearFilter(){
-    active = null;
-    scoreRows.forEach(tr => tr.classList.remove('active'));
-    pickRows.forEach(tr => { tr.style.display = ''; });
-    updateChip();
-  }
-
-  // Hook up events
-  scoreRows.forEach(tr => {
-    tr.addEventListener('click', () => (active === tr.dataset.score) ? clearFilter() : applyFilter(tr.dataset.score));
-    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tr.click(); }});
-    tr.tabIndex = 0;
-  });
-})();
-</script>
-
-  <div style="margin-top:16px;">
-    <a href="{{ back_url }}">&larr; Voltar</a>
-  </div>
 </div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th class="left">Jogador</th>
+      <th>Palpite</th>
+      <th>Pontos</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        <td class="left">{{ row['user_name'] }}</td>
+        <td>
+          {% if row['home_goals'] is not none %}
+            {{ row['home_goals'] }} - {{ row['away_goals'] }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ row['points'] or '-' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 """
