@@ -221,7 +221,7 @@ BASE = """<!doctype html>
   /* Enhanced full-width header - FIFA style */
   header {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    padding: clamp(48px, 7vw, 96px) clamp(24px, 5vw, 64px);
+    padding: 0rem 0rem;
     margin-bottom: clamp(56px, 6vw, 80px);
     box-shadow: var(--shadow-lg);
     border-bottom: 6px solid var(--accent-gold);
@@ -1407,6 +1407,25 @@ input[type=number]{ -moz-appearance:textfield; }
   box-shadow: 0 0 0 5px #2563eb inset;  /* focus ring, does not override bg */
 }
 
+header {
+  padding-top: 0.1rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+header h1 {
+  margin-bottom: 0.3rem; /* Reduce space between title and "Logado como" */
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+main {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 
 </style>
 
@@ -1578,204 +1597,253 @@ LOGIN = """
 """
 
 MATCHES = """
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(16px, 2vw, 24px);">
-  <h2 style="margin: 0;">Fase de Grupos</h2>
-  <a class="button" href="{{ url_for('index') }}">Home</a>
-</div>
+<style>
+  /* Keep long team names from blowing up the row */
+  .team-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    font-weight: 700;
+  }
+  .kick-col {
+    white-space: nowrap;
+    color: var(--text-gray);
+    font-size: .9rem;
+  }
 
-<!-- Group filter at the top -->
-<form id="groupFilter" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}" style="margin-bottom: clamp(24px, 3vw, 36px);">
-  <label style="display: flex; align-items: center; gap: 8px; margin: 0;">
-    <span style="font-family: var(--font-heading); font-weight: 700; font-size: clamp(0.95rem, 1.5vw, 1.1rem);">Grupo:</span>
-    <select name="group" onchange="document.getElementById('groupFilter').submit()" style="min-width: 140px;">
+  /* Fixed score block => X always aligned */
+  .scoreblock {
+    width: 168px;                 /* fixed center block */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-items: center;
+    column-gap: .5rem;
+  }
+  .score-input {
+    width: 52px;
+    height: 42px;
+    text-align: center;
+    font-weight: 800;
+    color: var(--primary-blue);
+  }
+  .sep-x {
+    width: 18px;
+    text-align: center;
+    font-weight: 900;
+    color: var(--text-gray);
+  }
+
+  .flagbox {
+    width: 32px;
+    height: 21px;
+    border-radius: 3px;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .flagbox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Mobile: stack kickoff above + slightly smaller score block */
+  .kick-mobile { display: none; }
+
+  @media (max-width: 576px) {
+    .kick-desktop { display: none !important; }
+    .kick-mobile  { display: block; color: var(--text-gray); font-size: .85rem; }
+    .scoreblock { width: 148px; }
+    .score-input { width: 44px; height: 38px; }
+    .team-name { font-size: .9rem; }
+    .flagbox { width: 24px; height: 16px; }
+  }
+  
+</style>
+
+
+<!-- Bootstrap CDN (put in base.html if possible) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Group filter -->
+<form class="mb-3" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
+  <div class="d-flex align-items-center gap-2">
+    <label class="form-label m-0" for="groupSelect"><strong>Grupo:</strong></label>
+    <select id="groupSelect" class="form-select" style="max-width: 140px;"
+            name="group" onchange="this.form.submit()">
       {% for g in group_order %}
         <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
       {% endfor %}
     </select>
-  </label>
+  </div>
 </form>
 
-<div class="layout-grid">
-  <!-- Group Standings Sidebar (Desktop: left, Mobile: below) -->
-  <div class="layout-sidebar">
+
+<div class="row g-4">
+  <!-- Standings -->
+  <div class="col-12 col-lg-auto">
     {% if standings and standings|length >= 1 %}
-      <h2>Classificação</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th class="center" style="width:36px;">#</th>
-              <th class="left">Time</th>
-              <th class="center" title="Jogos">J</th>
-              <th class="center" title="Vitórias">V</th>
-              <th class="center" title="Empates">E</th>
-              <th class="center" title="Derrotas">D</th>
-              <th class="center" title="Gols Pró">GP</th>
-              <th class="center" title="Gols Contra">GC</th>
-              <th class="center" title="Saldo de Gols">SG</th>
-              <th class="center" title="Pontos">Pts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in standings %}
-              <tr class="{% if r.rank <= 2 %}top2{% elif r.rank == 3 and r.team in best3 %}best3{% endif %}">
-                <td class="center">{{ r.rank }}</td>
-                <td class="left">{{ r.team|translate_team }}</td>
-                <td class="center">{{ r.played }}</td>
-                <td class="center">{{ r.won }}</td>
-                <td class="center">{{ r.draw }}</td>
-                <td class="center">{{ r.lost }}</td>
-                <td class="center">{{ r.gf }}</td>
-                <td class="center">{{ r.ga }}</td>
-                <td class="center">{{ r.gd }}</td>
-                <td class="center"><strong>{{ r.pts }}</strong></td>
+      <h3 class="h5 mb-2">Classificação</h3>
+    <div class="table-responsive standings-wrap">
+      <table class="table table-sm table-striped align-middle mb-0 standings-table">
+            <thead class="table-primary">
+              <tr>
+                <th class="text-center">#</th>
+                <th>Time</th>
+                <th class="text-center">J</th>
+                <th class="text-center">V</th>
+                <th class="text-center">E</th>
+                <th class="text-center">D</th>
+                <th class="text-center">GP</th>
+                <th class="text-center">GC</th>
+                <th class="text-center">SG</th>
+                <th class="text-center">Pts</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for r in standings %}
+                <tr class="{% if r.rank <= 2 %}table-success{% endif %}">
+                  <td class="text-center">{{ r.rank }}</td>
+                  <td>{{ r.team|translate_team }}</td>
+                  <td class="text-center">{{ r.played }}</td>
+                  <td class="text-center">{{ r.won }}</td>
+                  <td class="text-center">{{ r.draw }}</td>
+                  <td class="text-center">{{ r.lost }}</td>
+                  <td class="text-center">{{ r.gf }}</td>
+                  <td class="text-center">{{ r.ga }}</td>
+                  <td class="text-center">{{ r.gd }}</td>
+                  <td class="text-center fw-bold">{{ r.pts }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
       </div>
     {% endif %}
   </div>
 
-  <!-- Main Content Area (Fixtures) -->
-  <div class="layout-main">
-    <div class="fixtures">
+  <!-- Matches -->
+  <div class="col-15 col-lg">
+    {% set fixtures = groups.get(selected_group, []) %}
+    {% if fixtures and fixtures|length > 0 %}
+      <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
+        <input type="hidden" name="group" value="{{ selected_group }}">
 
-  {% if groups.get(selected_group) %}
+            <div class="vstack gap-3">
+              {% for m in fixtures %}
+                {% set b = bets.get(m['id']) %}
 
-    <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
-      <!-- keep user on the same group after saving -->
-      <input type="hidden" name="group" value="{{ selected_group }}">
-      <div class="table-wrap">
-      <table>
-      {% set show_bets_col = locked %}
+                <!-- Mobile kickoff -->
+                <div class="kick-mobile text-center mb-1">{{ m['kickoff_utc']|fmtkick }}</div>
 
-    <colgroup>
-      <col class="c-kick">
-      <col class="c-fixture">
-      {% if show_bets_col %}<col class="c-bets">{% endif %}
-    </colgroup>
+                <div class="d-flex align-items-center justify-content-between border-bottom pb-3">
+                  <!-- Desktop kickoff (fixed left column) -->
+                  <div class="kick-desktop kick-col me-3" style="width: 140px;">
+                    {{ m['kickoff_utc']|fmtkick }}
+                  </div>
 
-<thead>
-  <tr>
-    <th class="kick-col">Data</th>
-    <th>Jogo</th>
-    {% if show_bets_col %}<th class="bets-col">Palpites</th>{% endif %}
-  </tr>
-</thead>
-        <tbody>
-        {% for m in groups[selected_group] %}
-          {% set b = bets.get(m['id']) %}
-          <tr>
-            <!-- Desktop/Tablet: Data column -->
-            <td class="kick-col">
-              <div class="kickoff">{{ m['kickoff_utc']|fmtkick }}</div>
-            </td>
+                  <!-- Match row -->
+                  <div class="d-flex align-items-center justify-content-between flex-grow-1" style="min-width:0;">
+                    <!-- Home -->
+                    <div class="d-flex align-items-center justify-content-end gap-2" style="flex: 1 1 0; min-width:0;">
+                    <span class="team-name d-none d-sm-inline">
+                      {{ m['home']|translate_team }}
+                    </span>
+                    <span class="team-name d-inline d-sm-none">
+                      {{ m['home']|fifa_code }}
+                    </span>
+                      {% set fu = flag(m['home']) %}
+                      {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                    </div>
 
-            <!-- Fixture column -->
-            <td class="fixture-cell">
-              <!-- Mobile-only Data -->
-              <div class="kick-mobile">{{ m['kickoff_utc']|fmtkick }}</div>
+                    <!-- Scores centered fixed width -->
+                    <div class="scoreblock mx-2">
+                      <input class="form-control score-input" type="number" min="0" name="h_{{ m['id'] }}"
+                             value="{{ b['home_goals'] if b else '' }}"
+                             {{ 'disabled' if locked else '' }}>
+                      <span class="sep-x">×</span>
+                      <input class="form-control score-input" type="number" min="0" name="a_{{ m['id'] }}"
+                             value="{{ b['away_goals'] if b else '' }}"
+                             {{ 'disabled' if locked else '' }}>
+                    </div>
 
-              <div class="fixture-row">
-                <!-- HOME -->
-                <div class="team left">
-                  <span class="name name-desktop">{{ m['home']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['home']|translate_team }}</span>
-                  {% set fu = flag(m['home']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                    <!-- Away -->
+                    <div class="d-flex align-items-center gap-2" style="flex: 1 1 0; min-width:0;">
+                      {% set fu = flag(m['away']) %}
+                      {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
+                    <span class="team-name d-none d-sm-inline">
+                      {{ m['away']|translate_team }}
+                    </span>
+                    <span class="team-name d-inline d-sm-none">
+                      {{ m['away']|fifa_code }}
+                    </span>
+                    </div>
+                  </div>
                 </div>
-
-            <div class="score-wrap" role="group" aria-label="Palpite de placar">
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="h_{{ m['id'] }}"
-                     value="{{ b['home_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
-              <span class="sep" aria-hidden="true">x</span>
-              <input class="score" type="number" min="0" step="1" inputmode="numeric" pattern="\d*"
-                     name="a_{{ m['id'] }}"
-                     value="{{ b['away_goals'] if b else '' }}"
-                     {% if locked %}disabled aria-disabled="true" title="Apostas encerradas"{% endif %}>
+              {% endfor %}
             </div>
 
-                <!-- AWAY -->
-                <div class="team right">
-                  {% set fu = flag(m['away']) %}
-                  {% if fu %}<span class="flagbox"><img src="{{ fu }}" alt=""></span>{% endif %}
-                  <span class="name name-desktop">{{ m['away']|translate_team }}</span>
-                  <span class="name name-mobile">{{ m['away']|translate_team }}</span>
-                </div>
-              </div>
-
-              {# Official result below, centered #}
-              {% set fh = m.get('final_home_goals') %}
-              {% set fa = m.get('final_away_goals') %}
-              {# NEW: points pill (shows only if we can score this pick) #}
-              {% set pts = points.get(m['id']) %}
-              {# Show result line only if there is an official result #}
-              {% if fh is not none and fa is not none %}
-                <div class="result-line">
-                  <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-
-                  {# points to the right of the result #}
-                  {% if pts is not none %}
-                    <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </td>
-
-          {% if show_bets_col %}
-            <td class="bets-col">
-              <a class="button small"
-                 href="{{ url_for('match_detail', match_id=m['id']) }}"
-                 aria-label="Ver palpites de {{ m['home']|translate_team }} x {{ m['away']|translate_team }}">
-                Ver palpites
-              </a>
-            </td>
-          {% endif %}
-            
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
-
-      <div class="save-row">
-        {% if locked %}
-          <button type="button" class="button" disabled title="Apostas encerradas">Salvar {{ selected_group }}</button>
-        {% else %}
-          <button class="button">Salvar {{ selected_group }}</button>
-        {% endif %}
-      </div>
-    </form>
-  {% else %}
-    <p>0 jogos encontrados para o grupo {{ selected_group }}.</p>
-  {% endif %}
+            <div class="mt-4">
+              <button type="submit" class="btn btn-success w-100 btn-lg" {{ 'disabled' if locked else '' }}>
+                {{ 'Palpites Encerrados' if locked else 'Salvar Palpites' }}
+              </button>
+            </div>
+      </form>
+    {% else %}
+      <p>Nenhum jogo encontrado.</p>
+    {% endif %}
+  </div>
 </div>
 
 <style>
-  input[disabled]{opacity:.6; cursor:not-allowed;}
-  button[disabled]{opacity:.6; cursor:not-allowed;}
-  .button.small{ padding:.3rem .6rem; font-size:.9rem; }
+@media (max-width: 576px) {
+  .scoreblock {
+    width: 112px;              /* was 148/168 — shrink a lot */
+    column-gap: .35rem;
+  }
+  .score-input {
+    width: 36px;               /* was 44/52 */
+    height: 34px;              /* was 38/42 */
+    padding: .1rem .25rem;     /* reduce Bootstrap padding */
+    font-size: .95rem;
+    font-weight: 800;
+  }
+  .sep-x {
+    width: 14px;               /* keep × centered */
+    font-size: .95rem;
+  }
+}
 
-  .official-result{
-    display:flex;
-    justify-content:center;
-    margin-top:.35rem;     /* puts it just below the inputs */
-  }
-  .final-pill{
-    display:inline-block; margin-left:.0rem; padding:.15rem .45rem;
-    border-radius:999px; font-weight:600; font-variant-numeric:tabular-nums;
-    background:#eef2ff; border:1px solid #c7d2fe; color:#1f2937;
-    white-space:nowrap;
-  }
-  @media (max-width: 520px){
-    .official-result{ margin-top:.25rem; }
-  }
+/* Standings: don't let content change table width */
+.standings-wrap { width: 100%; }
+
+.standings-table {
+  table-layout: fixed;     /* key */
+  width: 100%;
+}
+
+.standings-table th,
+.standings-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Team column gets the space; numeric columns stay small */
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(2) {
+  width: 38%;
+}
+
+.standings-table th:not(:nth-child(2)),
+.standings-table td:not(:nth-child(2)) {
+  width: 7%;
+}
+
+
+
 </style>
-  </div><!-- .layout-main -->
-</div><!-- .layout-grid -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 """
 
 PALPITES = """
