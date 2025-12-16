@@ -64,13 +64,13 @@ BASE = """<!doctype html>
   main {
     max-width: 2000px; /* Wider for modern screens */
     margin: 0 auto;
-    padding: clamp(24px, 3vw, 40px) clamp(16px, 4vw, 48px); /* Top padding + side padding */
+    padding: 0 clamp(1rem, 3vw, 2rem); /* Side padding only */
   }
 
   /* Mobile-specific container fixes */
   @media (max-width: 768px) {
     main {
-      padding: 12px 8px;
+      padding: 0 1rem;
       overflow-x: hidden;
     }
 
@@ -221,8 +221,8 @@ BASE = """<!doctype html>
   /* Enhanced full-width header - FIFA style */
   header {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-    padding: 0rem 0rem;
-    margin-bottom: clamp(56px, 6vw, 80px);
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
     box-shadow: var(--shadow-lg);
     border-bottom: 6px solid var(--accent-gold);
     position: relative;
@@ -247,12 +247,13 @@ BASE = """<!doctype html>
   }
 
   header h1 {
-    margin: 0 0 clamp(24px, 3vw, 36px) 0;
+    margin: 0 0 0.75rem 0;
     color: white;
     background: none;
     -webkit-text-fill-color: white;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    padding-bottom: clamp(12px, 2vw, 20px);
+    padding-bottom: 0;
+    line-height: 1.2;
   }
 
   header small, header a {
@@ -1407,26 +1408,6 @@ input[type=number]{ -moz-appearance:textfield; }
   box-shadow: 0 0 0 5px #2563eb inset;  /* focus ring, does not override bg */
 }
 
-header {
-  padding-top: 0.1rem !important;
-  padding-bottom: 0.5rem !important;
-}
-
-header h1 {
-  margin-bottom: 0.3rem; /* Reduce space between title and "Logado como" */
-}
-
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-main {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-
 </style>
 
 <main>
@@ -1534,143 +1515,358 @@ RANKING = """
 """
 
 HOME = """
-{% if not session.get('id') %}
-  <p>
-    <a class="button" href="{{ url_for('login') }}">Login</a>
-  </p>
-{% else %}
-  <div style="display:flex; flex-direction:column; gap:.6rem; max-width:320px;">
-    <style>
-      .button.disabled { pointer-events:none; color:#9aa0a6; opacity:.6; cursor:not-allowed; text-decoration:none; }
-    </style>
+<style>
+  /* ========== HOME PAGE STYLES ========== */
+  .home-container {
+    max-width: 420px;
+    margin: 2rem auto;
+  }
 
-    <a class="button" href="{{ url_for('ranking') }}">Ranking</a>
-    <a class="button" href="{{ url_for('fase_page', phase_slug='groups') }}">Fase de Grupos</a>
-    <a class="button" href="{{ url_for('palpites') }}">Palpites Gerais</a>
+  .home-button {
+    display: block;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    border: 2px solid transparent;
+  }
+
+  .home-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+  }
+
+  .home-button.disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .home-button.logout {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    margin-top: 1rem;
+  }
+
+  .home-welcome {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .home-welcome h2 {
+    color: var(--primary-blue);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+  }
+
+  .home-welcome p {
+    margin: 0;
+    color: var(--text-gray);
+  }
+</style>
+
+{% if not session.get('id') %}
+  <div class="home-container">
+    <a class="home-button" href="{{ url_for('login') }}">🔐 Entrar</a>
+  </div>
+{% else %}
+  <div class="home-container">
+    <div class="home-welcome">
+      <h2>⚽ Bem-vindo!</h2>
+      <p>Escolha uma opção abaixo</p>
+    </div>
+
+    <a class="home-button" href="{{ url_for('ranking') }}">🏆 Ranking</a>
+    <a class="home-button" href="{{ url_for('fase_page', phase_slug='groups') }}">⚽ Fase de Grupos</a>
+    <a class="home-button" href="{{ url_for('palpites') }}">📋 Palpites Gerais</a>
     
     {% if unlocks.decima_sexta %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='decima_sexta') }}">16-Avos de Final</a>
+      <a class="home-button" href="{{ url_for('fase_page', phase_slug='decima_sexta') }}">🎯 16-Avos de Final</a>
     {% else %}
-      <span class="button disabled">16-Avos de Final</span>
+      <span class="home-button disabled">🔒 16-Avos de Final</span>
     {% endif %}
 
     {% if unlocks.oitavas %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='oitavas') }}">Oitavas de Final</a>
+      <a class="home-button" href="{{ url_for('fase_page', phase_slug='oitavas') }}">🎯 Oitavas de Final</a>
     {% else %}
-      <span class="button disabled">Oitavas de Final</span>
+      <span class="home-button disabled">🔒 Oitavas de Final</span>
     {% endif %}
 
     {% if unlocks.quartas %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='quartas') }}">Quartas de Final</a>
+      <a class="home-button" href="{{ url_for('fase_page', phase_slug='quartas') }}">🎯 Quartas de Final</a>
     {% else %}
-      <span class="button disabled">Quartas de Final</span>
+      <span class="home-button disabled">🔒 Quartas de Final</span>
     {% endif %}
 
     {% if unlocks.semi %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='semi') }}">Semi Final</a>
+      <a class="home-button" href="{{ url_for('fase_page', phase_slug='semi') }}">🎯 Semi Final</a>
     {% else %}
-      <span class="button disabled">Semi Final</span>
+      <span class="home-button disabled">🔒 Semi Final</span>
     {% endif %}
 
     {% if unlocks.final3 %}
-      <a class="button" href="{{ url_for('fase_page', phase_slug='final') }}">Final e Terceiro Lugar</a>
+      <a class="home-button" href="{{ url_for('fase_page', phase_slug='final') }}">🏆 Final e Terceiro Lugar</a>
     {% else %}
-      <span class="button disabled">Final e Terceiro Lugar</span>
+      <span class="home-button disabled">🔒 Final e Terceiro Lugar</span>
     {% endif %}
 
-    <a class="button" href="{{ url_for('logout') }}">Sair</a>
+    <a class="home-button logout" href="{{ url_for('logout') }}">🚪 Sair</a>
   </div>
 {% endif %}
 """
 
 LOGIN = """
-<h2>Login</h2>
-<form method="post" action="{{ url_for('login') }}">
-  <label>Usuário
-    <input type="text" name="user_name">
-  </label>
-  <label>Senha
-    <input type="password" name="password">
-  </label>
-  <button>Login</button>
-</form>
+<style>
+  /* ========== LOGIN PAGE STYLES ========== */
+  .login-container {
+    max-width: 400px;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-header h2 {
+    color: var(--primary-blue);
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 800;
+  }
+
+  .login-header p {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .login-form .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .login-form label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .login-form input[type="text"],
+  .login-form input[type="password"] {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: var(--font-body);
+  }
+
+  .login-form input[type="text"]:focus,
+  .login-form input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
+  }
+
+  .login-form button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    margin-top: 0.5rem;
+  }
+
+  .login-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .login-form button:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 576px) {
+    .login-container {
+      margin: 2rem 1rem;
+      padding: 2rem 1.5rem;
+    }
+  }
+</style>
+
+<div class="login-container">
+  <div class="login-header">
+    <h2>🔐 Login</h2>
+    <p>Entre com suas credenciais</p>
+  </div>
+
+  <form class="login-form" method="post" action="{{ url_for('login') }}">
+    <div class="form-group">
+      <label for="user_name">Usuário</label>
+      <input type="text" id="user_name" name="user_name" placeholder="Digite seu usuário" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+    </div>
+
+    <button type="submit">Entrar</button>
+  </form>
+</div>
 """
 
 MATCHES = """
 <style>
-  /* Keep long team names from blowing up the row */
+  /* ========== MATCHES PAGE CUSTOM STYLES ========== */
+
+  /* Team name styling */
   .team-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
     font-weight: 700;
+    color: var(--text-dark);
   }
+
+  /* Kickoff time column */
   .kick-col {
     white-space: nowrap;
     color: var(--text-gray);
-    font-size: .9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
 
-  /* Fixed score block => X always aligned */
+  /* Fixed-width score block for perfect alignment */
   .scoreblock {
-    width: 168px;                 /* fixed center block */
+    width: 168px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     justify-items: center;
-    column-gap: .5rem;
+    column-gap: 0.5rem;
   }
+
+  /* Score input fields */
   .score-input {
     width: 52px;
     height: 42px;
     text-align: center;
     font-weight: 800;
     color: var(--primary-blue);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s ease;
   }
+
+  .score-input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 85, 164, 0.1);
+  }
+
+  .score-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  /* Separator "×" */
   .sep-x {
     width: 18px;
     text-align: center;
     font-weight: 900;
     color: var(--text-gray);
+    font-size: 1.1rem;
   }
 
+  /* Flag styling */
   .flagbox {
     width: 32px;
     height: 21px;
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     flex: 0 0 auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
+
   .flagbox img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  /* Mobile: stack kickoff above + slightly smaller score block */
-  .kick-mobile { display: none; }
+  /* Mobile kickoff display */
+  .kick-mobile {
+    display: none;
+    text-align: center;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
 
+  /* ========== MOBILE RESPONSIVE ========== */
   @media (max-width: 576px) {
     .kick-desktop { display: none !important; }
-    .kick-mobile  { display: block; color: var(--text-gray); font-size: .85rem; }
+    .kick-mobile  { display: block; }
     .scoreblock { width: 148px; }
-    .score-input { width: 44px; height: 38px; }
-    .team-name { font-size: .9rem; }
-    .flagbox { width: 24px; height: 16px; }
+    .score-input {
+      width: 44px;
+      height: 38px;
+      font-size: 0.95rem;
+    }
+    .team-name { font-size: 0.9rem; }
+    .flagbox {
+      width: 28px;
+      height: 18px;
+    }
+    .sep-x { font-size: 1rem; }
   }
-  
+
 </style>
 
 
-<!-- Bootstrap CDN (put in base.html if possible) -->
+<!-- Bootstrap CDN -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<!-- Page header with navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0" style="color: var(--primary-blue); font-weight: 800;">Fase de Grupos</h2>
+  <a class="btn btn-outline-primary" href="{{ url_for('index') }}">← Home</a>
+</div>
+
 <!-- Group filter -->
-<form class="mb-3" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
+<form class="mb-4" method="get" action="{{ url_for('fase_page', phase_slug='groups') }}">
   <div class="d-flex align-items-center gap-2">
-    <label class="form-label m-0" for="groupSelect"><strong>Grupo:</strong></label>
-    <select id="groupSelect" class="form-select" style="max-width: 140px;"
+    <label class="form-label m-0 fw-bold" for="groupSelect">Grupo:</label>
+    <select id="groupSelect" class="form-select" style="max-width: 160px;"
             name="group" onchange="this.form.submit()">
       {% for g in group_order %}
         <option value="{{ g }}" {{ 'selected' if g == selected_group else '' }}>{{ g }}</option>
@@ -1681,13 +1877,15 @@ MATCHES = """
 
 
 <div class="row g-4">
-  <!-- Standings -->
+  <!-- Standings Sidebar -->
   <div class="col-12 col-lg-auto">
     {% if standings and standings|length >= 1 %}
-      <h3 class="h5 mb-2">Classificação</h3>
-    <div class="table-responsive standings-wrap">
-      <table class="table table-sm table-striped align-middle mb-0 standings-table">
-            <thead class="table-primary">
+      <h3 class="h5 mb-3 fw-bold" style="color: var(--primary-blue);">
+        <i class="bi bi-trophy"></i> Classificação
+      </h3>
+      <div class="table-responsive standings-wrap">
+        <table class="table table-sm table-striped align-middle mb-0 standings-table">
+          <thead class="table-primary">
               <tr>
                 <th class="text-center">#</th>
                 <th>Time</th>
@@ -1722,14 +1920,15 @@ MATCHES = """
     {% endif %}
   </div>
 
-  <!-- Matches -->
+  <!-- Matches Section -->
   <div class="col-12 col-lg">
     {% set fixtures = groups.get(selected_group, []) %}
     {% if fixtures and fixtures|length > 0 %}
       <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
         <input type="hidden" name="group" value="{{ selected_group }}">
 
-            <div class="vstack gap-3">
+        <!-- Matches List -->
+        <div class="vstack gap-3">
               {% for m in fixtures %}
                 {% set b = bets.get(m['id']) %}
 
@@ -1783,66 +1982,100 @@ MATCHES = """
               {% endfor %}
             </div>
 
-            <div class="mt-4">
-              <button type="submit" class="btn btn-success w-100 btn-lg" {{ 'disabled' if locked else '' }}>
-                {{ 'Palpites Encerrados' if locked else 'Salvar Palpites' }}
-              </button>
-            </div>
+        <!-- Save Button -->
+        <div class="mt-4 p-3 bg-light rounded">
+          <button type="submit" class="btn btn-success w-100 btn-lg fw-bold"
+                  {{ 'disabled' if locked else '' }}
+                  style="text-transform: uppercase; letter-spacing: 0.5px;">
+            {% if locked %}
+              🔒 Palpites Encerrados
+            {% else %}
+              💾 Salvar Palpites do {{ selected_group }}
+            {% endif %}
+          </button>
+        </div>
       </form>
     {% else %}
-      <p>Nenhum jogo encontrado.</p>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Nenhum jogo encontrado para este grupo.
+      </div>
     {% endif %}
   </div>
 </div>
 
 <style>
-@media (max-width: 576px) {
-  .scoreblock {
-    width: 112px;              /* was 148/168 — shrink a lot */
-    column-gap: .35rem;
+  /* ========== ADDITIONAL RESPONSIVE STYLES ========== */
+
+  /* Extra small mobile devices */
+  @media (max-width: 576px) {
+    .scoreblock {
+      width: 112px;
+      column-gap: 0.35rem;
+    }
+
+    .score-input {
+      width: 36px;
+      height: 34px;
+      padding: 0.1rem 0.25rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .sep-x {
+      width: 14px;
+      font-size: 0.95rem;
+    }
   }
-  .score-input {
-    width: 36px;               /* was 44/52 */
-    height: 34px;              /* was 38/42 */
-    padding: .1rem .25rem;     /* reduce Bootstrap padding */
-    font-size: .95rem;
-    font-weight: 800;
+
+  /* ========== STANDINGS TABLE FIXED LAYOUT ========== */
+  .standings-wrap {
+    width: 100%;
+    max-width: 100%;
   }
-  .sep-x {
-    width: 14px;               /* keep × centered */
-    font-size: .95rem;
+
+  .standings-table {
+    table-layout: fixed;
+    width: 100%;
   }
-}
 
-/* Standings: don't let content change table width */
-.standings-wrap { width: 100%; }
+  .standings-table th,
+  .standings-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.standings-table {
-  table-layout: fixed;     /* key */
-  width: 100%;
-}
+  /* Team column gets more space */
+  .standings-table th:nth-child(2),
+  .standings-table td:nth-child(2) {
+    width: 38%;
+  }
 
-.standings-table th,
-.standings-table td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  /* Numeric columns stay compact */
+  .standings-table th:not(:nth-child(2)),
+  .standings-table td:not(:nth-child(2)) {
+    width: 7%;
+  }
 
-/* Team column gets the space; numeric columns stay small */
-.standings-table th:nth-child(2),
-.standings-table td:nth-child(2) {
-  width: 38%;
-}
+  /* ========== CUSTOM COLORS ========== */
+  .btn-outline-primary {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+  }
 
-.standings-table th:not(:nth-child(2)),
-.standings-table td:not(:nth-child(2)) {
-  width: 7%;
-}
+  .btn-outline-primary:hover {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+  }
 
-
+  .table-primary {
+    --bs-table-bg: var(--primary-blue);
+    --bs-table-color: white;
+  }
 
 </style>
+
+<!-- Bootstrap JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 """
 
