@@ -1723,7 +1723,7 @@ MATCHES = """
   </div>
 
   <!-- Matches -->
-  <div class="col-15 col-lg">
+  <div class="col-12 col-lg">
     {% set fixtures = groups.get(selected_group, []) %}
     {% if fixtures and fixtures|length > 0 %}
       <form method="post" action="{{ url_for('save_picks', phase_slug='groups') }}">
