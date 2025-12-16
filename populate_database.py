@@ -24,13 +24,13 @@ users_data = [
 ]
 
 print("🔧 Setting up database schema...")
-# Add final score columns to match table if they don't exist
+# Add final score columns to fixtures table if they don't exist
 try:
-    cursor.execute("ALTER TABLE match ADD COLUMN final_home_goals INTEGER")
-    cursor.execute("ALTER TABLE match ADD COLUMN final_away_goals INTEGER")
-    print("  ✓ Added final score columns to match table")
+    cursor.execute("ALTER TABLE fixtures ADD COLUMN final_home_goals INTEGER")
+    cursor.execute("ALTER TABLE fixtures ADD COLUMN final_away_goals INTEGER")
+    print("  ✓ Added final score columns to fixtures table")
 except sqlite3.OperationalError:
-    print("  ✓ Final score columns already exist")
+    print("  ✓ Final score columns already exist in fixtures table")
 conn.commit()
 
 print("\n🔄 Cleaning existing test data...")
@@ -53,9 +53,9 @@ conn.commit()
 
 # Get all group stage matches
 print("\n⚽ Fetching group stage matches...")
-cursor.execute("SELECT id, home, away, phase FROM match ORDER BY id LIMIT 48")
+cursor.execute("SELECT id, home, away, phase FROM fixtures WHERE phase LIKE 'Group%' ORDER BY id LIMIT 48")
 fixtures = cursor.fetchall()
-print(f"  Found {len(fixtures)} matches")
+print(f"  Found {len(fixtures)} group stage matches")
 
 # Real World Cup 2026 style results (varied and realistic)
 print("\n📊 Adding realistic bets for all users...")
@@ -107,7 +107,7 @@ for idx, (match_id, home, away, phase) in enumerate(fixtures[:20]):  # Add resul
     if idx < len(results):
         home_goals, away_goals = results[idx]
         cursor.execute(
-            "UPDATE match SET final_home_goals = ?, final_away_goals = ? WHERE id = ?",
+            "UPDATE fixtures SET final_home_goals = ?, final_away_goals = ? WHERE id = ?",
             (home_goals, away_goals, match_id)
         )
         result_count += 1
@@ -121,24 +121,24 @@ print("\n📊 Calculating rankings...")
 cursor.execute("""
     SELECT
         u.user_name,
-        COUNT(CASE WHEN b.home_goals = m.final_home_goals
-                    AND b.away_goals = m.final_away_goals THEN 1 END) as exact_matches,
-        COUNT(CASE WHEN (b.home_goals > b.away_goals AND m.final_home_goals > m.final_away_goals)
-                     OR (b.home_goals < b.away_goals AND m.final_home_goals < m.final_away_goals)
-                     OR (b.home_goals = b.away_goals AND m.final_home_goals = m.final_away_goals)
+        COUNT(CASE WHEN b.home_goals = f.final_home_goals
+                    AND b.away_goals = f.final_away_goals THEN 1 END) as exact_matches,
+        COUNT(CASE WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
                     THEN 1 END) as result_matches,
         SUM(CASE
-            WHEN b.home_goals = m.final_home_goals AND b.away_goals = m.final_away_goals THEN 10
-            WHEN (b.home_goals > b.away_goals AND m.final_home_goals > m.final_away_goals)
-                 OR (b.home_goals < b.away_goals AND m.final_home_goals < m.final_away_goals)
-                 OR (b.home_goals = b.away_goals AND m.final_home_goals = m.final_away_goals)
+            WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
+            WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                 OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                 OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
                 THEN 5
             ELSE 0
         END) as total_points
     FROM users u
     JOIN bet b ON u.id = b.user_id
-    JOIN match m ON b.match_id = m.id
-    WHERE m.final_home_goals IS NOT NULL
+    JOIN fixtures f ON b.match_id = f.id
+    WHERE f.final_home_goals IS NOT NULL
     GROUP BY u.id, u.user_name
     ORDER BY total_points DESC, exact_matches DESC
 """)
