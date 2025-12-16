@@ -1978,6 +1978,19 @@ MATCHES = """
                     </span>
                     </div>
                   </div>
+
+                  {# Official result + points - displayed below the input scores #}
+                  {% set fh = m.get('final_home_goals') %}
+                  {% set fa = m.get('final_away_goals') %}
+                  {% set pts = points.get(m['id']) %}
+                  {% if fh is not none and fa is not none %}
+                    <div class="result-line text-center mt-2">
+                      <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
+                      {% if pts is not none %}
+                        <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
+                      {% endif %}
+                    </div>
+                  {% endif %}
                 </div>
               {% endfor %}
             </div>
