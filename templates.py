@@ -1797,6 +1797,49 @@ MATCHES = """
     cursor: not-allowed;
   }
 
+  /* Result boxes - same size as score inputs */
+  .result-box {
+    width: 52px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 900;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 3px solid;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Exact match - Green */
+  .result-box.exact {
+    background: linear-gradient(135deg, var(--success-green) 0%, #00953d 100%);
+    border-color: var(--success-green);
+    color: white;
+  }
+
+  /* Partial match - Gold */
+  .result-box.partial {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+    border-color: var(--accent-gold-dark);
+    color: var(--text-dark);
+  }
+
+  /* Miss - Gray */
+  .result-box.miss {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    color: var(--text-gray);
+  }
+
+  /* No bet made yet - Light blue */
+  .result-box:not(.exact):not(.partial):not(.miss) {
+    background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
+    border-color: #93c5fd;
+    color: var(--primary-blue);
+  }
+
   /* Separator "×" */
   .sep-x {
     width: 18px;
@@ -1841,6 +1884,11 @@ MATCHES = """
       width: 44px;
       height: 38px;
       font-size: 0.95rem;
+    }
+    .result-box {
+      width: 44px;
+      height: 38px;
+      font-size: 1rem;
     }
     .team-name { font-size: 0.9rem; }
     .flagbox {
@@ -1956,14 +2004,34 @@ MATCHES = """
                     </div>
 
                     <!-- Scores centered fixed width -->
-                    <div class="scoreblock mx-2">
-                      <input class="form-control score-input" type="number" min="0" name="h_{{ m['id'] }}"
-                             value="{{ b['home_goals'] if b else '' }}"
-                             {{ 'disabled' if locked else '' }}>
-                      <span class="sep-x">×</span>
-                      <input class="form-control score-input" type="number" min="0" name="a_{{ m['id'] }}"
-                             value="{{ b['away_goals'] if b else '' }}"
-                             {{ 'disabled' if locked else '' }}>
+                    {% set fh = m.get('final_home_goals') %}
+                    {% set fa = m.get('final_away_goals') %}
+                    {% set pts = points.get(m['id']) %}
+
+                    <div class="mx-2">
+                      {# Bet inputs #}
+                      <div class="scoreblock">
+                        <input class="form-control score-input" type="number" min="0" name="h_{{ m['id'] }}"
+                               value="{{ b['home_goals'] if b else '' }}"
+                               {{ 'disabled' if locked else '' }}>
+                        <span class="sep-x">×</span>
+                        <input class="form-control score-input" type="number" min="0" name="a_{{ m['id'] }}"
+                               value="{{ b['away_goals'] if b else '' }}"
+                               {{ 'disabled' if locked else '' }}>
+                      </div>
+
+                      {# Final result boxes - same format as bet inputs #}
+                      {% if fh is not none and fa is not none %}
+                        <div class="scoreblock mt-2">
+                          <div class="result-box {{ 'exact' if pts == 10 else 'partial' if pts == 5 else 'miss' if pts == 0 else '' }}">
+                            {{ fh }}
+                          </div>
+                          <span class="sep-x">×</span>
+                          <div class="result-box {{ 'exact' if pts == 10 else 'partial' if pts == 5 else 'miss' if pts == 0 else '' }}">
+                            {{ fa }}
+                          </div>
+                        </div>
+                      {% endif %}
                     </div>
 
                     <!-- Away -->
@@ -1978,19 +2046,6 @@ MATCHES = """
                     </span>
                     </div>
                   </div>
-
-                  {# Official result + points - displayed below the input scores #}
-                  {% set fh = m.get('final_home_goals') %}
-                  {% set fa = m.get('final_away_goals') %}
-                  {% set pts = points.get(m['id']) %}
-                  {% if fh is not none and fa is not none %}
-                    <div class="result-line text-center mt-2">
-                      <span class="final-pill" title="Resultado oficial">{{ fh }}–{{ fa }}</span>
-                      {% if pts is not none %}
-                        <span class="points-pill {{ 'p10' if pts==10 else 'p5' if pts==5 else 'p0' }}">+{{ pts }}</span>
-                      {% endif %}
-                    </div>
-                  {% endif %}
                 </div>
               {% endfor %}
             </div>
@@ -2032,6 +2087,12 @@ MATCHES = """
       padding: 0.1rem 0.25rem;
       font-size: 0.95rem;
       font-weight: 800;
+    }
+
+    .result-box {
+      width: 36px;
+      height: 34px;
+      font-size: 0.9rem;
     }
 
     .sep-x {
