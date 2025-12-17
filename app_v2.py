@@ -711,7 +711,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                                 <!-- X Separator - perfectly centered -->
                                 <div class="flex items-center justify-center w-10 h-16">
-                                    <span class="text-3xl font-black text-slate-400">×</span>
+                                    <span class="text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
                                 </div>
 
                                 <!-- Away Score Input -->
