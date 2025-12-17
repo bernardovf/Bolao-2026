@@ -76,6 +76,105 @@ def get_flag_url(team_name):
         return f'https://flagcdn.com/w40/{code}.png'
     return None
 
+def calculate_match_points(bet_home, bet_away, final_home, final_away):
+    """
+    Calculate points for a single match
+    Returns: points (int), match_type (str: 'exact', 'partial', 'miss')
+    """
+    if bet_home is None or bet_away is None or final_home is None or final_away is None:
+        return 0, 'none'
+
+    # Exact match: 5 points
+    if bet_home == final_home and bet_away == final_away:
+        return 5, 'exact'
+
+    # Correct winner: 3 points
+    bet_diff = bet_home - bet_away
+    final_diff = final_home - final_away
+
+    # Same sign (both positive, both negative, or both zero) means correct winner/draw
+    if (bet_diff > 0 and final_diff > 0) or (bet_diff < 0 and final_diff < 0) or (bet_diff == 0 and final_diff == 0):
+        return 3, 'partial'
+
+    # Wrong: 0 points
+    return 0, 'miss'
+
+def format_match_datetime(kickoff_utc):
+    """Format match datetime for display"""
+    if not kickoff_utc:
+        return None
+    try:
+        # Parse UTC datetime
+        dt = datetime.fromisoformat(kickoff_utc.replace('Z', '+00:00'))
+        # Format as: "21/06 14:00"
+        return dt.strftime('%d/%m %H:%M')
+    except:
+        return None
+
+def calculate_group_standings(fixtures):
+    """
+    Calculate standings for teams in fixtures
+    Returns: list of dicts with team stats sorted by points
+    """
+    standings = {}
+
+    for match in fixtures:
+        if match['final_home_goals'] is None or match['final_away_goals'] is None:
+            # Match not finished yet, initialize teams but don't count stats
+            if match['home'] not in standings:
+                standings[match['home']] = {'team': match['home'], 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
+                                            'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
+            if match['away'] not in standings:
+                standings[match['away']] = {'team': match['away'], 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
+                                            'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
+            continue
+
+        home = match['home']
+        away = match['away']
+        home_goals = match['final_home_goals']
+        away_goals = match['final_away_goals']
+
+        # Initialize teams if not exists
+        if home not in standings:
+            standings[home] = {'team': home, 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
+                              'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
+        if away not in standings:
+            standings[away] = {'team': away, 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
+                              'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
+
+        # Update stats
+        standings[home]['played'] += 1
+        standings[away]['played'] += 1
+        standings[home]['gf'] += home_goals
+        standings[home]['ga'] += away_goals
+        standings[away]['gf'] += away_goals
+        standings[away]['ga'] += home_goals
+
+        if home_goals > away_goals:  # Home win
+            standings[home]['won'] += 1
+            standings[home]['points'] += 3
+            standings[away]['lost'] += 1
+        elif home_goals < away_goals:  # Away win
+            standings[away]['won'] += 1
+            standings[away]['points'] += 3
+            standings[home]['lost'] += 1
+        else:  # Draw
+            standings[home]['drawn'] += 1
+            standings[away]['drawn'] += 1
+            standings[home]['points'] += 1
+            standings[away]['points'] += 1
+
+        # Update goal difference
+        standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
+        standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
+
+    # Sort by points (desc), then goal difference (desc), then goals for (desc)
+    sorted_standings = sorted(standings.values(),
+                             key=lambda x: (x['points'], x['gd'], x['gf']),
+                             reverse=True)
+
+    return sorted_standings
+
 # ============================================================================
 # AUTHENTICATION
 # ============================================================================
@@ -246,6 +345,19 @@ def matches():
 
         user_bets = {bet['match_id']: bet for bet in bets}
 
+    # Calculate group standings if viewing group stage
+    group_standings = {}
+    if 'Group' in phase_filter:
+        # Group fixtures by their specific group (e.g., "Group A", "Group B")
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for fixture in fixtures:
+            groups[fixture['phase']].append(fixture)
+
+        # Calculate standings for each group
+        for group_name, group_fixtures in groups.items():
+            group_standings[group_name] = calculate_group_standings(group_fixtures)
+
     conn.close()
 
     return render_template_string(MATCHES_TEMPLATE,
@@ -253,7 +365,10 @@ def matches():
                                  user_bets=user_bets,
                                  phases=phases,
                                  current_phase=phase_filter,
-                                 get_flag_url=get_flag_url)
+                                 get_flag_url=get_flag_url,
+                                 calculate_match_points=calculate_match_points,
+                                 format_match_datetime=format_match_datetime,
+                                 group_standings=group_standings)
 
 @app.route('/save-bets', methods=['POST'])
 @login_required
@@ -685,11 +800,87 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             </select>
         </div>
 
+        <!-- Group Standings Tables -->
+        {% if group_standings %}
+            <div class="mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {% for group_name, standings in group_standings.items()|sort %}
+                    <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
+                        <!-- Group Header -->
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
+                            <h3 class="text-base md:text-lg font-black text-white">{{ group_name }}</h3>
+                        </div>
+
+                        <!-- Standings Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs md:text-sm">
+                                <thead class="bg-slate-100 border-b-2 border-slate-200">
+                                    <tr>
+                                        <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">#</th>
+                                        <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">Equipe</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">J</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">V</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">E</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">D</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">SG</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    {% for team in standings %}
+                                        <tr class="hover:bg-slate-50 transition {% if loop.index <= 2 %}bg-green-50{% endif %}">
+                                            <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
+                                            <td class="px-2 md:px-3 py-2">
+                                                <div class="flex items-center gap-1 md:gap-2">
+                                                    {% set team_flag = get_flag_url(team.team) %}
+                                                    {% if team_flag %}
+                                                        <img src="{{ team_flag }}" alt="{{ team.team }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
+                                                    {% endif %}
+                                                    <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ team.team }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-green-600 font-semibold hidden sm:table-cell">{{ team.won }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-slate-500 hidden sm:table-cell">{{ team.drawn }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-red-600 font-semibold hidden sm:table-cell">{{ team.lost }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center font-semibold {% if team.gd > 0 %}text-green-600{% elif team.gd < 0 %}text-red-600{% else %}text-slate-600{% endif %}">
+                                                {{ "+" if team.gd > 0 else "" }}{{ team.gd }}
+                                            </td>
+                                            <td class="px-2 md:px-3 py-2 text-center">
+                                                <span class="inline-flex items-center justify-center bg-blue-600 text-white font-black rounded-full w-7 h-7 md:w-8 md:h-8 text-xs md:text-sm">
+                                                    {{ team.points }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 text-xs text-slate-600">
+                            <span class="font-semibold">J</span>=Jogos <span class="font-semibold hidden sm:inline">V</span><span class="hidden sm:inline">=Vitórias</span>
+                            <span class="font-semibold hidden sm:inline">E</span><span class="hidden sm:inline">=Empates</span>
+                            <span class="font-semibold hidden sm:inline">D</span><span class="hidden sm:inline">=Derrotas</span>
+                            <span class="font-semibold">SG</span>=Saldo
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <!-- Matches Form -->
         <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
             <div class="space-y-3 md:space-y-4">
                 {% for match in fixtures %}
                     <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-6 hover:shadow-lg transition">
+                        <!-- Match Date/Time -->
+                        {% set match_time = format_match_datetime(match.kickoff_utc) %}
+                        {% if match_time %}
+                            <div class="text-xs md:text-sm text-slate-500 mb-2 md:mb-3 font-semibold">
+                                📅 {{ match_time }} UTC
+                            </div>
+                        {% endif %}
+
                         <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
 
@@ -735,9 +926,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 </div>
                             </div>
 
-                            <!-- Result Badge (Mobile: Full Width Below, Desktop: Right Side) -->
+                            <!-- Result & Points Badges (Mobile: Full Width Below, Desktop: Right Side) -->
                             {% if match.final_home_goals is not none %}
-                                <div class="flex items-center justify-center md:justify-start mt-3 md:mt-0 md:min-w-[200px]">
+                                <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 mt-3 md:mt-0 md:min-w-[280px]">
+                                    <!-- Result Badge -->
                                     <div class="flex items-center space-x-1.5 md:space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-green-300">
                                         <span class="text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
                                         <div class="flex items-center gap-1">
@@ -746,6 +938,28 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <span class="text-lg md:text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
                                         </div>
                                     </div>
+
+                                    <!-- Points Badge (if user has bet) -->
+                                    {% if match.id in user_bets %}
+                                        {% set bet = user_bets[match.id] %}
+                                        {% set points, match_type = calculate_match_points(bet.home_goals, bet.away_goals, match.final_home_goals, match.final_away_goals) %}
+                                        {% if match_type == 'exact' %}
+                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-yellow-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-yellow-600 shadow-md">
+                                                <span class="text-xl md:text-2xl">🎯</span>
+                                                <span class="text-sm md:text-base font-black text-yellow-900">+{{ points }} pts</span>
+                                            </div>
+                                        {% elif match_type == 'partial' %}
+                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-blue-600 shadow-md">
+                                                <span class="text-xl md:text-2xl">✓</span>
+                                                <span class="text-sm md:text-base font-black text-blue-900">+{{ points }} pts</span>
+                                            </div>
+                                        {% elif match_type == 'miss' %}
+                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-slate-300 to-slate-400 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-slate-500">
+                                                <span class="text-xl md:text-2xl">✗</span>
+                                                <span class="text-sm md:text-base font-black text-slate-700">0 pts</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
