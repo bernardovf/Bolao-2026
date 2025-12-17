@@ -402,13 +402,13 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
-                    <span class="text-3xl">⚽</span>
-                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-2xl md:text-3xl">⚽</span>
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-semibold text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
@@ -418,11 +418,11 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <!-- Welcome Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}! 👋</h1>
-            <p class="text-lg text-slate-600">Bem-vindo ao seu painel do Bolão Copa 2026</p>
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}! 👋</h1>
+            <p class="text-base md:text-lg text-slate-600">Bem-vindo ao seu painel do Bolão Copa 2026</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -436,45 +436,45 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         {% endwith %}
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <!-- Total Points -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Total de Pontos</span>
-                    <span class="text-2xl">🏆</span>
+                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Total de Pontos</span>
+                    <span class="text-xl md:text-2xl">🏆</span>
                 </div>
-                <div class="text-4xl font-black">{{ total_points }}</div>
-                <div class="text-sm opacity-75 mt-1">pontos acumulados</div>
+                <div class="text-3xl md:text-4xl font-black">{{ total_points }}</div>
+                <div class="text-xs md:text-sm opacity-75 mt-1">pontos acumulados</div>
             </div>
 
             <!-- Exact Matches -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Palpites Exatos</span>
-                    <span class="text-2xl">🎯</span>
+                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Palpites Exatos</span>
+                    <span class="text-xl md:text-2xl">🎯</span>
                 </div>
-                <div class="text-4xl font-black">{{ exact_matches }}</div>
-                <div class="text-sm opacity-75 mt-1">placares corretos</div>
+                <div class="text-3xl md:text-4xl font-black">{{ exact_matches }}</div>
+                <div class="text-xs md:text-sm opacity-75 mt-1">placares corretos</div>
             </div>
 
             <!-- Total Bets -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Total Palpites</span>
-                    <span class="text-2xl">📝</span>
+                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Total Palpites</span>
+                    <span class="text-xl md:text-2xl">📝</span>
                 </div>
-                <div class="text-4xl font-black">{{ total_bets }}</div>
-                <div class="text-sm opacity-75 mt-1">jogos palpitados</div>
+                <div class="text-3xl md:text-4xl font-black">{{ total_bets }}</div>
+                <div class="text-xs md:text-sm opacity-75 mt-1">jogos palpitados</div>
             </div>
 
             <!-- Matches Finished -->
-            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Jogos Finalizados</span>
-                    <span class="text-2xl">⚡</span>
+                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Jogos Finalizados</span>
+                    <span class="text-xl md:text-2xl">⚡</span>
                 </div>
-                <div class="text-4xl font-black">{{ matches_finished }}</div>
-                <div class="text-sm opacity-75 mt-1">resultados disponíveis</div>
+                <div class="text-3xl md:text-4xl font-black">{{ matches_finished }}</div>
+                <div class="text-xs md:text-sm opacity-75 mt-1">resultados disponíveis</div>
             </div>
         </div>
 
@@ -526,13 +526,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
-                    <span class="text-3xl">⚽</span>
-                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-2xl md:text-3xl">⚽</span>
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
@@ -542,61 +542,61 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-8">
-            <h1 class="text-4xl font-black text-slate-800 mb-2">🏆 Ranking Geral</h1>
-            <p class="text-lg text-slate-600">Classificação de todos os participantes</p>
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🏆 Ranking Geral</h1>
+            <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
         </div>
 
         <!-- Ranking Table -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-white rounded-xl md:rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Posição</th>
-                            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Exatos</th>
-                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Parciais</th>
-                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Pontos</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Pos</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider">Exatos</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider hidden sm:table-cell">Parciais</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider">Pts</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-2">
+                                <td class="px-3 md:px-6 py-3 md:py-4">
+                                    <div class="flex items-center space-x-1 md:space-x-2">
                                         {% if loop.index == 1 %}
-                                            <span class="text-2xl">🥇</span>
+                                            <span class="text-xl md:text-2xl">🥇</span>
                                         {% elif loop.index == 2 %}
-                                            <span class="text-2xl">🥈</span>
+                                            <span class="text-xl md:text-2xl">🥈</span>
                                         {% elif loop.index == 3 %}
-                                            <span class="text-2xl">🥉</span>
+                                            <span class="text-xl md:text-2xl">🥉</span>
                                         {% else %}
-                                            <span class="text-lg font-bold text-slate-400">#{{ loop.index }}</span>
+                                            <span class="text-base md:text-lg font-bold text-slate-400">#{{ loop.index }}</span>
                                         {% endif %}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-slate-800">
+                                <td class="px-3 md:px-6 py-3 md:py-4">
+                                    <div class="font-bold text-sm md:text-base text-slate-800 truncate">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
+                                            <span class="ml-1 md:ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Você</span>
                                         {% endif %}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-10 h-10 bg-green-100 text-green-800 font-bold rounded-full">
+                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-800 text-sm md:text-base font-bold rounded-full">
                                         {{ rank.exact_matches or 0 }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-800 font-bold rounded-full">
+                                <td class="px-3 md:px-6 py-3 md:py-4 text-center hidden sm:table-cell">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-800 text-sm md:text-base font-bold rounded-full">
                                         {{ rank.partial_matches or 0 }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                    <span class="text-xl md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -639,13 +639,13 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
-                    <span class="text-3xl">⚽</span>
-                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-2xl md:text-3xl">⚽</span>
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
-                <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
@@ -655,10 +655,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-8">
-            <h1 class="text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
-            <p class="text-lg text-slate-600">Aposte nos placares dos jogos</p>
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
+            <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -687,62 +687,67 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Matches Form -->
         <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
-            <div class="space-y-4">
+            <div class="space-y-3 md:space-y-4">
                 {% for match in fixtures %}
-                    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-                        <!-- Main Match Row -->
-                        <div class="flex items-center justify-between gap-4">
-                            <!-- Left Side: Home Team + Bet Inputs + Away Team -->
-                            <div class="flex items-center gap-3 flex-1">
-                                <!-- Home Team -->
-                                <div class="flex items-center gap-2 justify-end" style="min-width: 140px;">
-                                    <span class="font-bold text-lg text-slate-800 text-right">{{ match.home }}</span>
-                                    {% set home_flag = get_flag_url(match.home) %}
-                                    {% if home_flag %}
-                                        <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
-                                    {% endif %}
+                    <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-6 hover:shadow-lg transition">
+                        <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+
+                            <!-- Teams and Inputs Section -->
+                            <div class="flex-1">
+                                <!-- Home Team (Mobile: Full Width, Desktop: Inline) -->
+                                <div class="flex items-center justify-between md:justify-start gap-2 mb-2 md:mb-0 md:inline-flex">
+                                    <div class="flex items-center gap-2 flex-1 md:flex-initial md:min-w-[140px] md:justify-end">
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.home }}</span>
+                                        {% set home_flag = get_flag_url(match.home) %}
+                                        {% if home_flag %}
+                                            <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                        {% endif %}
+                                    </div>
                                 </div>
 
-                                <!-- Home Score Input -->
-                                <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
-                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                       placeholder="0">
+                                <!-- Score Inputs Row (Mobile: Centered, Desktop: Inline) -->
+                                <div class="flex items-center justify-center gap-2 md:gap-3 md:inline-flex md:mx-3">
+                                    <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                           value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                           class="w-12 h-12 md:w-16 md:h-16 text-center text-xl md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                           placeholder="0">
 
-                                <!-- X Separator - perfectly centered -->
-                                <div class="flex items-center justify-center w-10 h-16">
-                                    <span class="text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                    <div class="flex items-center justify-center w-8 h-12 md:w-10 md:h-16">
+                                        <span class="text-2xl md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                    </div>
+
+                                    <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                           value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                           class="w-12 h-12 md:w-16 md:h-16 text-center text-xl md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                           placeholder="0">
                                 </div>
 
-                                <!-- Away Score Input -->
-                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
-                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                       placeholder="0">
-
-                                <!-- Away Team -->
-                                <div class="flex items-center gap-2 justify-start" style="min-width: 140px;">
-                                    {% set away_flag = get_flag_url(match.away) %}
-                                    {% if away_flag %}
-                                        <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
-                                    {% endif %}
-                                    <span class="font-bold text-lg text-slate-800">{{ match.away }}</span>
+                                <!-- Away Team (Mobile: Full Width, Desktop: Inline) -->
+                                <div class="flex items-center justify-between md:justify-start gap-2 mt-2 md:mt-0 md:inline-flex">
+                                    <div class="flex items-center gap-2 flex-1 md:flex-initial md:min-w-[140px] order-2 md:order-1">
+                                        {% set away_flag = get_flag_url(match.away) %}
+                                        {% if away_flag %}
+                                            <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                        {% endif %}
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.away }}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Right Side: Result Badge -->
-                            <div class="flex items-center" style="min-width: 200px;">
-                                {% if match.final_home_goals is not none %}
-                                    <div class="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-4 py-2 rounded-lg border-2 border-green-300">
+                            <!-- Result Badge (Mobile: Full Width Below, Desktop: Right Side) -->
+                            {% if match.final_home_goals is not none %}
+                                <div class="flex items-center justify-center md:justify-start mt-3 md:mt-0 md:min-w-[200px]">
+                                    <div class="flex items-center space-x-1.5 md:space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-green-300">
                                         <span class="text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
                                         <div class="flex items-center gap-1">
-                                            <span class="text-xl font-black text-green-800">{{ match.final_home_goals }}</span>
-                                            <span class="text-lg font-bold text-green-600">×</span>
-                                            <span class="text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
+                                            <span class="text-lg md:text-xl font-black text-green-800">{{ match.final_home_goals }}</span>
+                                            <span class="text-base md:text-lg font-bold text-green-600">×</span>
+                                            <span class="text-lg md:text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
                                         </div>
                                     </div>
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
