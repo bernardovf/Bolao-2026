@@ -282,60 +282,72 @@ BASE_TEMPLATE = '''<!DOCTYPE html>
 </html>
 '''
 
-LOGIN_TEMPLATE = '''{% extends "base.html" %}
-{% block content %}
-<div class="min-h-screen flex items-center justify-center px-4">
-    <div class="max-w-md w-full">
-        <!-- Logo/Title -->
-        <div class="text-center mb-8">
-            <h1 class="text-5xl font-black text-blue-600 mb-2">⚽ Bolão</h1>
-            <p class="text-2xl font-bold text-slate-700">Copa do Mundo 2026</p>
-        </div>
+LOGIN_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full">
+            <!-- Logo/Title -->
+            <div class="text-center mb-8">
+                <h1 class="text-5xl font-black text-blue-600 mb-2">⚽ Bolão</h1>
+                <p class="text-2xl font-bold text-slate-700">Copa do Mundo 2026</p>
+            </div>
 
-        <!-- Login Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Entrar</h2>
+            <!-- Login Card -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Entrar</h2>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-            <form method="POST" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Usuário</label>
-                    <input type="text" name="username" required
-                           class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-                           placeholder="Digite seu usuário">
+                <form method="POST" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Usuário</label>
+                        <input type="text" name="username" required
+                               class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                               placeholder="Digite seu usuário">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Senha</label>
+                        <input type="password" name="password" required
+                               class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                               placeholder="Digite sua senha">
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                        Entrar
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-slate-200">
+                    <p class="text-sm text-slate-600 text-center">
+                        Senha de teste: <span class="font-mono font-semibold">senha123</span>
+                    </p>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Senha</label>
-                    <input type="password" name="password" required
-                           class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-                           placeholder="Digite sua senha">
-                </div>
-
-                <button type="submit"
-                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98]">
-                    Entrar
-                </button>
-            </form>
-
-            <div class="mt-6 pt-6 border-t border-slate-200">
-                <p class="text-sm text-slate-600 text-center">
-                    Senha de teste: <span class="font-mono font-semibold">senha123</span>
-                </p>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
 '''
 
 # More templates to continue...
