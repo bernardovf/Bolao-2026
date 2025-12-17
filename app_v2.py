@@ -59,7 +59,13 @@ def get_flag_url(team_name):
         'Serbia': 'rs', 'South Korea': 'kr', 'Spain': 'es', 'Switzerland': 'ch',
         'Tunisia': 'tn', 'Uruguay': 'uy', 'USA': 'us', 'Wales': 'gb-wls',
         'Korea Republic': 'kr', 'South Africa': 'za', 'Scotland': 'gb-sct',
-        'Haiti': 'ht', 'Paraguay': 'py',
+        'Haiti': 'ht', 'Paraguay': 'py', 'Curacao': 'cw', 'Curaçao': 'cw',
+        'Ivory Coast': 'ci', 'Côte d\'Ivoire': 'ci', 'Cote d\'Ivoire': 'ci',
+        'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Venezuela': 've',
+        'Bolivia': 'bo', 'Panama': 'pa', 'Honduras': 'hn', 'Jamaica': 'jm',
+        'Trinidad and Tobago': 'tt', 'El Salvador': 'sv', 'Guatemala': 'gt',
+        'Algeria': 'dz', 'Nigeria': 'ng', 'Egypt': 'eg', 'Burkina Faso': 'bf',
+        'Mali': 'ml', 'Congo DR': 'cd', 'South Sudan': 'ss', 'Kenya': 'ke',
         # Playoffs (use generic flag)
         'UEFA Playoff A': 'eu', 'UEFA Playoff B': 'eu', 'UEFA Playoff C': 'eu', 'UEFA Playoff D': 'eu',
         'AFC Playoff': 'qa', 'CONMEBOL Playoff': 'br', 'OFC Playoff': 'nz',
@@ -684,47 +690,57 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             <div class="space-y-4">
                 {% for match in fixtures %}
                     <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-                        <div class="flex items-center justify-center gap-3 flex-wrap">
-                            <!-- Home Team -->
-                            <div class="flex items-center gap-2 justify-end" style="min-width: 140px;">
-                                <span class="font-bold text-lg text-slate-800 text-right">{{ match.home }}</span>
-                                {% set home_flag = get_flag_url(match.home) %}
-                                {% if home_flag %}
-                                    <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
-                                {% endif %}
-                            </div>
-
-                            <!-- Score Inputs -->
-                            <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                   value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
-                                   class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                   placeholder="0">
-
-                            <span class="text-2xl font-black text-slate-400 px-2">×</span>
-
-                            <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                   value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
-                                   class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                   placeholder="0">
-
-                            <!-- Away Team -->
-                            <div class="flex items-center gap-2 justify-start" style="min-width: 140px;">
-                                {% set away_flag = get_flag_url(match.away) %}
-                                {% if away_flag %}
-                                    <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
-                                {% endif %}
-                                <span class="font-bold text-lg text-slate-800">{{ match.away }}</span>
-                            </div>
-
-                            <!-- Result (if available) -->
-                            {% if match.final_home_goals is not none %}
-                                <div class="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-4 py-2 rounded-lg border-2 border-green-300 ml-3">
-                                    <span class="text-xs font-bold text-green-700 uppercase">Resultado:</span>
-                                    <span class="text-xl font-black text-green-800">{{ match.final_home_goals }}</span>
-                                    <span class="text-lg font-bold text-green-600">×</span>
-                                    <span class="text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
+                        <!-- Main Match Row -->
+                        <div class="flex items-center justify-between gap-4">
+                            <!-- Left Side: Home Team + Bet Inputs + Away Team -->
+                            <div class="flex items-center justify-center gap-3 flex-1">
+                                <!-- Home Team -->
+                                <div class="flex items-center gap-2 justify-end" style="min-width: 140px;">
+                                    <span class="font-bold text-lg text-slate-800 text-right">{{ match.home }}</span>
+                                    {% set home_flag = get_flag_url(match.home) %}
+                                    {% if home_flag %}
+                                        <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
+                                    {% endif %}
                                 </div>
-                            {% endif %}
+
+                                <!-- Score Inputs -->
+                                <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                       placeholder="0">
+
+                                <div class="flex items-center justify-center" style="min-width: 40px;">
+                                    <span class="text-2xl font-black text-slate-400">×</span>
+                                </div>
+
+                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                       placeholder="0">
+
+                                <!-- Away Team -->
+                                <div class="flex items-center gap-2 justify-start" style="min-width: 140px;">
+                                    {% set away_flag = get_flag_url(match.away) %}
+                                    {% if away_flag %}
+                                        <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-8 h-6 rounded shadow-sm border border-slate-200">
+                                    {% endif %}
+                                    <span class="font-bold text-lg text-slate-800">{{ match.away }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Right Side: Result Badge (aligned with separator) -->
+                            <div class="flex items-center" style="min-width: 200px;">
+                                {% if match.final_home_goals is not none %}
+                                    <div class="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-4 py-2 rounded-lg border-2 border-green-300">
+                                        <span class="text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xl font-black text-green-800">{{ match.final_home_goals }}</span>
+                                            <span class="text-lg font-bold text-green-600">×</span>
+                                            <span class="text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
