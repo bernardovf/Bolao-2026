@@ -1,0 +1,698 @@
+"""
+Bolão Copa 2026 - Fresh Modern Redesign
+Clean Flask application with Tailwind CSS
+"""
+
+from flask import Flask, render_template_string, request, redirect, url_for, session, flash
+import sqlite3
+from datetime import datetime
+from functools import wraps
+import os
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Database path
+DB_PATH = 'bolao_2026_dev.db'
+
+# ============================================================================
+# DATABASE HELPERS
+# ============================================================================
+
+def get_db():
+    """Get database connection"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def query_db(query, args=(), one=False):
+    """Execute a query and return results"""
+    conn = get_db()
+    cur = conn.execute(query, args)
+    rv = cur.fetchall()
+    conn.close()
+    return (rv[0] if rv else None) if one else rv
+
+def execute_db(query, args=()):
+    """Execute a write query"""
+    conn = get_db()
+    cur = conn.execute(query, args)
+    conn.commit()
+    rowcount = cur.rowcount
+    conn.close()
+    return rowcount
+
+# ============================================================================
+# AUTHENTICATION
+# ============================================================================
+
+def login_required(f):
+    """Decorator to require login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Por favor, faça login para continuar', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ============================================================================
+# ROUTES
+# ============================================================================
+
+@app.route('/')
+def index():
+    """Home page"""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        user = query_db('SELECT * FROM users WHERE user_name = ? AND password = ?',
+                       (username, password), one=True)
+
+        if user:
+            session['user_id'] = user['id']
+            session['user_name'] = user['user_name']
+            flash(f'Bem-vindo, {user["user_name"]}!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Usuário ou senha incorretos', 'error')
+
+    return render_template_string(LOGIN_TEMPLATE)
+
+@app.route('/logout')
+def logout():
+    """Logout"""
+    session.clear()
+    flash('Você saiu com sucesso', 'info')
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Main dashboard"""
+    user_id = session['user_id']
+    user_name = session['user_name']
+
+    # Get user stats
+    conn = get_db()
+
+    # Total bets
+    total_bets = conn.execute(
+        'SELECT COUNT(*) as count FROM bet WHERE user_id = ?',
+        (user_id,)
+    ).fetchone()['count']
+
+    # Points
+    points_query = '''
+        SELECT
+            SUM(CASE
+                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
+                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
+                THEN 5
+                ELSE 0
+            END) as total_points,
+            COUNT(CASE WHEN b.home_goals = f.final_home_goals
+                       AND b.away_goals = f.final_away_goals THEN 1 END) as exact_matches,
+            COUNT(CASE WHEN f.final_home_goals IS NOT NULL THEN 1 END) as matches_finished
+        FROM bet b
+        JOIN fixtures f ON b.match_id = f.id
+        WHERE b.user_id = ? AND f.final_home_goals IS NOT NULL
+    '''
+
+    stats = conn.execute(points_query, (user_id,)).fetchone()
+    conn.close()
+
+    total_points = stats['total_points'] or 0
+    exact_matches = stats['exact_matches'] or 0
+    matches_finished = stats['matches_finished'] or 0
+
+    return render_template_string(DASHBOARD_TEMPLATE,
+                                 user_name=user_name,
+                                 total_bets=total_bets,
+                                 total_points=total_points,
+                                 exact_matches=exact_matches,
+                                 matches_finished=matches_finished)
+
+@app.route('/ranking')
+@login_required
+def ranking():
+    """Rankings page"""
+    conn = get_db()
+
+    rankings = conn.execute('''
+        SELECT
+            u.id,
+            u.user_name,
+            COUNT(CASE WHEN b.home_goals = f.final_home_goals
+                       AND b.away_goals = f.final_away_goals THEN 1 END) as exact_matches,
+            COUNT(CASE WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                         OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                         OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
+                    THEN 1 END) as partial_matches,
+            SUM(CASE
+                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
+                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
+                THEN 5
+                ELSE 0
+            END) as total_points
+        FROM users u
+        LEFT JOIN bet b ON u.id = b.user_id
+        LEFT JOIN fixtures f ON b.match_id = f.id AND f.final_home_goals IS NOT NULL
+        GROUP BY u.id, u.user_name
+        ORDER BY total_points DESC, exact_matches DESC, u.user_name ASC
+    ''').fetchall()
+
+    conn.close()
+
+    return render_template_string(RANKING_TEMPLATE,
+                                 rankings=rankings,
+                                 current_user_id=session['user_id'])
+
+@app.route('/matches')
+@login_required
+def matches():
+    """View and edit matches/bets"""
+    phase_filter = request.args.get('phase', 'Group%')
+
+    conn = get_db()
+
+    # Get all phases
+    phases = conn.execute('''
+        SELECT DISTINCT phase FROM fixtures ORDER BY id
+    ''').fetchall()
+
+    # Get matches
+    fixtures = conn.execute('''
+        SELECT * FROM fixtures
+        WHERE phase LIKE ?
+        ORDER BY id
+    ''', (phase_filter,)).fetchall()
+
+    # Get user's bets
+    user_bets = {}
+    if fixtures:
+        fixture_ids = [f['id'] for f in fixtures]
+        placeholders = ','.join('?' * len(fixture_ids))
+        bets = conn.execute(f'''
+            SELECT * FROM bet
+            WHERE user_id = ? AND match_id IN ({placeholders})
+        ''', [session['user_id']] + fixture_ids).fetchall()
+
+        user_bets = {bet['match_id']: bet for bet in bets}
+
+    conn.close()
+
+    return render_template_string(MATCHES_TEMPLATE,
+                                 fixtures=fixtures,
+                                 user_bets=user_bets,
+                                 phases=phases,
+                                 current_phase=phase_filter)
+
+@app.route('/save-bets', methods=['POST'])
+@login_required
+def save_bets():
+    """Save user bets"""
+    user_id = session['user_id']
+    conn = get_db()
+
+    saved_count = 0
+    for key, value in request.form.items():
+        if key.startswith('h_'):
+            match_id = int(key[2:])
+            away_key = f'a_{match_id}'
+
+            if away_key in request.form:
+                home_goals = request.form[key].strip()
+                away_goals = request.form[away_key].strip()
+
+                if home_goals and away_goals:
+                    try:
+                        home_goals = int(home_goals)
+                        away_goals = int(away_goals)
+
+                        # Insert or update
+                        conn.execute('''
+                            INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                            VALUES (?, ?, ?, ?)
+                            ON CONFLICT(user_id, match_id)
+                            DO UPDATE SET home_goals=?, away_goals=?
+                        ''', (user_id, match_id, home_goals, away_goals, home_goals, away_goals))
+
+                        saved_count += 1
+                    except ValueError:
+                        continue
+
+    conn.commit()
+    conn.close()
+
+    flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
+    return redirect(url_for('matches', phase=request.args.get('phase', 'Group%')))
+
+# ============================================================================
+# TEMPLATES
+# ============================================================================
+
+BASE_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    {% block content %}{% endblock %}
+</body>
+</html>
+'''
+
+LOGIN_TEMPLATE = '''{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full">
+        <!-- Logo/Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-black text-blue-600 mb-2">⚽ Bolão</h1>
+            <p class="text-2xl font-bold text-slate-700">Copa do Mundo 2026</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Entrar</h2>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Usuário</label>
+                    <input type="text" name="username" required
+                           class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                           placeholder="Digite seu usuário">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Senha</label>
+                    <input type="password" name="password" required
+                           class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                           placeholder="Digite sua senha">
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-slate-200">
+                <p class="text-sm text-slate-600 text-center">
+                    Senha de teste: <span class="font-mono font-semibold">senha123</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+'''
+
+# More templates to continue...
+
+DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">⚽</span>
+                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="{{ url_for('dashboard') }}" class="font-semibold text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}! 👋</h1>
+            <p class="text-lg text-slate-600">Bem-vindo ao seu painel do Bolão Copa 2026</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-green-50 text-green-800 border-2 border-green-200{% elif category == 'error' %}bg-red-50 text-red-800 border-2 border-red-200{% else %}bg-blue-50 text-blue-800 border-2 border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Points -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Total de Pontos</span>
+                    <span class="text-2xl">🏆</span>
+                </div>
+                <div class="text-4xl font-black">{{ total_points }}</div>
+                <div class="text-sm opacity-75 mt-1">pontos acumulados</div>
+            </div>
+
+            <!-- Exact Matches -->
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Palpites Exatos</span>
+                    <span class="text-2xl">🎯</span>
+                </div>
+                <div class="text-4xl font-black">{{ exact_matches }}</div>
+                <div class="text-sm opacity-75 mt-1">placares corretos</div>
+            </div>
+
+            <!-- Total Bets -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Total Palpites</span>
+                    <span class="text-2xl">📝</span>
+                </div>
+                <div class="text-4xl font-black">{{ total_bets }}</div>
+                <div class="text-sm opacity-75 mt-1">jogos palpitados</div>
+            </div>
+
+            <!-- Matches Finished -->
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold uppercase tracking-wide opacity-90">Jogos Finalizados</span>
+                    <span class="text-2xl">⚡</span>
+                </div>
+                <div class="text-4xl font-black">{{ matches_finished }}</div>
+                <div class="text-sm opacity-75 mt-1">resultados disponíveis</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Make Predictions Card -->
+            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02]">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-100 rounded-full p-4">
+                        <span class="text-4xl">🎲</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
+                        <p class="text-slate-600">Aposte nos próximos jogos</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- View Ranking Card -->
+            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02]">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-yellow-100 rounded-full p-4">
+                        <span class="text-4xl">📊</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
+                        <p class="text-slate-600">Confira sua posição</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+RANKING_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">⚽</span>
+                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-black text-slate-800 mb-2">🏆 Ranking Geral</h1>
+            <p class="text-lg text-slate-600">Classificação de todos os participantes</p>
+        </div>
+
+        <!-- Ranking Table -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Posição</th>
+                            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Jogador</th>
+                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Exatos</th>
+                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Parciais</th>
+                            <th class="px-6 py-4 text-center text-sm font-bold uppercase tracking-wider">Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for rank in rankings %}
+                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center space-x-2">
+                                        {% if loop.index == 1 %}
+                                            <span class="text-2xl">🥇</span>
+                                        {% elif loop.index == 2 %}
+                                            <span class="text-2xl">🥈</span>
+                                        {% elif loop.index == 3 %}
+                                            <span class="text-2xl">🥉</span>
+                                        {% else %}
+                                            <span class="text-lg font-bold text-slate-400">#{{ loop.index }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-800">
+                                        {{ rank.user_name }}
+                                        {% if rank.id == current_user_id %}
+                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 bg-green-100 text-green-800 font-bold rounded-full">
+                                        {{ rank.exact_matches or 0 }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-800 font-bold rounded-full">
+                                        {{ rank.partial_matches or 0 }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar ao Início
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+MATCHES_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palpites - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">⚽</span>
+                    <span class="text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
+            <p class="text-lg text-slate-600">Aposte nos placares dos jogos</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-green-50 text-green-800 border-2 border-green-200{% elif category == 'error' %}bg-red-50 text-red-800 border-2 border-red-200{% else %}bg-blue-50 text-blue-800 border-2 border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Phase Filter -->
+        <div class="mb-6">
+            <label class="block text-sm font-bold text-slate-700 mb-2">Filtrar por Fase:</label>
+            <select onchange="window.location.href='{{ url_for('matches') }}?phase=' + this.value"
+                    class="px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                <option value="Group%" {% if current_phase == 'Group%' %}selected{% endif %}>Fase de Grupos</option>
+                {% for phase in phases %}
+                    <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
+                        {{ phase.phase }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Matches Form -->
+        <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
+            <div class="space-y-4">
+                {% for match in fixtures %}
+                    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <!-- Teams -->
+                            <div class="flex-1 min-w-[200px]">
+                                <div class="font-bold text-lg text-slate-800">{{ match.home }}</div>
+                                <div class="text-sm text-slate-500">vs</div>
+                                <div class="font-bold text-lg text-slate-800">{{ match.away }}</div>
+                            </div>
+
+                            <!-- Score Inputs -->
+                            <div class="flex items-center space-x-3">
+                                <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                       placeholder="0">
+                                <span class="text-2xl font-black text-slate-400">×</span>
+                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                       class="w-16 h-16 text-center text-2xl font-black border-4 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                       placeholder="0">
+                            </div>
+
+                            <!-- Result (if available) -->
+                            {% if match.final_home_goals is not none %}
+                                <div class="flex items-center space-x-3 bg-gradient-to-r from-green-50 to-green-100 px-4 py-3 rounded-xl border-2 border-green-300">
+                                    <span class="text-xs font-bold text-green-700 uppercase">Resultado:</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-2xl font-black text-green-800">{{ match.final_home_goals }}</span>
+                                        <span class="text-xl font-bold text-green-600">×</span>
+                                        <span class="text-2xl font-black text-green-800">{{ match.final_away_goals }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Save Button -->
+            <div class="mt-8 sticky bottom-4">
+                <button type="submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black text-lg py-4 px-8 rounded-xl hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+                    💾 Salvar Todos os Palpites
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+'''
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
+
