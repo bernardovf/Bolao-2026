@@ -223,38 +223,42 @@ def format_match_datetime(kickoff_utc):
     except:
         return None
 
-def calculate_group_standings(fixtures):
+def calculate_group_standings(fixtures, user_bets):
     """
-    Calculate standings for teams in fixtures
-    Returns: list of dicts with team stats sorted by points
+    Calculate standings for teams in fixtures based on the user's bets.
+    Returns: list of dicts with team stats sorted by points.
     """
+
+    def ensure_team(team_name):
+        if team_name not in standings:
+            standings[team_name] = {
+                'team': team_name,
+                'played': 0,
+                'won': 0,
+                'drawn': 0,
+                'lost': 0,
+                'gf': 0,
+                'ga': 0,
+                'gd': 0,
+                'points': 0
+            }
+
     standings = {}
 
     for match in fixtures:
-        if match['final_home_goals'] is None or match['final_away_goals'] is None:
-            # Match not finished yet, initialize teams but don't count stats
-            if match['home'] not in standings:
-                standings[match['home']] = {'team': match['home'], 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
-                                            'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
-            if match['away'] not in standings:
-                standings[match['away']] = {'team': match['away'], 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
-                                            'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
-            continue
-
         home = match['home']
         away = match['away']
-        home_goals = match['final_home_goals']
-        away_goals = match['final_away_goals']
+        ensure_team(home)
+        ensure_team(away)
 
-        # Initialize teams if not exists
-        if home not in standings:
-            standings[home] = {'team': home, 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
-                              'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
-        if away not in standings:
-            standings[away] = {'team': away, 'played': 0, 'won': 0, 'drawn': 0, 'lost': 0,
-                              'gf': 0, 'ga': 0, 'gd': 0, 'points': 0}
+        bet = user_bets.get(match['id'])
+        if not bet:
+            # No bet for this match: don't count stats yet
+            continue
 
-        # Update stats
+        home_goals = bet['home_goals']
+        away_goals = bet['away_goals']
+
         standings[home]['played'] += 1
         standings[away]['played'] += 1
         standings[home]['gf'] += home_goals
@@ -276,14 +280,14 @@ def calculate_group_standings(fixtures):
             standings[home]['points'] += 1
             standings[away]['points'] += 1
 
-        # Update goal difference
         standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
         standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
 
-    # Sort by points (desc), then goal difference (desc), then goals for (desc)
-    sorted_standings = sorted(standings.values(),
-                             key=lambda x: (x['points'], x['gd'], x['gf']),
-                             reverse=True)
+    sorted_standings = sorted(
+        standings.values(),
+        key=lambda x: (x['points'], x['gd'], x['gf']),
+        reverse=True
+    )
 
     return sorted_standings
 
@@ -459,6 +463,7 @@ def matches():
 
     # Calculate group standings if viewing group stage
     group_standings = {}
+    best_third_qualifiers = set()
     if 'Group' in phase_filter:
         # Group fixtures by their specific group (e.g., "Group A", "Group B")
         from collections import defaultdict
@@ -466,9 +471,20 @@ def matches():
         for fixture in fixtures:
             groups[fixture['phase']].append(fixture)
 
-        # Calculate standings for each group
+        # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
-            group_standings[group_name] = calculate_group_standings(group_fixtures)
+            group_standings[group_name] = calculate_group_standings(group_fixtures, user_bets)
+
+        # Rank third-placed teams across all groups
+        third_place_candidates = []
+        for group_name, standings in group_standings.items():
+            if len(standings) >= 3:
+                third = standings[2].copy()
+                third['group'] = group_name
+                third_place_candidates.append(third)
+
+        third_place_candidates.sort(key=lambda x: (x['points'], x['gd'], x['gf']), reverse=True)
+        best_third_qualifiers = {team['team'] for team in third_place_candidates[:8]}
 
     conn.close()
 
@@ -482,7 +498,8 @@ def matches():
                                  translate_team_name=translate_team_name,
                                  calculate_match_points=calculate_match_points,
                                  format_match_datetime=format_match_datetime,
-                                 group_standings=group_standings)
+                                 group_standings=group_standings,
+                                 best_third_qualifiers=best_third_qualifiers)
 
 @app.route('/save-bets', methods=['POST'])
 @login_required
@@ -916,6 +933,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Group Standings Tables -->
         {% if group_standings %}
+            <div class="mb-3 text-xs md:text-sm text-slate-600 font-semibold">
+                Classificação baseada nos seus palpites. Avançam os 2 primeiros de cada grupo e os 8 melhores terceiros colocados (total de 32 times).
+            </div>
             <div class="mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {% for group_name, standings in group_standings.items()|sort %}
                     <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
@@ -939,7 +959,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 </thead>
                                 <tbody class="divide-y divide-slate-200">
                                     {% for team in standings %}
-                                        <tr class="hover:bg-slate-50 transition {% if loop.index <= 2 %}bg-green-50{% endif %}">
+                                        {% set qualifies_top = loop.index <= 2 %}
+                                        {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
+                                        {% set row_class = 'bg-green-50' if qualifies_top else ('bg-amber-50' if qualifies_third else '') %}
+                                        <tr class="hover:bg-slate-50 transition {{ row_class }}">
                                             <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
                                             <td class="px-2 md:px-3 py-2">
                                                 <div class="flex items-center gap-1 md:gap-2">
@@ -948,6 +971,11 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                         <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
                                                     {% endif %}
                                                     <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
+                                                    {% if qualifies_top %}
+                                                        <span class="ml-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700">Classificado</span>
+                                                    {% elif qualifies_third %}
+                                                        <span class="ml-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">Melhor 3º</span>
+                                                    {% endif %}
                                                 </div>
                                             </td>
                                             <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
