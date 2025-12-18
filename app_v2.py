@@ -200,13 +200,13 @@ def translate_team_name(team_name):
         'Austria': 'Áustria',
         'Jordan': 'Jordânia',
         'Uzbekistan': 'Uzbequistão',
-        'UEFA Playoff A': 'Repescagem UEFA A',
-        'UEFA Playoff B': 'Repescagem UEFA B',
-        'UEFA Playoff C': 'Repescagem UEFA C',
-        'UEFA Playoff D': 'Repescagem UEFA D',
-        'FIFA Playoff 1': 'Repescagem FIFA 1',
-        'FIFA Playoff 2': 'Repescagem FIFA 2',
-        'OFC Playoff': 'Repescagem OFC',
+        'UEFA Playoff A': 'UEFA A',
+        'UEFA Playoff B': 'UEFA B',
+        'UEFA Playoff C': 'UEFA C',
+        'UEFA Playoff D': 'UEFA D',
+        'FIFA Playoff 1': 'UEFA 1',
+        'FIFA Playoff 2': 'UEFA 2',
+        'OFC Playoff': 'OFC',
     }
 
     return translations.get(team_name, team_name)
@@ -941,9 +941,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         <div class="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
             {% if group_standings %}
                 <div class="md:w-5/12 lg:w-1/3">
-                    <div class="mb-3 text-xs md:text-sm text-slate-600 font-semibold">
-                        Classificação baseada nos seus palpites. Avançam os 2 primeiros de cada grupo e os 8 melhores terceiros colocados (total de 32 times).
-                    </div>
                     {% for group_name, standings in group_standings.items()|sort %}
                         <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
                             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
@@ -1072,13 +1069,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <div class="flex items-center space-x-1.5 md:space-x-2 bg-slate-100 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 border-slate-200">
                                                 <span class="text-[10px] md:text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Pontos:</span>
                                                 <span class="text-base md:text-lg font-black text-slate-900">{{ points }}</span>
-                                                {% if match_type == 'exact' %}
-                                                    <span class="text-[10px] md:text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Exato</span>
-                                                {% elif match_type == 'partial' %}
-                                                    <span class="text-[10px] md:text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Vencedor</span>
-                                                {% else %}
-                                                    <span class="text-[10px] md:text-xs font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">Errado</span>
-                                                {% endif %}
                                             </div>
                                         </div>
                                     {% endif %}
