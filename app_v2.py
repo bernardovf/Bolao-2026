@@ -870,37 +870,35 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                             <!-- Teams and Inputs Section -->
                             <div class="flex-1">
-                                <!-- Home Team (Mobile: Full Width, Desktop: Inline) -->
-                                <div class="flex items-center justify-between md:justify-start gap-2 mb-2 md:mb-0 md:inline-flex">
-                                    <div class="flex items-center gap-2 flex-1 md:flex-initial md:min-w-[140px] md:justify-end">
+                                <div class="flex items-center justify-between gap-2 flex-wrap md:flex-nowrap md:gap-3">
+                                    <!-- Home Team (Now inline on mobile) -->
+                                    <div class="flex items-center gap-2 min-w-0 md:min-w-[140px] md:justify-end">
                                         <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.home }}</span>
                                         {% set home_flag = get_flag_url(match.home) %}
                                         {% if home_flag %}
                                             <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
                                         {% endif %}
                                     </div>
-                                </div>
 
-                                <!-- Score Inputs Row (Mobile: Centered, Desktop: Inline) -->
-                                <div class="flex items-center justify-center gap-2 md:gap-3 md:inline-flex md:mx-3">
-                                    <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                           value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
-                                           class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                           placeholder="0">
+                                    <!-- Score Inputs Row (Centered, stays inline on mobile) -->
+                                    <div class="flex items-center justify-center gap-2 md:gap-3 md:mx-3 flex-shrink-0">
+                                        <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                               value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                               class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                               placeholder="0">
 
-                                    <div class="flex items-center justify-center w-2 h-12 md:w-10 md:h-16">
-                                        <span class="text-lg md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                        <div class="flex items-center justify-center w-2 h-12 md:w-10 md:h-16">
+                                            <span class="text-lg md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                        </div>
+
+                                        <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                               value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                               class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                               placeholder="0">
                                     </div>
 
-                                    <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                           value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
-                                           class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                           placeholder="0">
-                                </div>
-
-                                <!-- Away Team (Mobile: Full Width, Desktop: Inline) -->
-                                <div class="flex items-center justify-between md:justify-start gap-2 mt-2 md:mt-0 md:inline-flex">
-                                    <div class="flex items-center gap-2 flex-1 md:flex-initial md:min-w-[140px] order-2 md:order-1">
+                                    <!-- Away Team (Now inline on mobile) -->
+                                    <div class="flex items-center gap-2 min-w-0 md:min-w-[140px] flex-shrink-0">
                                         {% set away_flag = get_flag_url(match.away) %}
                                         {% if away_flag %}
                                             <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
