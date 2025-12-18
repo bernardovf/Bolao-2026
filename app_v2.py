@@ -1091,22 +1091,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% endif %}
                                             </div>
 
-                                            <!-- User Bet Badge -->
-                                            <div class="flex items-center justify-between sm:justify-start gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
-                                                <div class="flex flex-col leading-tight">
-                                                    <span class="text-[10px] md:text-xs font-bold text-blue-700 uppercase whitespace-nowrap">Seu palpite</span>
-                                                    <span class="text-[10px] text-blue-500 font-semibold">Memorizado</span>
-                                                </div>
-                                                {% if bet %}
-                                                    <div class="flex items-center gap-1 text-blue-900">
-                                                        <span class="text-base md:text-lg font-black">{{ bet.get('home_goals') }}</span>
-                                                        <span class="text-sm md:text-base font-bold">×</span>
-                                                        <span class="text-base md:text-lg font-black">{{ bet.get('away_goals') }}</span>
-                                                    </div>
-                                                {% else %}
-                                                    <span class="text-[11px] font-bold text-blue-600">Sem palpite</span>
-                                                {% endif %}
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
