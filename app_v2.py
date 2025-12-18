@@ -1051,7 +1051,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                                     <!-- Result & Points Badges (Mobile: Full Width Below, Desktop: Right Side) -->
                                     {% if match.final_home_goals is not none %}
-                                        <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 mt-3 md:mt-0 md:min-w-[260px]">
+                                        <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 mt-3 md:mt-0 md:min-w-[320px]">
                                             <!-- Result Badge -->
                                             <div class="flex items-center space-x-1.5 md:space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 border-green-300">
                                                 <span class="text-[10px] md:text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
@@ -1066,9 +1066,14 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% set points, match_type = calculate_match_points(user_bets.get(match.id, {}).get('home_goals'),
                                                                                               user_bets.get(match.id, {}).get('away_goals'),
                                                                                               match.final_home_goals, match.final_away_goals) %}
-                                            <div class="flex items-center space-x-1.5 md:space-x-2 bg-slate-100 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 border-slate-200">
-                                                <span class="text-[10px] md:text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Pontos:</span>
-                                                <span class="text-base md:text-lg font-black text-slate-900">{{ points }}</span>
+                                            {% set points_classes = {
+                                                'exact': 'bg-emerald-50 border-emerald-200 text-emerald-900',
+                                                'partial': 'bg-amber-50 border-amber-200 text-amber-900'
+                                            } %}
+                                            {% set badge_class = points_classes.get(match_type, 'bg-slate-100 border-slate-200 text-slate-900') %}
+                                            <div class="flex items-center space-x-1.5 md:space-x-2 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 {{ badge_class }}">
+                                                <span class="text-[10px] md:text-xs font-bold uppercase whitespace-nowrap">Pontos:</span>
+                                                <span class="text-base md:text-lg font-black">{{ points }}</span>
                                             </div>
                                         </div>
                                     {% endif %}
