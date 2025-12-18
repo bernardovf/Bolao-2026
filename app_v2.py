@@ -65,10 +65,11 @@ def get_flag_url(team_name):
         'Bolivia': 'bo', 'Panama': 'pa', 'Honduras': 'hn', 'Jamaica': 'jm',
         'Trinidad and Tobago': 'tt', 'El Salvador': 'sv', 'Guatemala': 'gt',
         'Algeria': 'dz', 'Nigeria': 'ng', 'Egypt': 'eg', 'Burkina Faso': 'bf',
-        'Mali': 'ml', 'Congo DR': 'cd', 'South Sudan': 'ss', 'Kenya': 'ke',
+        'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no', 'Austria': 'at',
+        'Jordan': 'jo', 'Uzbekistan': 'uz',
         # Playoffs (use generic flag)
         'UEFA Playoff A': 'eu', 'UEFA Playoff B': 'eu', 'UEFA Playoff C': 'eu', 'UEFA Playoff D': 'eu',
-        'AFC Playoff': 'qa', 'CONMEBOL Playoff': 'br', 'OFC Playoff': 'nz',
+        'FIFA Playoff 1': 'eu', 'FIFA Playoff 2': 'eu', 'OFC Playoff': 'nz',
     }
 
     code = flag_map.get(team_name, '')
@@ -818,9 +819,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">#</th>
                                         <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">Equipe</th>
                                         <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">J</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">V</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">E</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700 hidden sm:table-cell">D</th>
+                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">GP</th>
                                         <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">SG</th>
                                         <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">Pts</th>
                                     </tr>
@@ -839,30 +838,15 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 </div>
                                             </td>
                                             <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-green-600 font-semibold hidden sm:table-cell">{{ team.won }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-slate-500 hidden sm:table-cell">{{ team.drawn }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-red-600 font-semibold hidden sm:table-cell">{{ team.lost }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center font-semibold {% if team.gd > 0 %}text-green-600{% elif team.gd < 0 %}text-red-600{% else %}text-slate-600{% endif %}">
-                                                {{ "+" if team.gd > 0 else "" }}{{ team.gd }}
-                                            </td>
-                                            <td class="px-2 md:px-3 py-2 text-center">
-                                                <span class="inline-flex items-center justify-center bg-blue-600 text-white font-black rounded-full w-7 h-7 md:w-8 md:h-8 text-xs md:text-sm">
-                                                    {{ team.points }}
-                                                </span>
-                                            </td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gf }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gd }}</td>
+                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.points }}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Legend -->
-                        <div class="px-3 py-2 bg-slate-50 border-t border-slate-200 text-xs text-slate-600">
-                            <span class="font-semibold">J</span>=Jogos <span class="font-semibold hidden sm:inline">V</span><span class="hidden sm:inline">=Vitórias</span>
-                            <span class="font-semibold hidden sm:inline">E</span><span class="hidden sm:inline">=Empates</span>
-                            <span class="font-semibold hidden sm:inline">D</span><span class="hidden sm:inline">=Derrotas</span>
-                            <span class="font-semibold">SG</span>=Saldo
-                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -901,16 +885,16 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 <div class="flex items-center justify-center gap-2 md:gap-3 md:inline-flex md:mx-3">
                                     <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                            value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
-                                           class="w-12 h-12 md:w-16 md:h-16 text-center text-xl md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                           class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
                                            placeholder="0">
 
-                                    <div class="flex items-center justify-center w-8 h-12 md:w-10 md:h-16">
-                                        <span class="text-2xl md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                    <div class="flex items-center justify-center w-2 h-12 md:w-10 md:h-16">
+                                        <span class="text-lg md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
                                     </div>
 
                                     <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                            value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
-                                           class="w-12 h-12 md:w-16 md:h-16 text-center text-xl md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
+                                           class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
                                            placeholder="0">
                                 </div>
 
@@ -945,17 +929,14 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         {% set points, match_type = calculate_match_points(bet.home_goals, bet.away_goals, match.final_home_goals, match.final_away_goals) %}
                                         {% if match_type == 'exact' %}
                                             <div class="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-yellow-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-yellow-600 shadow-md">
-                                                <span class="text-xl md:text-2xl">🎯</span>
                                                 <span class="text-sm md:text-base font-black text-yellow-900">+{{ points }} pts</span>
                                             </div>
                                         {% elif match_type == 'partial' %}
                                             <div class="flex items-center space-x-1 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-blue-600 shadow-md">
-                                                <span class="text-xl md:text-2xl">✓</span>
                                                 <span class="text-sm md:text-base font-black text-blue-900">+{{ points }} pts</span>
                                             </div>
                                         {% elif match_type == 'miss' %}
                                             <div class="flex items-center space-x-1 bg-gradient-to-r from-slate-300 to-slate-400 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-slate-500">
-                                                <span class="text-xl md:text-2xl">✗</span>
                                                 <span class="text-sm md:text-base font-black text-slate-700">0 pts</span>
                                             </div>
                                         {% endif %}
@@ -981,5 +962,5 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 '''
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
