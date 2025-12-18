@@ -909,7 +909,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
             <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
@@ -995,7 +995,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
                     <div class="space-y-3 md:space-y-4">
                         {% for match in fixtures %}
-                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200">
+                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-4 md:p-6 hover:shadow-lg transition border border-slate-200">
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
                                     <div class="text-[11px] md:text-xs text-slate-500 mb-3 font-semibold flex items-center gap-2">
@@ -1010,44 +1010,48 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                                                   match.final_home_goals, match.final_away_goals) %}
 
                                 <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
-                                    <!-- Teams + Inputs -->
+                                    <!-- Teams + Inputs with aligned boxes -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-4">
-                                            <!-- Home -->
-                                            <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px]">
+                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
+                                            <!-- Home Team Name (flex-grow, left-aligned) -->
+                                            <div class="flex items-center gap-2 justify-end min-w-0">
                                                 {% set home_flag = get_flag_url(match.home) %}
                                                 {% set home_abbr = get_team_abbr(match.home) %}
                                                 {% if home_flag %}
-                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm">
+                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
                                                 {% else %}
-                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ home_abbr }}</div>
+                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700 flex-shrink-0">{{ home_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-normal hidden sm:inline">{{ translate_team_name(match.home) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate sm:hidden">{{ home_abbr }}</span>
-                                                <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
-                                                       placeholder="0">
+                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-nowrap hidden sm:inline truncate">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 sm:hidden flex-shrink-0">{{ home_abbr }}</span>
                                             </div>
 
-                                            <!-- Divider -->
-                                            <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
+                                            <!-- Home Input (fixed position) -->
+                                            <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                                   value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
+                                                   placeholder="0">
 
-                                            <!-- Away -->
-                                            <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px] justify-end">
-                                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
-                                                       placeholder="0">
+                                            <!-- Divider (fixed position) -->
+                                            <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center flex-shrink-0">×</div>
+
+                                            <!-- Away Input (fixed position) -->
+                                            <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                                   value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
+                                                   placeholder="0">
+
+                                            <!-- Away Team Name (flex-grow, right-aligned) -->
+                                            <div class="flex items-center gap-2 min-w-0">
                                                 {% set away_flag = get_flag_url(match.away) %}
                                                 {% set away_abbr = get_team_abbr(match.away) %}
+                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-nowrap hidden sm:inline truncate">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 sm:hidden flex-shrink-0">{{ away_abbr }}</span>
                                                 {% if away_flag %}
-                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm">
+                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
                                                 {% else %}
-                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ away_abbr }}</div>
+                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700 flex-shrink-0">{{ away_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-normal text-right hidden sm:inline">{{ translate_team_name(match.away) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right sm:hidden">{{ away_abbr }}</span>
                                             </div>
                                         </div>
                                     </div>
