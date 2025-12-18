@@ -870,7 +870,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                             <!-- Teams and Inputs Section -->
                             <div class="flex-1">
-                                <div class="flex items-center justify-between gap-2 flex-wrap md:flex-nowrap md:gap-3">
+                                <div class="flex items-center justify-center md:justify-between gap-2 flex-wrap md:flex-nowrap md:gap-3">
                                     <!-- Home Team (Now inline on mobile) -->
                                     <div class="flex items-center gap-2 min-w-0 md:min-w-[140px] md:justify-end">
                                         <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.home }}</span>
