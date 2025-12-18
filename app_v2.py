@@ -1090,6 +1090,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                     <span class="text-[11px] font-bold text-slate-600">Em breve</span>
                                                 {% endif %}
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
