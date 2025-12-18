@@ -1005,7 +1005,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 {% endif %}
 
                                 <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
-                                <div class="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] md:items-center gap-3 md:gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-[1.1fr_auto] md:items-center gap-3 md:gap-5">
 
                                     <!-- Teams and Inputs Section -->
                                     <div class="flex-1">
@@ -1054,10 +1054,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     {% set points, match_type = calculate_match_points(bet.get('home_goals') if bet else None,
                                                                                       bet.get('away_goals') if bet else None,
                                                                                       match.final_home_goals, match.final_away_goals) %}
-                                    <div class="w-full">
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 items-stretch bg-white/60 md:bg-transparent">
+                                    <div class="w-full md:w-auto">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3 items-stretch justify-items-stretch md:justify-items-end">
                                             <!-- Result Badge -->
-                                            <div class="flex items-center justify-between sm:justify-start gap-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-2 rounded-lg border border-green-200 shadow-sm">
+                                            <div class="flex items-center justify-between sm:justify-start lg:justify-between gap-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-2 rounded-lg border border-green-200 shadow-sm md:min-w-[220px]">
                                                 <div class="flex flex-col leading-tight">
                                                     <span class="text-[10px] md:text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado</span>
                                                     <span class="text-[10px] text-green-600 font-semibold">Oficial</span>
@@ -1079,7 +1079,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 'partial': 'bg-amber-50 border-amber-200 text-amber-900'
                                             } %}
                                             {% set badge_class = points_classes.get(match_type, 'bg-slate-100 border-slate-200 text-slate-900') %}
-                                            <div class="flex items-center justify-between sm:justify-start gap-2 px-3 py-2 rounded-lg border {{ badge_class }} shadow-sm">
+                                            <div class="flex items-center justify-between sm:justify-start lg:justify-between gap-2 px-3 py-2 rounded-lg border {{ badge_class }} shadow-sm md:min-w-[220px]">
                                                 <div class="flex flex-col leading-tight">
                                                     <span class="text-[10px] md:text-xs font-bold uppercase whitespace-nowrap">Pontos</span>
                                                     <span class="text-[10px] text-slate-500 font-semibold">Atualizados</span>
@@ -1088,23 +1088,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                     <span class="text-base md:text-lg font-black">{{ points }}</span>
                                                 {% else %}
                                                     <span class="text-[11px] font-bold text-slate-600">Em breve</span>
-                                                {% endif %}
-                                            </div>
-
-                                            <!-- User Bet Badge -->
-                                            <div class="flex items-center justify-between sm:justify-start gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 shadow-sm">
-                                                <div class="flex flex-col leading-tight">
-                                                    <span class="text-[10px] md:text-xs font-bold text-blue-700 uppercase whitespace-nowrap">Seu palpite</span>
-                                                    <span class="text-[10px] text-blue-500 font-semibold">Memorizado</span>
-                                                </div>
-                                                {% if bet %}
-                                                    <div class="flex items-center gap-1 text-blue-900">
-                                                        <span class="text-base md:text-lg font-black">{{ bet.get('home_goals') }}</span>
-                                                        <span class="text-sm md:text-base font-bold">×</span>
-                                                        <span class="text-base md:text-lg font-black">{{ bet.get('away_goals') }}</span>
-                                                    </div>
-                                                {% else %}
-                                                    <span class="text-[11px] font-bold text-blue-600">Sem palpite</span>
                                                 {% endif %}
                                             </div>
                                         </div>
