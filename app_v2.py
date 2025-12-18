@@ -961,7 +961,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     {% for team in standings %}
                                         {% set qualifies_top = loop.index <= 2 %}
                                         {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
-                                        {% set row_class = 'bg-green-50' if qualifies_top else ('bg-amber-50' if qualifies_third else '') %}
+                                        {% set is_qualified = qualifies_top or qualifies_third %}
+                                        {% set row_class = 'bg-green-50' if is_qualified else '' %}
                                         <tr class="hover:bg-slate-50 transition {{ row_class }}">
                                             <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
                                             <td class="px-2 md:px-3 py-2">
@@ -971,11 +972,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                         <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
                                                     {% endif %}
                                                     <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
-                                                    {% if qualifies_top %}
-                                                        <span class="ml-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700">Classificado</span>
-                                                    {% elif qualifies_third %}
-                                                        <span class="ml-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">Melhor 3º</span>
-                                                    {% endif %}
                                                 </div>
                                             </td>
                                             <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
