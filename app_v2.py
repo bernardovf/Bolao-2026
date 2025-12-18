@@ -1012,7 +1012,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
                                     <!-- Teams + Inputs -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:gap-4">
+                                        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-4">
                                             <!-- Home -->
                                             <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px]">
                                                 {% set home_flag = get_flag_url(match.home) %}
@@ -1024,25 +1024,21 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% endif %}
                                                 <span class="font-bold text-sm md:text-base text-slate-900 whitespace-normal hidden sm:inline">{{ translate_team_name(match.home) }}</span>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 truncate sm:hidden">{{ home_abbr }}</span>
-                                            </div>
-
-                                            <!-- Scores -->
-                                            <div class="flex items-center justify-center gap-2 md:gap-3 flex-shrink-0 md:w-[170px]">
                                                 <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                        value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
-                                                       placeholder="0">
-
-                                                <div class="text-lg md:text-2xl font-black text-slate-400 px-1">×</div>
-
-                                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
+                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
                                                        placeholder="0">
                                             </div>
+
+                                            <!-- Divider -->
+                                            <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
 
                                             <!-- Away -->
                                             <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px] justify-end">
+                                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
+                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
+                                                       placeholder="0">
                                                 {% set away_flag = get_flag_url(match.away) %}
                                                 {% set away_abbr = get_team_abbr(match.away) %}
                                                 {% if away_flag %}
