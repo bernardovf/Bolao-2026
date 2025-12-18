@@ -433,8 +433,6 @@ def ranking():
 @login_required
 def matches():
     """View and edit matches/bets"""
-    phase_filter = request.args.get('phase', 'Group%')
-
     conn = get_db()
 
     # Get all phases
@@ -442,10 +440,15 @@ def matches():
         SELECT DISTINCT phase FROM fixtures ORDER BY id
     ''').fetchall()
 
+    # Determine active phase (default to first phase)
+    phase_filter = request.args.get('phase')
+    if not phase_filter:
+        phase_filter = phases[0]['phase'] if phases else ''
+
     # Get matches
     fixtures = conn.execute('''
         SELECT * FROM fixtures
-        WHERE phase LIKE ?
+        WHERE phase = ?
         ORDER BY id
     ''', (phase_filter,)).fetchall()
 
@@ -539,7 +542,11 @@ def save_bets():
     conn.close()
 
     flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
-    return redirect(url_for('matches', phase=request.args.get('phase', 'Group%')))
+
+    phase = request.args.get('phase')
+    if phase:
+        return redirect(url_for('matches', phase=phase))
+    return redirect(url_for('matches'))
 
 # ============================================================================
 # TEMPLATES
@@ -919,10 +926,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Phase Filter -->
         <div class="mb-6">
-            <label class="block text-sm font-bold text-slate-700 mb-2">Filtrar por Fase:</label>
+            <label class="block text-sm font-bold text-slate-700 mb-2">Filtrar por fase ou grupo:</label>
             <select onchange="window.location.href='{{ url_for('matches') }}?phase=' + this.value"
                     class="px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                <option value="Group%" {% if current_phase == 'Group%' %}selected{% endif %}>Fase de Grupos</option>
                 {% for phase in phases %}
                     <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
                         {{ phase.phase }}
@@ -931,169 +937,164 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             </select>
         </div>
 
-        <!-- Group Standings Tables -->
-        {% if group_standings %}
-            <div class="mb-3 text-xs md:text-sm text-slate-600 font-semibold">
-                Classificação baseada nos seus palpites. Avançam os 2 primeiros de cada grupo e os 8 melhores terceiros colocados (total de 32 times).
-            </div>
-            <div class="mb-6 md:mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {% for group_name, standings in group_standings.items()|sort %}
-                    <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
-                        <!-- Group Header -->
-                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
-                            <h3 class="text-base md:text-lg font-black text-white">{{ group_name }}</h3>
-                        </div>
-
-                        <!-- Standings Table -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs md:text-sm">
-                                <thead class="bg-slate-100 border-b-2 border-slate-200">
-                                    <tr>
-                                        <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">#</th>
-                                        <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">Equipe</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">J</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">GP</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">SG</th>
-                                        <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">Pts</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200">
-                                    {% for team in standings %}
-                                        {% set qualifies_top = loop.index <= 2 %}
-                                        {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
-                                        {% set is_qualified = qualifies_top or qualifies_third %}
-                                        {% set row_class = 'bg-green-50' if is_qualified else '' %}
-                                        <tr class="hover:bg-slate-50 transition {{ row_class }}">
-                                            <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
-                                            <td class="px-2 md:px-3 py-2">
-                                                <div class="flex items-center gap-1 md:gap-2">
-                                                    {% set team_flag = get_flag_url(team.team) %}
-                                                    {% if team_flag %}
-                                                        <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
-                                                    {% endif %}
-                                                    <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
-                                                </div>
-                                            </td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gf }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gd }}</td>
-                                            <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.points }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
+        <div class="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
+            {% if group_standings %}
+                <div class="md:w-5/12 lg:w-1/3">
+                    <div class="mb-3 text-xs md:text-sm text-slate-600 font-semibold">
+                        Classificação baseada nos seus palpites. Avançam os 2 primeiros de cada grupo e os 8 melhores terceiros colocados (total de 32 times).
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <!-- Matches Form -->
-        <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
-            <div class="space-y-3 md:space-y-4">
-                {% for match in fixtures %}
-                    <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-6 hover:shadow-lg transition">
-                        <!-- Match Date/Time -->
-                        {% set match_time = format_match_datetime(match.kickoff_utc) %}
-                        {% if match_time %}
-                            <div class="text-xs md:text-sm text-slate-500 mb-2 md:mb-3 font-semibold">
-                                📅 {{ match_time }} UTC
-                            </div>
-                        {% endif %}
-
-                        <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-
-                            <!-- Teams and Inputs Section -->
-                            <div class="flex-1">
-                                <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
-                                    <!-- Home Team (Now inline on mobile) -->
-                                    <div class="flex items-center gap-2 min-w-0 justify-end">
-                                        <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
-                                        {% set home_flag = get_flag_url(match.home) %}
-                                        {% if home_flag %}
-                                            <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- Score Inputs Row (Centered, stays inline on mobile) -->
-                                    <div class="flex items-center justify-center gap-2 md:gap-3 mx-auto flex-shrink-0">
-                                        <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                               value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
-                                               class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                               placeholder="0">
-
-                                        <div class="flex items-center justify-center w-2 h-12 md:w-10 md:h-16">
-                                            <span class="text-lg md:text-3xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
-                                        </div>
-
-                                        <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                               value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
-                                               class="w-10 h-10 md:w-16 md:h-16 text-center text-lg md:text-2xl font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-4 focus:ring-blue-200 outline-none transition"
-                                               placeholder="0">
-                                    </div>
-
-                                    <!-- Away Team (Now inline on mobile) -->
-                                    <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
-                                        {% set away_flag = get_flag_url(match.away) %}
-                                        {% if away_flag %}
-                                            <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
-                                        {% endif %}
-                                        <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.away) }}</span>
-                                    </div>
-                                </div>
+                    {% for group_name, standings in group_standings.items()|sort %}
+                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
+                                <h3 class="text-base font-black text-white">{{ group_name }}</h3>
                             </div>
 
-                            <!-- Result & Points Badges (Mobile: Full Width Below, Desktop: Right Side) -->
-                            {% if match.final_home_goals is not none %}
-                                <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 mt-3 md:mt-0 md:min-w-[280px]">
-                                    <!-- Result Badge -->
-                                    <div class="flex items-center space-x-1.5 md:space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-green-300">
-                                        <span class="text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
-                                        <div class="flex items-center gap-1">
-                                            <span class="text-lg md:text-xl font-black text-green-800">{{ match.final_home_goals }}</span>
-                                            <span class="text-base md:text-lg font-bold text-green-600">×</span>
-                                            <span class="text-lg md:text-xl font-black text-green-800">{{ match.final_away_goals }}</span>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs md:text-sm">
+                                    <thead class="bg-slate-100 border-b-2 border-slate-200">
+                                        <tr>
+                                            <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">#</th>
+                                            <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">Equipe</th>
+                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">J</th>
+                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">GP</th>
+                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">SG</th>
+                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">Pts</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-200">
+                                        {% for team in standings %}
+                                            {% set qualifies_top = loop.index <= 2 %}
+                                            {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
+                                            {% set is_qualified = qualifies_top or qualifies_third %}
+                                            {% set row_class = 'bg-green-50' if is_qualified else '' %}
+                                            <tr class="hover:bg-slate-50 transition {{ row_class }}">
+                                                <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
+                                                <td class="px-2 md:px-3 py-2">
+                                                    <div class="flex items-center gap-1 md:gap-2">
+                                                        {% set team_flag = get_flag_url(team.team) %}
+                                                        {% if team_flag %}
+                                                            <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
+                                                        {% endif %}
+                                                        <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
+                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gf }}</td>
+                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gd }}</td>
+                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.points }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Matches Form -->
+            <div class="md:flex-1">
+                <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
+                    <div class="space-y-3 md:space-y-4">
+                        {% for match in fixtures %}
+                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition">
+                                <!-- Match Date/Time -->
+                                {% set match_time = format_match_datetime(match.kickoff_utc) %}
+                                {% if match_time %}
+                                    <div class="text-[11px] md:text-xs text-slate-500 mb-2 md:mb-3 font-semibold">
+                                        📅 {{ match_time }} UTC
+                                    </div>
+                                {% endif %}
+
+                                <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+
+                                    <!-- Teams and Inputs Section -->
+                                    <div class="flex-1">
+                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
+                                            <!-- Home Team (Now inline on mobile) -->
+                                            <div class="flex items-center gap-2 min-w-0 justify-end">
+                                                <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
+                                                {% set home_flag = get_flag_url(match.home) %}
+                                                {% if home_flag %}
+                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Score Inputs Row (Centered, stays inline on mobile) -->
+                                            <div class="flex items-center justify-center gap-2 md:gap-3 mx-auto flex-shrink-0">
+                                                <input type="number" name="h_{{ match.id }}" min="0" max="20"
+                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                                       class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
+                                                       placeholder="0">
+
+                                                <div class="flex items-center justify-center w-2 h-12 md:w-8 md:h-14">
+                                                    <span class="text-base md:text-2xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
+                                                </div>
+
+                                                <input type="number" name="a_{{ match.id }}" min="0" max="20"
+                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                                       class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
+                                                       placeholder="0">
+                                            </div>
+
+                                            <!-- Away Team (Now inline on mobile) -->
+                                            <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
+                                                {% set away_flag = get_flag_url(match.away) %}
+                                                {% if away_flag %}
+                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                                {% endif %}
+                                                <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.away) }}</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Points Badge (if user has bet) -->
-                                    {% if match.id in user_bets %}
-                                        {% set bet = user_bets[match.id] %}
-                                        {% set points, match_type = calculate_match_points(bet.home_goals, bet.away_goals, match.final_home_goals, match.final_away_goals) %}
-                                        {% if match_type == 'exact' %}
-                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-yellow-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-yellow-600 shadow-md">
-                                                <span class="text-sm md:text-base font-black text-yellow-900">+{{ points }} pts</span>
+                                    <!-- Result & Points Badges (Mobile: Full Width Below, Desktop: Right Side) -->
+                                    {% if match.final_home_goals is not none %}
+                                        <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 mt-3 md:mt-0 md:min-w-[260px]">
+                                            <!-- Result Badge -->
+                                            <div class="flex items-center space-x-1.5 md:space-x-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 border-green-300">
+                                                <span class="text-[10px] md:text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado:</span>
+                                                <div class="flex items-center gap-1">
+                                                    <span class="text-base md:text-lg font-black text-green-800">{{ match.final_home_goals }}</span>
+                                                    <span class="text-sm md:text-base font-bold text-green-600">×</span>
+                                                    <span class="text-base md:text-lg font-black text-green-800">{{ match.final_away_goals }}</span>
+                                                </div>
                                             </div>
-                                        {% elif match_type == 'partial' %}
-                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-blue-600 shadow-md">
-                                                <span class="text-sm md:text-base font-black text-blue-900">+{{ points }} pts</span>
+
+                                            <!-- Points Badge -->
+                                            {% set points, match_type = calculate_match_points(user_bets.get(match.id, {}).get('home_goals'),
+                                                                                              user_bets.get(match.id, {}).get('away_goals'),
+                                                                                              match.final_home_goals, match.final_away_goals) %}
+                                            <div class="flex items-center space-x-1.5 md:space-x-2 bg-slate-100 px-3 py-1.5 md:px-3.5 md:py-1.5 rounded-lg border-2 border-slate-200">
+                                                <span class="text-[10px] md:text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Pontos:</span>
+                                                <span class="text-base md:text-lg font-black text-slate-900">{{ points }}</span>
+                                                {% if match_type == 'exact' %}
+                                                    <span class="text-[10px] md:text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Exato</span>
+                                                {% elif match_type == 'partial' %}
+                                                    <span class="text-[10px] md:text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Vencedor</span>
+                                                {% else %}
+                                                    <span class="text-[10px] md:text-xs font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">Errado</span>
+                                                {% endif %}
                                             </div>
-                                        {% elif match_type == 'miss' %}
-                                            <div class="flex items-center space-x-1 bg-gradient-to-r from-slate-300 to-slate-400 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border-2 border-slate-500">
-                                                <span class="text-sm md:text-base font-black text-slate-700">0 pts</span>
-                                            </div>
-                                        {% endif %}
+                                        </div>
                                     {% endif %}
                                 </div>
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
 
-            <!-- Save Button -->
-            <div class="mt-8 sticky bottom-4">
-                <button type="submit"
-                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black text-lg py-4 px-8 rounded-xl hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
-                    💾 Salvar Todos os Palpites
-                </button>
+                    <div class="sticky bottom-4 md:static mt-4 md:mt-6">
+                        <button type="submit"
+                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
+                            💾 Salvar Palpites
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
+        </div>
 </body>
 </html>
 '''
