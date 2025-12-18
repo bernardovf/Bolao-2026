@@ -1013,7 +1013,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Home Team (Now inline on mobile) -->
                                             <div class="flex items-center gap-2 min-w-0 justify-end">
                                                 <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-800 hidden md:inline md:whitespace-normal md:leading-tight">{{ translate_team_name(match.home) }}</span>
                                                 {% set home_flag = get_flag_url(match.home) %}
                                                 {% if home_flag %}
                                                     <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
@@ -1044,7 +1044,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                     <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
                                                 {% endif %}
                                                 <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-800 hidden md:inline md:whitespace-normal md:leading-tight">{{ translate_team_name(match.away) }}</span>
                                             </div>
                                         </div>
                                     </div>
