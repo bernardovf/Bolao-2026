@@ -909,7 +909,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
             <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
@@ -1014,7 +1014,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     <div class="flex-1 min-w-0">
                                         <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:gap-4">
                                             <!-- Home -->
-                                            <div class="flex items-center gap-2 min-w-0">
+                                            <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px]">
                                                 {% set home_flag = get_flag_url(match.home) %}
                                                 {% set home_abbr = get_team_abbr(match.home) %}
                                                 {% if home_flag %}
@@ -1022,7 +1022,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ home_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate hidden sm:inline">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-normal hidden sm:inline">{{ translate_team_name(match.home) }}</span>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 truncate sm:hidden">{{ home_abbr }}</span>
                                             </div>
 
@@ -1042,7 +1042,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             </div>
 
                                             <!-- Away -->
-                                            <div class="flex items-center gap-2 min-w-0 justify-end">
+                                            <div class="flex items-center gap-2 min-w-0 sm:min-w-[160px] justify-end">
                                                 {% set away_flag = get_flag_url(match.away) %}
                                                 {% set away_abbr = get_team_abbr(match.away) %}
                                                 {% if away_flag %}
@@ -1050,7 +1050,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ away_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right hidden sm:inline">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 whitespace-normal text-right hidden sm:inline">{{ translate_team_name(match.away) }}</span>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right sm:hidden">{{ away_abbr }}</span>
                                             </div>
                                         </div>
