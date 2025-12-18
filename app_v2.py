@@ -1000,7 +1000,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
                                     <div class="text-[11px] md:text-xs text-slate-500 mb-2 md:mb-3 font-semibold">
-                                        📅 {{ match_time }} UTC
+                                        📅 {{ match_time }} 
                                     </div>
                                 {% endif %}
 
