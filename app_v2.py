@@ -995,102 +995,88 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
                     <div class="space-y-3 md:space-y-4">
                         {% for match in fixtures %}
-                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition">
-                                <!-- Match Date/Time -->
+                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200">
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
-                                    <div class="text-[11px] md:text-xs text-slate-500 mb-2 md:mb-3 font-semibold">
-                                        📅 {{ match_time }} 
+                                    <div class="text-[11px] md:text-xs text-slate-500 mb-3 font-semibold flex items-center gap-2">
+                                        <span>📅</span>
+                                        <span class="tracking-wide">{{ match_time }}</span>
                                     </div>
                                 {% endif %}
 
-                                <!-- Mobile: Vertical Layout, Desktop: Horizontal Layout -->
-                                <div class="grid grid-cols-1 md:grid-cols-[1.1fr_auto] md:items-center gap-3 md:gap-5">
+                                {% set bet = user_bets.get(match.id) %}
+                                {% set points, match_type = calculate_match_points(bet.get('home_goals') if bet else None,
+                                                                                  bet.get('away_goals') if bet else None,
+                                                                                  match.final_home_goals, match.final_away_goals) %}
 
-                                    <!-- Teams and Inputs Section -->
+                                <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                                    <!-- Teams + Inputs -->
                                     <div class="flex-1">
-                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
-                                            <!-- Home Team (Now inline on mobile) -->
-                                            <div class="flex items-center gap-2 min-w-0 justify-end">
-                                                <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-800 hidden md:inline md:whitespace-normal md:leading-tight">{{ translate_team_name(match.home) }}</span>
+                                        <div class="flex items-center justify-between gap-2 md:gap-3">
+                                            <!-- Home -->
+                                            <div class="flex items-center gap-2 min-w-0">
                                                 {% set home_flag = get_flag_url(match.home) %}
+                                                {% set home_abbr = get_team_abbr(match.home) %}
                                                 {% if home_flag %}
-                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm">
+                                                {% else %}
+                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ home_abbr }}</div>
                                                 {% endif %}
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate">{{ translate_team_name(match.home) }}</span>
                                             </div>
 
-                                            <!-- Score Inputs Row (Centered, stays inline on mobile) -->
-                                            <div class="flex items-center justify-center gap-2 md:gap-3 mx-auto flex-shrink-0">
+                                            <!-- Scores -->
+                                            <div class="flex items-center justify-center gap-2 md:gap-3 flex-shrink-0">
                                                 <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                        value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                       class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
+                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
                                                        placeholder="0">
 
-                                                <div class="flex items-center justify-center w-2 h-12 md:w-8 md:h-14">
-                                                    <span class="text-base md:text-2xl font-black text-slate-400 leading-none" style="line-height: 1;">×</span>
-                                                </div>
+                                                <div class="text-lg md:text-2xl font-black text-slate-400 px-1">×</div>
 
                                                 <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                        value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                       class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
+                                                       class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
                                                        placeholder="0">
                                             </div>
 
-                                            <!-- Away Team (Now inline on mobile) -->
-                                            <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
+                                            <!-- Away -->
+                                            <div class="flex items-center gap-2 min-w-0 justify-end">
                                                 {% set away_flag = get_flag_url(match.away) %}
+                                                {% set away_abbr = get_team_abbr(match.away) %}
                                                 {% if away_flag %}
-                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-6 h-5 md:w-7 md:h-5 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm">
+                                                {% else %}
+                                                    <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ away_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-extrabold text-sm text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-800 hidden md:inline md:whitespace-normal md:leading-tight">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right">{{ translate_team_name(match.away) }}</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Result & Points Badges (Mobile: Full Width Below, Desktop: Right Side) -->
-                                    {% set bet = user_bets.get(match.id) %}
-                                    {% set points, match_type = calculate_match_points(bet.get('home_goals') if bet else None,
-                                                                                      bet.get('away_goals') if bet else None,
-                                                                                      match.final_home_goals, match.final_away_goals) %}
-                                    <div class="w-full md:w-auto">
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3 items-stretch justify-items-stretch md:justify-items-end">
-                                            <!-- Result Badge -->
-                                            <div class="flex items-center justify-between sm:justify-start lg:justify-between gap-2 bg-gradient-to-r from-green-50 to-green-100 px-3 py-2 rounded-lg border border-green-200 shadow-sm md:min-w-[220px]">
-                                                <div class="flex flex-col leading-tight">
-                                                    <span class="text-[10px] md:text-xs font-bold text-green-700 uppercase whitespace-nowrap">Resultado</span>
-                                                    <span class="text-[10px] text-green-600 font-semibold">Oficial</span>
-                                                </div>
-                                                {% if match.final_home_goals is not none %}
-                                                    <div class="flex items-center gap-1">
-                                                        <span class="text-base md:text-lg font-black text-green-800">{{ match.final_home_goals }}</span>
-                                                        <span class="text-sm md:text-base font-bold text-green-600">×</span>
-                                                        <span class="text-base md:text-lg font-black text-green-800">{{ match.final_away_goals }}</span>
-                                                    </div>
-                                                {% else %}
-                                                    <span class="text-[11px] font-bold text-green-700">Aguardando</span>
-                                                {% endif %}
-                                            </div>
+                                    <!-- Result & Points -->
+                                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full md:w-auto">
+                                        <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[210px]">
+                                            <span class="text-[11px] md:text-xs font-black uppercase text-emerald-700 tracking-wide">Resultado</span>
+                                            {% if match.final_home_goals is not none %}
+                                                <span class="text-base md:text-lg font-black text-emerald-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
+                                            {% else %}
+                                                <span class="text-[11px] font-semibold text-emerald-700">Aguardando</span>
+                                            {% endif %}
+                                        </div>
 
-                                            <!-- Points Badge -->
-                                            {% set points_classes = {
-                                                'exact': 'bg-emerald-50 border-emerald-200 text-emerald-900',
-                                                'partial': 'bg-amber-50 border-amber-200 text-amber-900'
-                                            } %}
-                                            {% set badge_class = points_classes.get(match_type, 'bg-slate-100 border-slate-200 text-slate-900') %}
-                                            <div class="flex items-center justify-between sm:justify-start lg:justify-between gap-2 px-3 py-2 rounded-lg border {{ badge_class }} shadow-sm md:min-w-[220px]">
-                                                <div class="flex flex-col leading-tight">
-                                                    <span class="text-[10px] md:text-xs font-bold uppercase whitespace-nowrap">Pontos</span>
-                                                    <span class="text-[10px] text-slate-500 font-semibold">Atualizados</span>
-                                                </div>
-                                                {% if match.final_home_goals is not none %}
-                                                    <span class="text-base md:text-lg font-black">{{ points }}</span>
-                                                {% else %}
-                                                    <span class="text-[11px] font-bold text-slate-600">Em breve</span>
-                                                {% endif %}
-                                            </div>
-
+                                        {% set points_classes = {
+                                            'exact': 'border-amber-300 bg-amber-100 text-amber-900',
+                                            'partial': 'border-blue-200 bg-blue-50 text-blue-900'
+                                        } %}
+                                        {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
+                                        <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border shadow-sm md:min-w-[210px] {{ badge_class }}">
+                                            <span class="text-[11px] md:text-xs font-black uppercase tracking-wide">Pts</span>
+                                            {% if match.final_home_goals is not none %}
+                                                <span class="text-base md:text-lg font-black">+{{ points }} pts</span>
+                                            {% else %}
+                                                <span class="text-[11px] font-semibold">Em breve</span>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
