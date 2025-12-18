@@ -462,7 +462,8 @@ def matches():
             WHERE user_id = ? AND match_id IN ({placeholders})
         ''', [session['user_id']] + fixture_ids).fetchall()
 
-        user_bets = {bet['match_id']: bet for bet in bets}
+        # Convert rows to plain dictionaries so Jinja can safely call .get()
+        user_bets = {bet['match_id']: dict(bet) for bet in bets}
 
     # Calculate group standings if viewing group stage
     group_standings = {}
@@ -1025,7 +1026,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Score Inputs Row (Centered, stays inline on mobile) -->
                                             <div class="flex items-center justify-center gap-2 md:gap-3 mx-auto flex-shrink-0">
                                                 <input type="number" name="h_{{ match.id }}" min="0" max="20"
-                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].home_goals }}{% endif %}"
+                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
                                                        class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
                                                        placeholder="0">
 
@@ -1034,7 +1035,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 </div>
 
                                                 <input type="number" name="a_{{ match.id }}" min="0" max="20"
-                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id].away_goals }}{% endif %}"
+                                                       value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
                                                        class="w-11 h-11 md:w-14 md:h-14 text-center text-base md:text-lg font-black border-3 md:border-4 border-blue-300 rounded-lg md:rounded-xl focus:border-blue-500 focus:ring-2 md:focus:ring-3 focus:ring-blue-200 outline-none transition"
                                                        placeholder="0">
                                             </div>
