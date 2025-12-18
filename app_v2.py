@@ -77,6 +77,39 @@ def get_flag_url(team_name):
         return f'https://flagcdn.com/w40/{code}.png'
     return None
 
+
+def get_team_abbr(team_name):
+    """Return a 3-letter abbreviation for a team name."""
+    abbr_map = {
+        'Argentina': 'ARG', 'Australia': 'AUS', 'Belgium': 'BEL', 'Brazil': 'BRA',
+        'Cameroon': 'CMR', 'Canada': 'CAN', 'Costa Rica': 'CRC', 'Croatia': 'CRO',
+        'Denmark': 'DEN', 'Ecuador': 'ECU', 'England': 'ENG', 'France': 'FRA',
+        'Germany': 'GER', 'Ghana': 'GHA', 'Iran': 'IRN', 'Japan': 'JPN',
+        'Mexico': 'MEX', 'Morocco': 'MAR', 'Netherlands': 'NED', 'Poland': 'POL',
+        'Portugal': 'POR', 'Qatar': 'QAT', 'Saudi Arabia': 'KSA', 'Senegal': 'SEN',
+        'Serbia': 'SRB', 'South Korea': 'KOR', 'Spain': 'ESP', 'Switzerland': 'SUI',
+        'Tunisia': 'TUN', 'Uruguay': 'URU', 'USA': 'USA', 'Wales': 'WAL',
+        'Korea Republic': 'KOR', 'South Africa': 'RSA', 'Scotland': 'SCO',
+        'Haiti': 'HAI', 'Paraguay': 'PAR', 'Curacao': 'CUW', 'Curaçao': 'CUW',
+        "Ivory Coast": 'CIV', "Côte d'Ivoire": 'CIV', "Cote d'Ivoire": 'CIV',
+        'Colombia': 'COL', 'Chile': 'CHI', 'Peru': 'PER', 'Venezuela': 'VEN',
+        'Bolivia': 'BOL', 'Panama': 'PAN', 'Honduras': 'HON', 'Jamaica': 'JAM',
+        'Trinidad and Tobago': 'TRI', 'El Salvador': 'SLV', 'Guatemala': 'GUA',
+        'Algeria': 'ALG', 'Nigeria': 'NGA', 'Egypt': 'EGY', 'Burkina Faso': 'BFA',
+        'New Zealand': 'NZL', 'Cabo Verde': 'CPV', 'Norway': 'NOR', 'Austria': 'AUT',
+        'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'UEFA Playoff A': 'UPA',
+        'UEFA Playoff B': 'UPB', 'UEFA Playoff C': 'UPC', 'UEFA Playoff D': 'UPD',
+        'FIFA Playoff 1': 'FP1', 'FIFA Playoff 2': 'FP2', 'OFC Playoff': 'OFC',
+    }
+
+    if team_name in abbr_map:
+        return abbr_map[team_name]
+
+    cleaned = ''.join(ch for ch in team_name.upper() if ch.isalnum())
+    if len(cleaned) >= 3:
+        return cleaned[:3]
+    return cleaned.ljust(3, 'X')
+
 def calculate_match_points(bet_home, bet_away, final_home, final_away):
     """
     Calculate points for a single match
@@ -367,6 +400,7 @@ def matches():
                                  phases=phases,
                                  current_phase=phase_filter,
                                  get_flag_url=get_flag_url,
+                                 get_team_abbr=get_team_abbr,
                                  calculate_match_points=calculate_match_points,
                                  format_match_datetime=format_match_datetime,
                                  group_standings=group_standings)
@@ -873,7 +907,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 <div class="flex items-center justify-between gap-2 flex-wrap md:flex-nowrap md:gap-3">
                                     <!-- Home Team (Now inline on mobile) -->
                                     <div class="flex items-center gap-2 min-w-0 md:min-w-[140px] md:justify-end">
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.home }}</span>
+                                        <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ match.home }}</span>
                                         {% set home_flag = get_flag_url(match.home) %}
                                         {% if home_flag %}
                                             <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
@@ -903,7 +938,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         {% if away_flag %}
                                             <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
                                         {% endif %}
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate">{{ match.away }}</span>
+                                        <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ match.away }}</span>
                                     </div>
                                 </div>
                             </div>
