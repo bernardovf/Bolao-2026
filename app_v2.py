@@ -1010,10 +1010,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                                                   match.final_home_goals, match.final_away_goals) %}
 
                                 <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
-                                    <!-- Teams + Inputs with aligned boxes -->
+                                    <!-- Teams + Inputs with vertically aligned X across all matches -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto_minmax(0,1fr)] items-center gap-2 md:gap-3">
-                                            <!-- Home Team Name (flex-grow, left-aligned) -->
+                                        <div class="grid items-center gap-2 md:gap-3" style="grid-template-columns: 1fr 3.5rem 2.5rem 3.5rem 1fr;">
+                                            <!-- Home Team Name (fixed proportion, right-aligned) -->
                                             <div class="flex items-center gap-2 justify-end min-w-0">
                                                 {% set home_flag = get_flag_url(match.home) %}
                                                 {% set home_abbr = get_team_abbr(match.home) %}
@@ -1026,22 +1026,22 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 sm:hidden flex-shrink-0">{{ home_abbr }}</span>
                                             </div>
 
-                                            <!-- Home Input (fixed position) -->
+                                            <!-- Home Input (fixed 3.5rem = 56px) -->
                                             <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
                                                    placeholder="0">
 
-                                            <!-- Divider (fixed position) -->
-                                            <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center flex-shrink-0">×</div>
+                                            <!-- Divider (fixed 2.5rem = 40px, perfectly centered) -->
+                                            <div class="text-lg md:text-2xl font-black text-slate-400 text-center">×</div>
 
-                                            <!-- Away Input (fixed position) -->
+                                            <!-- Away Input (fixed 3.5rem = 56px) -->
                                             <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] flex-shrink-0"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
                                                    placeholder="0">
 
-                                            <!-- Away Team Name (flex-grow, right-aligned) -->
+                                            <!-- Away Team Name (fixed proportion, left-aligned) -->
                                             <div class="flex items-center gap-2 min-w-0">
                                                 {% set away_flag = get_flag_url(match.away) %}
                                                 {% set away_abbr = get_team_abbr(match.away) %}
