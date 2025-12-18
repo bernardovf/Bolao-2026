@@ -133,6 +133,84 @@ def calculate_match_points(bet_home, bet_away, final_home, final_away):
     # Wrong: 0 points
     return 0, 'miss'
 
+
+def translate_team_name(team_name):
+    """Return Portuguese display name for a given team."""
+    translations = {
+        'Argentina': 'Argentina',
+        'Australia': 'Austrália',
+        'Belgium': 'Bélgica',
+        'Brazil': 'Brasil',
+        'Cameroon': 'Camarões',
+        'Canada': 'Canadá',
+        'Costa Rica': 'Costa Rica',
+        'Croatia': 'Croácia',
+        'Denmark': 'Dinamarca',
+        'Ecuador': 'Equador',
+        'England': 'Inglaterra',
+        'France': 'França',
+        'Germany': 'Alemanha',
+        'Ghana': 'Gana',
+        'Iran': 'Irã',
+        'Japan': 'Japão',
+        'Mexico': 'México',
+        'Morocco': 'Marrocos',
+        'Netherlands': 'Países Baixos',
+        'Poland': 'Polônia',
+        'Portugal': 'Portugal',
+        'Qatar': 'Catar',
+        'Saudi Arabia': 'Arábia Saudita',
+        'Senegal': 'Senegal',
+        'Serbia': 'Sérvia',
+        'South Korea': 'Coreia do Sul',
+        'Spain': 'Espanha',
+        'Switzerland': 'Suíça',
+        'Tunisia': 'Tunísia',
+        'Uruguay': 'Uruguai',
+        'USA': 'Estados Unidos',
+        'Wales': 'País de Gales',
+        'Korea Republic': 'Coreia do Sul',
+        'South Africa': 'África do Sul',
+        'Scotland': 'Escócia',
+        'Haiti': 'Haiti',
+        'Paraguay': 'Paraguai',
+        'Curacao': 'Curaçao',
+        'Curaçao': 'Curaçao',
+        "Ivory Coast": 'Costa do Marfim',
+        "Côte d'Ivoire": 'Costa do Marfim',
+        "Cote d'Ivoire": 'Costa do Marfim',
+        'Colombia': 'Colômbia',
+        'Chile': 'Chile',
+        'Peru': 'Peru',
+        'Venezuela': 'Venezuela',
+        'Bolivia': 'Bolívia',
+        'Panama': 'Panamá',
+        'Honduras': 'Honduras',
+        'Jamaica': 'Jamaica',
+        'Trinidad and Tobago': 'Trinidad e Tobago',
+        'El Salvador': 'El Salvador',
+        'Guatemala': 'Guatemala',
+        'Algeria': 'Argélia',
+        'Nigeria': 'Nigéria',
+        'Egypt': 'Egito',
+        'Burkina Faso': 'Burkina Faso',
+        'New Zealand': 'Nova Zelândia',
+        'Cabo Verde': 'Cabo Verde',
+        'Norway': 'Noruega',
+        'Austria': 'Áustria',
+        'Jordan': 'Jordânia',
+        'Uzbekistan': 'Uzbequistão',
+        'UEFA Playoff A': 'Repescagem UEFA A',
+        'UEFA Playoff B': 'Repescagem UEFA B',
+        'UEFA Playoff C': 'Repescagem UEFA C',
+        'UEFA Playoff D': 'Repescagem UEFA D',
+        'FIFA Playoff 1': 'Repescagem FIFA 1',
+        'FIFA Playoff 2': 'Repescagem FIFA 2',
+        'OFC Playoff': 'Repescagem OFC',
+    }
+
+    return translations.get(team_name, team_name)
+
 def format_match_datetime(kickoff_utc):
     """Format match datetime for display"""
     if not kickoff_utc:
@@ -401,6 +479,7 @@ def matches():
                                  current_phase=phase_filter,
                                  get_flag_url=get_flag_url,
                                  get_team_abbr=get_team_abbr,
+                                 translate_team_name=translate_team_name,
                                  calculate_match_points=calculate_match_points,
                                  format_match_datetime=format_match_datetime,
                                  group_standings=group_standings)
@@ -866,9 +945,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 <div class="flex items-center gap-1 md:gap-2">
                                                     {% set team_flag = get_flag_url(team.team) %}
                                                     {% if team_flag %}
-                                                        <img src="{{ team_flag }}" alt="{{ team.team }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
+                                                        <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
                                                     {% endif %}
-                                                    <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ team.team }}</span>
+                                                    <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
                                                 </div>
                                             </td>
                                             <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
@@ -908,10 +987,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     <!-- Home Team (Now inline on mobile) -->
                                     <div class="flex items-center gap-2 min-w-0 justify-end">
                                         <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.home) }}</span>
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ match.home }}</span>
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
                                         {% set home_flag = get_flag_url(match.home) %}
                                         {% if home_flag %}
-                                            <img src="{{ home_flag }}" alt="{{ match.home }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                            <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
                                         {% endif %}
                                     </div>
 
@@ -936,10 +1015,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
                                         {% set away_flag = get_flag_url(match.away) %}
                                         {% if away_flag %}
-                                            <img src="{{ away_flag }}" alt="{{ match.away }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
+                                            <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-6 h-5 md:w-8 md:h-6 rounded shadow-sm border border-slate-200 flex-shrink-0">
                                         {% endif %}
                                         <span class="font-extrabold text-base text-slate-800 truncate md:hidden tracking-wide">{{ get_team_abbr(match.away) }}</span>
-                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ match.away }}</span>
+                                        <span class="font-bold text-sm md:text-lg text-slate-800 truncate hidden md:inline">{{ translate_team_name(match.away) }}</span>
                                     </div>
                                 </div>
                             </div>
