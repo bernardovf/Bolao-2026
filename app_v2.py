@@ -1009,9 +1009,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                                                   bet.get('away_goals') if bet else None,
                                                                                   match.final_home_goals, match.final_away_goals) %}
 
-                                <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                                <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
                                     <!-- Teams + Inputs -->
-                                    <div class="flex-1">
+                                    <div class="flex-1 min-w-0">
                                         <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:gap-4">
                                             <!-- Home -->
                                             <div class="flex items-center gap-2 min-w-0">
@@ -1057,7 +1057,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
 
                                     <!-- Result & Points -->
-                                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full md:w-auto">
+                                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-emerald-700 tracking-wide">Resultado</span>
                                             {% if match.final_home_goals is not none %}
