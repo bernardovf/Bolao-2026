@@ -1022,8 +1022,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ home_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate md:hidden">{{ home_abbr }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate hidden sm:inline">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate sm:hidden">{{ home_abbr }}</span>
                                             </div>
 
                                             <!-- Scores -->
@@ -1050,8 +1050,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ away_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right hidden md:inline">{{ translate_team_name(match.away) }}</span>
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right md:hidden">{{ away_abbr }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right hidden sm:inline">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right sm:hidden">{{ away_abbr }}</span>
                                             </div>
                                         </div>
                                     </div>
