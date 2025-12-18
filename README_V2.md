@@ -55,7 +55,7 @@ A completely fresh, modern Flask application for World Cup 2026 betting pool.
 python3 app_v2.py
 
 # Access in browser
-http://localhost:5001
+http://localhost:5000
 ```
 
 ## 👥 Test Accounts
