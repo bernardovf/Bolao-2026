@@ -1012,7 +1012,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
                                     <!-- Teams + Inputs -->
                                     <div class="flex-1">
-                                        <div class="flex items-center justify-between gap-2 md:gap-3">
+                                        <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:gap-4">
                                             <!-- Home -->
                                             <div class="flex items-center gap-2 min-w-0">
                                                 {% set home_flag = get_flag_url(match.home) %}
@@ -1022,11 +1022,12 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ home_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate hidden md:inline">{{ translate_team_name(match.home) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate md:hidden">{{ home_abbr }}</span>
                                             </div>
 
                                             <!-- Scores -->
-                                            <div class="flex items-center justify-center gap-2 md:gap-3 flex-shrink-0">
+                                            <div class="flex items-center justify-center gap-2 md:gap-3 flex-shrink-0 md:w-[170px]">
                                                 <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                        value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
                                                        class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
@@ -1049,14 +1050,15 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700">{{ away_abbr }}</div>
                                                 {% endif %}
-                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right hidden md:inline">{{ translate_team_name(match.away) }}</span>
+                                                <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right md:hidden">{{ away_abbr }}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Result & Points -->
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full md:w-auto">
-                                        <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[210px]">
+                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-emerald-700 tracking-wide">Resultado</span>
                                             {% if match.final_home_goals is not none %}
                                                 <span class="text-base md:text-lg font-black text-emerald-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
@@ -1070,7 +1072,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             'partial': 'border-blue-200 bg-blue-50 text-blue-900'
                                         } %}
                                         {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
-                                        <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border shadow-sm md:min-w-[210px] {{ badge_class }}">
+                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border shadow-sm md:min-w-[160px] {{ badge_class }}">
                                             <span class="text-[11px] md:text-xs font-black uppercase tracking-wide">Pts</span>
                                             {% if match.final_home_goals is not none %}
                                                 <span class="text-base md:text-lg font-black">+{{ points }} pts</span>
