@@ -1067,8 +1067,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         </div>
 
                                         {% set points_classes = {
-                                            'exact': 'border-amber-300 bg-amber-100 text-amber-900',
-                                            'partial': 'border-blue-200 bg-blue-50 text-blue-900'
+                                            'exact': 'border-green-400 bg-green-200 text-green-900',
+                                            'partial': 'border-yellow-400 bg-yellow-100 text-yellow-900'
                                         } %}
                                         {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
                                         <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border shadow-sm md:min-w-[80px] {{ badge_class }}">
