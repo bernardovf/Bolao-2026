@@ -1083,29 +1083,23 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         </div>
                                     </div>
 
-                                    <!-- Result & Points -->
-                                    <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
-                                        <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[90px]">
-                                            {% if match.final_home_goals is not none %}
+                                    <!-- Result & Points (only show if match has finished) -->
+                                    {% if match.final_home_goals is not none %}
+                                        <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
+                                            <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[90px]">
                                                 <span class="text-base md:text-lg font-black text-emerald-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
-                                            {% else %}
-                                                <span class="text-[11px] font-semibold text-emerald-700">Aguardando</span>
-                                            {% endif %}
-                                        </div>
+                                            </div>
 
-                                        {% set points_classes = {
-                                            'exact': 'border-green-400 bg-green-200 text-green-900',
-                                            'partial': 'border-yellow-400 bg-yellow-100 text-yellow-900'
-                                        } %}
-                                        {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
-                                        <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border shadow-sm md:min-w-[80px] {{ badge_class }}">
-                                            {% if match.final_home_goals is not none %}
+                                            {% set points_classes = {
+                                                'exact': 'border-green-400 bg-green-200 text-green-900',
+                                                'partial': 'border-yellow-400 bg-yellow-100 text-yellow-900'
+                                            } %}
+                                            {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
+                                            <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border shadow-sm md:min-w-[80px] {{ badge_class }}">
                                                 <span class="text-base md:text-lg font-black">+{{ points }}</span>
-                                            {% else %}
-                                                <span class="text-[11px] font-semibold">—</span>
-                                            {% endif %}
+                                            </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
