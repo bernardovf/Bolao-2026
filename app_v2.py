@@ -1058,8 +1058,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                                     <!-- Result & Points -->
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
-                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[160px]">
-                                            <span class="text-[11px] md:text-xs font-black uppercase text-emerald-700 tracking-wide">Resultado</span>
+                                        <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[90px]">
                                             {% if match.final_home_goals is not none %}
                                                 <span class="text-base md:text-lg font-black text-emerald-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
                                             {% else %}
@@ -1072,12 +1071,11 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             'partial': 'border-blue-200 bg-blue-50 text-blue-900'
                                         } %}
                                         {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
-                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border shadow-sm md:min-w-[160px] {{ badge_class }}">
-                                            <span class="text-[11px] md:text-xs font-black uppercase tracking-wide">Pts</span>
+                                        <div class="flex items-center justify-center px-2 py-1.5 rounded-lg border shadow-sm md:min-w-[80px] {{ badge_class }}">
                                             {% if match.final_home_goals is not none %}
-                                                <span class="text-base md:text-lg font-black">+{{ points }} pts</span>
+                                                <span class="text-base md:text-lg font-black">+{{ points }}</span>
                                             {% else %}
-                                                <span class="text-[11px] font-semibold">Em breve</span>
+                                                <span class="text-[11px] font-semibold">—</span>
                                             {% endif %}
                                         </div>
                                     </div>
