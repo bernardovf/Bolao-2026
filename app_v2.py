@@ -468,19 +468,47 @@ def matches():
     group_standings = {}
     best_third_qualifiers = set()
     if 'Group' in phase_filter:
-        # Group fixtures by their specific group (e.g., "Group A", "Group B")
+        # Get ALL group stage fixtures to properly calculate best third-place teams
+        all_group_fixtures = conn.execute('''
+            SELECT * FROM fixtures
+            WHERE phase LIKE 'Group %'
+            ORDER BY id
+        ''').fetchall()
+
+        # Get all bets for all group stage matches
+        all_group_fixture_ids = [f['id'] for f in all_group_fixtures]
+        if all_group_fixture_ids:
+            placeholders = ','.join('?' * len(all_group_fixture_ids))
+            all_group_bets = conn.execute(f'''
+                SELECT * FROM bet
+                WHERE user_id = ? AND match_id IN ({placeholders})
+            ''', [session['user_id']] + all_group_fixture_ids).fetchall()
+            all_group_bets_dict = {bet['match_id']: dict(bet) for bet in all_group_bets}
+        else:
+            all_group_bets_dict = {}
+
+        # Group ALL fixtures by their specific group (e.g., "Group A", "Group B")
         from collections import defaultdict
+        all_groups = defaultdict(list)
+        for fixture in all_group_fixtures:
+            all_groups[fixture['phase']].append(fixture)
+
+        # Calculate standings for EACH group across all 12 groups
+        all_group_standings = {}
+        for group_name, group_fixtures in all_groups.items():
+            all_group_standings[group_name] = calculate_group_standings(group_fixtures, all_group_bets_dict)
+
+        # Now also calculate standings for the currently displayed group(s)
         groups = defaultdict(list)
         for fixture in fixtures:
             groups[fixture['phase']].append(fixture)
 
-        # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
             group_standings[group_name] = calculate_group_standings(group_fixtures, user_bets)
 
-        # Rank third-placed teams across all groups
+        # Rank third-placed teams across ALL 12 groups (not just displayed ones)
         third_place_candidates = []
-        for group_name, standings in group_standings.items():
+        for group_name, standings in all_group_standings.items():
             if len(standings) >= 3:
                 third = standings[2].copy()
                 third['group'] = group_name
