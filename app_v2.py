@@ -532,6 +532,76 @@ def matches():
                                  group_standings=group_standings,
                                  best_third_qualifiers=best_third_qualifiers)
 
+@app.route('/match/<int:match_id>')
+@login_required
+def match_detail(match_id):
+    """View all players' bets for a specific match"""
+    conn = get_db()
+
+    # Get match details
+    match = conn.execute('''
+        SELECT * FROM fixtures WHERE id = ?
+    ''', (match_id,)).fetchone()
+
+    if not match:
+        conn.close()
+        flash('Partida não encontrada', 'error')
+        return redirect(url_for('matches'))
+
+    # Get all bets for this match with user names
+    all_bets = conn.execute('''
+        SELECT u.user_name, b.home_goals, b.away_goals
+        FROM bet b
+        JOIN users u ON u.id = b.user_id
+        WHERE b.match_id = ?
+        ORDER BY u.user_name COLLATE NOCASE
+    ''', (match_id,)).fetchall()
+
+    # Calculate statistics
+    total_bets = len(all_bets)
+
+    # Count outcome predictions (home win / draw / away win)
+    outcome_counts = {'home': 0, 'draw': 0, 'away': 0}
+    score_counts = {}
+
+    for bet in all_bets:
+        h, a = bet['home_goals'], bet['away_goals']
+        score_key = f"{h}-{a}"
+        score_counts[score_key] = score_counts.get(score_key, 0) + 1
+
+        if h > a:
+            outcome_counts['home'] += 1
+        elif h < a:
+            outcome_counts['away'] += 1
+        else:
+            outcome_counts['draw'] += 1
+
+    # Get top 5 most predicted scores
+    top_scores = sorted(score_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    # Calculate percentages
+    outcome_pcts = {}
+    if total_bets > 0:
+        outcome_pcts = {
+            'home': round(100 * outcome_counts['home'] / total_bets, 1),
+            'draw': round(100 * outcome_counts['draw'] / total_bets, 1),
+            'away': round(100 * outcome_counts['away'] / total_bets, 1),
+        }
+
+    conn.close()
+
+    return render_template_string(MATCH_DETAIL_TEMPLATE,
+                                 match=match,
+                                 all_bets=all_bets,
+                                 total_bets=total_bets,
+                                 outcome_counts=outcome_counts,
+                                 outcome_pcts=outcome_pcts,
+                                 top_scores=top_scores,
+                                 get_flag_url=get_flag_url,
+                                 get_team_abbr=get_team_abbr,
+                                 translate_team_name=translate_team_name,
+                                 format_match_datetime=format_match_datetime)
+
 @app.route('/save-bets', methods=['POST'])
 @login_required
 def save_bets():
@@ -1101,6 +1171,15 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                         </div>
                                     {% endif %}
                                 </div>
+
+                                <!-- View All Bets Button -->
+                                <div class="mt-3 pt-3 border-t border-slate-200">
+                                    <a href="{{ url_for('match_detail', match_id=match.id) }}"
+                                       class="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center justify-center gap-1">
+                                        <span>👥</span>
+                                        <span>Ver todos os palpites</span>
+                                    </a>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
@@ -1114,6 +1193,162 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 </form>
             </div>
         </div>
+</body>
+</html>
+'''
+
+MATCH_DETAIL_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palpites da Partida - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md border-b-4 border-blue-600 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-xl md:text-2xl font-black text-slate-800">⚽ Bolão Copa 2026</h1>
+                <div class="flex gap-3 md:gap-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Dashboard</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="{{ url_for('matches') }}" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+                <span>←</span>
+                <span>Voltar para palpites</span>
+            </a>
+        </div>
+
+        <!-- Match Header -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+            <div class="text-center mb-4">
+                {% set match_time = format_match_datetime(match.kickoff_utc) %}
+                {% if match_time %}
+                    <div class="text-sm text-slate-500 mb-2">📅 {{ match_time }}</div>
+                {% endif %}
+                <div class="text-lg md:text-xl font-bold text-slate-700">{{ match.phase }}</div>
+            </div>
+
+            <div class="flex items-center justify-center gap-4 md:gap-8">
+                <!-- Home Team -->
+                <div class="flex flex-col items-center gap-2 flex-1">
+                    {% set home_flag = get_flag_url(match.home) %}
+                    {% if home_flag %}
+                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-16 h-12 md:w-20 md:h-15 rounded-md border-2 border-slate-300 shadow-md">
+                    {% endif %}
+                    <span class="font-bold text-base md:text-lg text-center">{{ translate_team_name(match.home) }}</span>
+                </div>
+
+                <!-- VS or Score -->
+                <div class="text-2xl md:text-4xl font-black text-slate-400">
+                    {% if match.final_home_goals is not none %}
+                        <div class="text-3xl md:text-5xl text-emerald-700">{{ match.final_home_goals }} × {{ match.final_away_goals }}</div>
+                    {% else %}
+                        ×
+                    {% endif %}
+                </div>
+
+                <!-- Away Team -->
+                <div class="flex flex-col items-center gap-2 flex-1">
+                    {% set away_flag = get_flag_url(match.away) %}
+                    {% if away_flag %}
+                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-16 h-12 md:w-20 md:h-15 rounded-md border-2 border-slate-300 shadow-md">
+                    {% endif %}
+                    <span class="font-bold text-base md:text-lg text-center">{{ translate_team_name(match.away) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        {% if total_bets > 0 %}
+            <div class="grid md:grid-cols-2 gap-4 md:gap-6 mb-6">
+                <!-- Outcome Distribution -->
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">📊 Distribuição de Resultados</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold">Vitória {{ translate_team_name(match.home) }}</span>
+                                <span class="font-bold text-blue-600">{{ outcome_pcts.home }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3">
+                                <div class="bg-blue-500 h-3 rounded-full" style="width: {{ outcome_pcts.home }}%"></div>
+                            </div>
+                            <div class="text-sm text-slate-500 mt-1">{{ outcome_counts.home }} palpites</div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold">Empate</span>
+                                <span class="font-bold text-gray-600">{{ outcome_pcts.draw }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3">
+                                <div class="bg-gray-400 h-3 rounded-full" style="width: {{ outcome_pcts.draw }}%"></div>
+                            </div>
+                            <div class="text-sm text-slate-500 mt-1">{{ outcome_counts.draw }} palpites</div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold">Vitória {{ translate_team_name(match.away) }}</span>
+                                <span class="font-bold text-red-600">{{ outcome_pcts.away }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3">
+                                <div class="bg-red-500 h-3 rounded-full" style="width: {{ outcome_pcts.away }}%"></div>
+                            </div>
+                            <div class="text-sm text-slate-500 mt-1">{{ outcome_counts.away }} palpites</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Predicted Scores -->
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">🎯 Placares Mais Apostados</h2>
+                    <div class="space-y-2">
+                        {% for score, count in top_scores %}
+                            <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+                                <span class="font-bold text-lg">{{ score }}</span>
+                                <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- All Bets List -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">
+                👥 Todos os Palpites ({{ total_bets }})
+            </h2>
+
+            {% if total_bets > 0 %}
+                <div class="grid gap-2">
+                    {% for bet in all_bets %}
+                        <div class="flex justify-between items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+                            <span class="font-semibold text-slate-800">{{ bet.user_name }}</span>
+                            <span class="font-bold text-lg text-blue-600">{{ bet.home_goals }} × {{ bet.away_goals }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 text-slate-500">
+                    <p class="text-lg">Nenhum palpite registrado ainda</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>
 '''
