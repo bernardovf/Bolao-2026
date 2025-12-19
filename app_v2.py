@@ -576,8 +576,11 @@ def match_detail(match_id):
         else:
             outcome_counts['draw'] += 1
 
-    # Get top 5 most predicted scores
-    top_scores = sorted(score_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    # Get top 5 most predicted scores with percentages
+    top_scores = []
+    for score, count in sorted(score_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
+        pct = round(100 * count / total_bets, 1) if total_bets > 0 else 0
+        top_scores.append({'score': score, 'count': count, 'pct': pct})
 
     # Calculate percentages
     outcome_pcts = {}
@@ -1316,13 +1319,21 @@ MATCH_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
                     <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">🎯 Placares Mais Apostados</h2>
                     <div class="space-y-2">
-                        {% for score, count in top_scores %}
-                            <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                                <span class="font-bold text-lg">{{ score }}</span>
-                                <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                        {% for score_data in top_scores %}
+                            <div class="score-filter-btn flex justify-between items-center p-2 bg-slate-50 hover:bg-blue-50 rounded-lg cursor-pointer transition border-2 border-transparent hover:border-blue-300"
+                                 data-score="{{ score_data.score }}"
+                                 onclick="filterByScore('{{ score_data.score }}', this)">
+                                <span class="font-bold text-lg">{{ score_data.score }}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm font-semibold text-blue-600">{{ score_data.pct }}%</span>
+                                    <span class="text-sm text-slate-600">{{ score_data.count }} {% if score_data.count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
+                    <button onclick="clearFilter()" id="clear-filter-btn" class="hidden mt-3 w-full px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition">
+                        ✕ Limpar filtro
+                    </button>
                 </div>
             </div>
         {% endif %}
@@ -1330,13 +1341,14 @@ MATCH_DETAIL_TEMPLATE = '''<!DOCTYPE html>
         <!-- All Bets List -->
         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
             <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">
-                👥 Todos os Palpites ({{ total_bets }})
+                <span id="bets-title">👥 Todos os Palpites ({{ total_bets }})</span>
             </h2>
 
             {% if total_bets > 0 %}
-                <div class="grid gap-2">
+                <div class="grid gap-2" id="bets-list">
                     {% for bet in all_bets %}
-                        <div class="flex justify-between items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition">
+                        <div class="bet-item flex justify-between items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition"
+                             data-score="{{ bet.home_goals }}-{{ bet.away_goals }}">
                             <span class="font-semibold text-slate-800">{{ bet.user_name }}</span>
                             <span class="font-bold text-lg text-blue-600">{{ bet.home_goals }} × {{ bet.away_goals }}</span>
                         </div>
@@ -1348,6 +1360,74 @@ MATCH_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 </div>
             {% endif %}
         </div>
+
+        <script>
+            let currentFilter = null;
+
+            function filterByScore(score, element) {
+                // Remove active state from all buttons
+                document.querySelectorAll('.score-filter-btn').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-100');
+                    btn.classList.add('border-transparent');
+                });
+
+                // If clicking the same filter, clear it
+                if (currentFilter === score) {
+                    clearFilter();
+                    return;
+                }
+
+                // Set new filter
+                currentFilter = score;
+
+                // Add active state to clicked button
+                element.classList.remove('border-transparent');
+                element.classList.add('border-blue-500', 'bg-blue-100');
+
+                // Filter bets
+                const betItems = document.querySelectorAll('.bet-item');
+                let visibleCount = 0;
+
+                betItems.forEach(item => {
+                    if (item.dataset.score === score) {
+                        item.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Update title
+                document.getElementById('bets-title').textContent =
+                    `👥 Palpites com ${score.replace('-', ' × ')} (${visibleCount})`;
+
+                // Show clear button
+                document.getElementById('clear-filter-btn').classList.remove('hidden');
+            }
+
+            function clearFilter() {
+                currentFilter = null;
+
+                // Remove active state from all buttons
+                document.querySelectorAll('.score-filter-btn').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-100');
+                    btn.classList.add('border-transparent');
+                });
+
+                // Show all bets
+                const betItems = document.querySelectorAll('.bet-item');
+                betItems.forEach(item => {
+                    item.style.display = 'flex';
+                });
+
+                // Reset title
+                document.getElementById('bets-title').textContent =
+                    '👥 Todos os Palpites ({{ total_bets }})';
+
+                // Hide clear button
+                document.getElementById('clear-filter-btn').classList.add('hidden');
+            }
+        </script>
     </div>
 </body>
 </html>
