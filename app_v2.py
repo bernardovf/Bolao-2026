@@ -114,7 +114,7 @@ def calculate_match_points(bet_home, bet_away, final_home, final_away):
     Calculate points for a single match
     Returns: points (int), match_type (str: 'exact', 'partial', 'miss')
     """
-    if bet_home is None or bet_away is None or final_home is None or final_away is None:
+    if bet_home is None or bet_away is None or bet_away == " " or final_home is None or final_away is None or final_away == " ":
         return 0, 'none'
 
     # Exact match: 5 points
