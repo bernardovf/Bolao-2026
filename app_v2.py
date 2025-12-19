@@ -77,7 +77,6 @@ def get_flag_url(team_name):
         return f'https://flagcdn.com/w40/{code}.png'
     return None
 
-
 def get_team_abbr(team_name):
     """Return a 3-letter abbreviation for a team name."""
     abbr_map = {
@@ -155,7 +154,7 @@ def translate_team_name(team_name):
         'Japan': 'Japão',
         'Mexico': 'México',
         'Morocco': 'Marrocos',
-        'Netherlands': 'Países Baixos',
+        'Netherlands': 'Holanda',
         'Poland': 'Polônia',
         'Portugal': 'Portugal',
         'Qatar': 'Catar',
@@ -964,7 +963,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% set qualifies_top = loop.index <= 2 %}
                                             {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
                                             {% set is_qualified = qualifies_top or qualifies_third %}
-                                            {% set row_class = 'bg-green-50' if is_qualified else '' %}
+                                            {% set row_class = 'bg-green-100' if is_qualified else '' %}
                                             <tr class="hover:bg-slate-50 transition {{ row_class }}">
                                                 <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
                                                 <td class="px-2 md:px-3 py-2">
