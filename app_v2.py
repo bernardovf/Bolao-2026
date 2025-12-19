@@ -1088,7 +1088,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
-                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
+                                class="w-full px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
                             💾 Salvar Palpites
                         </button>
                     </div>
