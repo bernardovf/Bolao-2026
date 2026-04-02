@@ -730,7 +730,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
@@ -746,7 +746,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <!-- Welcome Header -->
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}!</h1>
@@ -818,7 +818,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
@@ -834,7 +834,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Ranking Geral</h1>
             <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
@@ -923,7 +923,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
@@ -939,7 +939,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Seus Palpites</h1>
             <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
@@ -1143,7 +1143,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
     <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
@@ -1159,7 +1159,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-2xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Palpites Gerais</h1>
             <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
