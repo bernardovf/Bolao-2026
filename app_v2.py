@@ -664,7 +664,7 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
         <div class="max-w-md w-full">
             <!-- Logo/Title -->
             <div class="text-center mb-8">
-                <h1 class="text-5xl font-black text-blue-600 mb-2">⚽ Bolão</h1>
+                <h1 class="text-5xl font-black text-blue-600 mb-2">Bolão</h1>
                 <p class="text-2xl font-bold text-slate-700">Copa do Mundo 2026</p>
             </div>
 
@@ -735,7 +735,6 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-2xl md:text-3xl">⚽</span>
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
@@ -770,9 +769,8 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <!-- Total Points -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="flex items-center justify-between mb-2">
+                <div class="mb-2">
                     <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Total de Pontos</span>
-                    <span class="text-xl md:text-2xl">🏆</span>
                 </div>
                 <div class="text-3xl md:text-4xl font-black">{{ total_points }}</div>
                 <div class="text-xs md:text-sm opacity-75 mt-1">pontos acumulados</div>
@@ -780,9 +778,8 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Exact Matches -->
             <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="flex items-center justify-between mb-2">
+                <div class="mb-2">
                     <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Palpites Exatos</span>
-                    <span class="text-xl md:text-2xl">🎯</span>
                 </div>
                 <div class="text-3xl md:text-4xl font-black">{{ exact_matches }}</div>
                 <div class="text-xs md:text-sm opacity-75 mt-1">placares corretos</div>
@@ -790,9 +787,8 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Total Bets -->
             <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="flex items-center justify-between mb-2">
+                <div class="mb-2">
                     <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Total Palpites</span>
-                    <span class="text-xl md:text-2xl">📝</span>
                 </div>
                 <div class="text-3xl md:text-4xl font-black">{{ total_bets }}</div>
                 <div class="text-xs md:text-sm opacity-75 mt-1">jogos palpitados</div>
@@ -800,9 +796,8 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Matches Finished -->
             <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="flex items-center justify-between mb-2">
+                <div class="mb-2">
                     <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Jogos Finalizados</span>
-                    <span class="text-xl md:text-2xl">⚡</span>
                 </div>
                 <div class="text-3xl md:text-4xl font-black">{{ matches_finished }}</div>
                 <div class="text-xs md:text-sm opacity-75 mt-1">resultados disponíveis</div>
@@ -812,41 +807,26 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Make Predictions Card -->
-            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02]">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-blue-100 rounded-full p-4">
-                        <span class="text-4xl">🎲</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
-                        <p class="text-slate-600">Aposte nos próximos jogos</p>
-                    </div>
+            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] border-l-4 border-blue-500">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
+                    <p class="text-slate-600">Aposte nos próximos jogos</p>
                 </div>
             </a>
 
             <!-- View Ranking Card -->
-            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02]">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-yellow-100 rounded-full p-4">
-                        <span class="text-4xl">📊</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
-                        <p class="text-slate-600">Confira sua posição</p>
-                    </div>
+            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] border-l-4 border-yellow-500">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
+                    <p class="text-slate-600">Confira sua posição</p>
                 </div>
             </a>
 
             <!-- Palpites Gerais Card -->
-            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-green-100 rounded-full p-4">
-                        <span class="text-4xl">🏆</span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-1">Palpites Gerais</h3>
-                        <p class="text-slate-600">Aposte no campeão, artilheiro e mais</p>
-                    </div>
+            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-green-500">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Palpites Gerais</h3>
+                    <p class="text-slate-600">Aposte no campeão, artilheiro e mais</p>
                 </div>
             </a>
         </div>
@@ -873,7 +853,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-2xl md:text-3xl">⚽</span>
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
@@ -889,7 +868,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🏆 Ranking Geral</h1>
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Ranking Geral</h1>
             <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
         </div>
 
@@ -911,15 +890,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition">
                                 <td class="px-3 md:px-6 py-3 md:py-4">
                                     <div class="flex items-center space-x-1 md:space-x-2">
-                                        {% if loop.index == 1 %}
-                                            <span class="text-xl md:text-2xl">🥇</span>
-                                        {% elif loop.index == 2 %}
-                                            <span class="text-xl md:text-2xl">🥈</span>
-                                        {% elif loop.index == 3 %}
-                                            <span class="text-xl md:text-2xl">🥉</span>
-                                        {% else %}
-                                            <span class="text-base md:text-lg font-bold text-slate-400">#{{ loop.index }}</span>
-                                        {% endif %}
+                                        <span class="text-base md:text-lg font-bold {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
                                     </div>
                                 </td>
                                 <td class="px-3 md:px-6 py-3 md:py-4">
@@ -987,7 +958,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-2xl md:text-3xl">⚽</span>
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
@@ -1003,7 +973,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🎲 Seus Palpites</h1>
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Seus Palpites</h1>
             <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
         </div>
 
@@ -1090,9 +1060,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200">
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
-                                    <div class="text-[11px] md:text-xs text-slate-500 mb-3 font-semibold flex items-center gap-2">
-                                        <span>📅</span>
-                                        <span class="tracking-wide">{{ match_time }}</span>
+                                    <div class="text-[11px] md:text-xs text-slate-500 mb-3 font-semibold tracking-wide">
+                                        {{ match_time }}
                                     </div>
                                 {% endif %}
 
@@ -1181,7 +1150,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
                                 class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
-                            💾 Salvar Palpites
+                            Salvar Palpites
                         </button>
                     </div>
                 </form>
@@ -1209,7 +1178,6 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-2xl md:text-3xl">⚽</span>
                     <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
                 </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
@@ -1225,7 +1193,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-2xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🏆 Palpites Gerais</h1>
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Palpites Gerais</h1>
             <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
         </div>
 
@@ -1242,7 +1210,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         <form method="POST" class="space-y-5">
             <!-- Champion -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🏆 Campeão</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Campeão</label>
                 <select name="campeao"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
@@ -1254,7 +1222,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Top Scorer -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">⚽ Artilheiro</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Artilheiro</label>
                 <input type="text" name="artilheiro"
                        value="{{ row.get('artilheiro', '') }}"
                        placeholder="Nome do jogador"
@@ -1263,7 +1231,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Best Player -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🌟 Melhor Jogador</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Melhor Jogador</label>
                 <input type="text" name="melhor_jogador"
                        value="{{ row.get('melhor_jogador', '') }}"
                        placeholder="Nome do jogador"
@@ -1272,7 +1240,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Underdog That Went Furthest -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🦓 Zebra que foi mais longe</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que foi mais longe</label>
                 <select name="zebra_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
@@ -1290,7 +1258,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Favorite That Fell Early -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">📉 Favorito que caiu antes</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que caiu antes</label>
                 <select name="favorito_caiu"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
@@ -1307,7 +1275,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <button type="submit"
                     class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition">
-                💾 Salvar Palpites Gerais
+                Salvar Palpites Gerais
             </button>
         </form>
     </div>
