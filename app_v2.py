@@ -549,6 +549,66 @@ def save_bets():
         return redirect(url_for('matches', phase=phase))
     return redirect(url_for('matches'))
 
+@app.route('/palpites-gerais', methods=['GET', 'POST'])
+@login_required
+def palpites_gerais():
+    """General predictions: top scorer, champion, etc."""
+    user_id = session['user_id']
+    conn = get_db()
+
+    if request.method == 'POST':
+        data = {
+            'artilheiro': (request.form.get('artilheiro') or '').strip(),
+            'melhor_jogador': (request.form.get('melhor_jogador') or '').strip(),
+            'melhor_jogador_jovem': (request.form.get('melhor_jogador_jovem') or '').strip(),
+            'campeao': (request.form.get('campeao') or '').strip(),
+            'vice_campeao': (request.form.get('vice_campeao') or '').strip(),
+            'terceiro_colocado': (request.form.get('terceiro_colocado') or '').strip(),
+        }
+        cur = conn.execute(
+            '''UPDATE palpites_gerais
+               SET artilheiro=?, melhor_jogador=?, melhor_jogador_jovem=?,
+                   campeao=?, vice_campeao=?, terceiro_colocado=?, updated_at=?
+               WHERE user_id=?''',
+            (data['artilheiro'], data['melhor_jogador'], data['melhor_jogador_jovem'],
+             data['campeao'], data['vice_campeao'], data['terceiro_colocado'],
+             datetime.utcnow().isoformat(timespec='seconds'), user_id)
+        )
+        if cur.rowcount == 0:
+            conn.execute(
+                '''INSERT INTO palpites_gerais
+                   (user_id, artilheiro, melhor_jogador, melhor_jogador_jovem,
+                    campeao, vice_campeao, terceiro_colocado, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?)''',
+                (user_id, data['artilheiro'], data['melhor_jogador'], data['melhor_jogador_jovem'],
+                 data['campeao'], data['vice_campeao'], data['terceiro_colocado'],
+                 datetime.utcnow().isoformat(timespec='seconds'))
+            )
+        conn.commit()
+        conn.close()
+        flash('✓ Palpites gerais salvos com sucesso!', 'success')
+        return redirect(url_for('palpites_gerais'))
+
+    row = conn.execute('SELECT * FROM palpites_gerais WHERE user_id=?', (user_id,)).fetchone()
+    teams = conn.execute(
+        'SELECT DISTINCT home FROM fixtures UNION SELECT DISTINCT away FROM fixtures ORDER BY 1'
+    ).fetchall()
+    conn.close()
+
+    teams = [t[0] for t in teams if not t[0].startswith(('UEFA', 'FIFA'))]
+    from constants import TEAM_TRANSLATIONS
+    translated_teams = sorted(
+        [(t, TEAM_TRANSLATIONS.get(t, t)) for t in teams],
+        key=lambda x: x[1]
+    )
+
+    return render_template_string(
+        PALPITES_GERAIS_TEMPLATE,
+        row=dict(row) if row else {},
+        translated_teams=translated_teams,
+    )
+
+
 # ============================================================================
 # TEMPLATES
 # ============================================================================
@@ -665,6 +725,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-semibold text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -759,6 +820,19 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
                     </div>
                 </div>
             </a>
+
+            <!-- Palpites Gerais Card -->
+            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-green-100 rounded-full p-4">
+                        <span class="text-4xl">🏆</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">Palpites Gerais</h3>
+                        <p class="text-slate-600">Aposte no campeão, artilheiro e mais</p>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </body>
@@ -789,6 +863,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -902,6 +977,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1091,6 +1167,128 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 </form>
             </div>
         </div>
+</body>
+</html>
+'''
+
+PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palpites Gerais - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-2xl md:text-3xl">⚽</span>
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">🏆 Palpites Gerais</h1>
+            <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-green-50 text-green-800 border-2 border-green-200{% else %}bg-blue-50 text-blue-800 border-2 border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="space-y-5">
+            <!-- Top Scorer -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">⚽ Artilheiro</label>
+                <input type="text" name="artilheiro"
+                       value="{{ row.get('artilheiro', '') }}"
+                       placeholder="Nome do jogador"
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+            </div>
+
+            <!-- Best Player -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🌟 Melhor Jogador</label>
+                <input type="text" name="melhor_jogador"
+                       value="{{ row.get('melhor_jogador', '') }}"
+                       placeholder="Nome do jogador"
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+            </div>
+
+            <!-- Best Young Player -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🌱 Melhor Jogador Jovem</label>
+                <input type="text" name="melhor_jogador_jovem"
+                       value="{{ row.get('melhor_jogador_jovem', '') }}"
+                       placeholder="Nome do jogador"
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+            </div>
+
+            <!-- Champion -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🥇 Campeão</label>
+                <select name="campeao"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                    <option value="">-- Selecione --</option>
+                    {% for code, name in translated_teams %}
+                        <option value="{{ code }}" {% if row.get('campeao') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Runner-up -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🥈 Vice-Campeão</label>
+                <select name="vice_campeao"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                    <option value="">-- Selecione --</option>
+                    {% for code, name in translated_teams %}
+                        <option value="{{ code }}" {% if row.get('vice_campeao') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Third Place -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🥉 Terceiro Colocado</label>
+                <select name="terceiro_colocado"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                    <option value="">-- Selecione --</option>
+                    {% for code, name in translated_teams %}
+                        <option value="{{ code }}" {% if row.get('terceiro_colocado') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit"
+                    class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition">
+                💾 Salvar Palpites Gerais
+            </button>
+        </form>
+    </div>
 </body>
 </html>
 '''
