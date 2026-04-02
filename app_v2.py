@@ -42,6 +42,23 @@ def execute_db(query, args=()):
     conn.close()
     return rowcount
 
+def migrate_palpites_gerais():
+    """Add new columns to palpites_gerais table if they don't exist"""
+    conn = get_db()
+    cols = [row[1] for row in conn.execute("PRAGMA table_info(palpites_gerais)").fetchall()]
+
+    if 'zebra_longe' not in cols:
+        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN zebra_longe TEXT")
+
+    if 'favorito_caiu' not in cols:
+        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN favorito_caiu TEXT")
+
+    conn.commit()
+    conn.close()
+
+# Run migration on startup
+migrate_palpites_gerais()
+
 # ============================================================================
 # HELPERS
 # ============================================================================
@@ -558,30 +575,29 @@ def palpites_gerais():
 
     if request.method == 'POST':
         data = {
+            'campeao': (request.form.get('campeao') or '').strip(),
             'artilheiro': (request.form.get('artilheiro') or '').strip(),
             'melhor_jogador': (request.form.get('melhor_jogador') or '').strip(),
-            'melhor_jogador_jovem': (request.form.get('melhor_jogador_jovem') or '').strip(),
-            'campeao': (request.form.get('campeao') or '').strip(),
-            'vice_campeao': (request.form.get('vice_campeao') or '').strip(),
-            'terceiro_colocado': (request.form.get('terceiro_colocado') or '').strip(),
+            'zebra_longe': (request.form.get('zebra_longe') or '').strip(),
+            'favorito_caiu': (request.form.get('favorito_caiu') or '').strip(),
         }
         cur = conn.execute(
             '''UPDATE palpites_gerais
-               SET artilheiro=?, melhor_jogador=?, melhor_jogador_jovem=?,
-                   campeao=?, vice_campeao=?, terceiro_colocado=?, updated_at=?
+               SET campeao=?, artilheiro=?, melhor_jogador=?,
+                   zebra_longe=?, favorito_caiu=?, updated_at=?
                WHERE user_id=?''',
-            (data['artilheiro'], data['melhor_jogador'], data['melhor_jogador_jovem'],
-             data['campeao'], data['vice_campeao'], data['terceiro_colocado'],
+            (data['campeao'], data['artilheiro'], data['melhor_jogador'],
+             data['zebra_longe'], data['favorito_caiu'],
              datetime.utcnow().isoformat(timespec='seconds'), user_id)
         )
         if cur.rowcount == 0:
             conn.execute(
                 '''INSERT INTO palpites_gerais
-                   (user_id, artilheiro, melhor_jogador, melhor_jogador_jovem,
-                    campeao, vice_campeao, terceiro_colocado, updated_at)
-                   VALUES (?,?,?,?,?,?,?,?)''',
-                (user_id, data['artilheiro'], data['melhor_jogador'], data['melhor_jogador_jovem'],
-                 data['campeao'], data['vice_campeao'], data['terceiro_colocado'],
+                   (user_id, campeao, artilheiro, melhor_jogador,
+                    zebra_longe, favorito_caiu, updated_at)
+                   VALUES (?,?,?,?,?,?,?)''',
+                (user_id, data['campeao'], data['artilheiro'], data['melhor_jogador'],
+                 data['zebra_longe'], data['favorito_caiu'],
                  datetime.utcnow().isoformat(timespec='seconds'))
             )
         conn.commit()
@@ -1220,6 +1236,18 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         {% endwith %}
 
         <form method="POST" class="space-y-5">
+            <!-- Champion -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">🏆 Campeão</label>
+                <select name="campeao"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                    <option value="">-- Selecione --</option>
+                    {% for code, name in translated_teams %}
+                        <option value="{{ code }}" {% if row.get('campeao') == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <!-- Top Scorer -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
                 <label class="block text-sm font-bold text-slate-700 mb-2">⚽ Artilheiro</label>
@@ -1238,48 +1266,38 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
             </div>
 
-            <!-- Best Young Player -->
+            <!-- Underdog That Went Furthest -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🌱 Melhor Jogador Jovem</label>
-                <input type="text" name="melhor_jogador_jovem"
-                       value="{{ row.get('melhor_jogador_jovem', '') }}"
-                       placeholder="Nome do jogador"
-                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
-            </div>
-
-            <!-- Champion -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🥇 Campeão</label>
-                <select name="campeao"
+                <label class="block text-sm font-bold text-slate-700 mb-2">🦓 Zebra que foi mais longe</label>
+                <select name="zebra_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
-                    {% for code, name in translated_teams %}
-                        <option value="{{ code }}" {% if row.get('campeao') == code %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
+                    <option value="Haiti" {% if row.get('zebra_longe') == 'Haiti' %}selected{% endif %}>Haiti</option>
+                    <option value="Curaçao" {% if row.get('zebra_longe') == 'Curaçao' %}selected{% endif %}>Curaçao</option>
+                    <option value="New Zealand" {% if row.get('zebra_longe') == 'New Zealand' %}selected{% endif %}>Nova Zelândia</option>
+                    <option value="Cabo Verde" {% if row.get('zebra_longe') == 'Cabo Verde' %}selected{% endif %}>Cabo Verde</option>
+                    <option value="Iraq" {% if row.get('zebra_longe') == 'Iraq' %}selected{% endif %}>Iraque</option>
+                    <option value="Jordan" {% if row.get('zebra_longe') == 'Jordan' %}selected{% endif %}>Jordânia</option>
+                    <option value="DR Congo" {% if row.get('zebra_longe') == 'DR Congo' %}selected{% endif %}>DR Congo</option>
+                    <option value="Uzbekistan" {% if row.get('zebra_longe') == 'Uzbekistan' %}selected{% endif %}>Uzbequistão</option>
+                    <option value="Panama" {% if row.get('zebra_longe') == 'Panama' %}selected{% endif %}>Panamá</option>
                 </select>
             </div>
 
-            <!-- Runner-up -->
+            <!-- Favorite That Fell Early -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🥈 Vice-Campeão</label>
-                <select name="vice_campeao"
+                <label class="block text-sm font-bold text-slate-700 mb-2">📉 Favorito que caiu antes</label>
+                <select name="favorito_caiu"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
-                    {% for code, name in translated_teams %}
-                        <option value="{{ code }}" {% if row.get('vice_campeao') == code %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Third Place -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">🥉 Terceiro Colocado</label>
-                <select name="terceiro_colocado"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
-                    <option value="">-- Selecione --</option>
-                    {% for code, name in translated_teams %}
-                        <option value="{{ code }}" {% if row.get('terceiro_colocado') == code %}selected{% endif %}>{{ name }}</option>
-                    {% endfor %}
+                    <option value="Brazil" {% if row.get('favorito_caiu') == 'Brazil' %}selected{% endif %}>Brasil</option>
+                    <option value="Argentina" {% if row.get('favorito_caiu') == 'Argentina' %}selected{% endif %}>Argentina</option>
+                    <option value="Germany" {% if row.get('favorito_caiu') == 'Germany' %}selected{% endif %}>Alemanha</option>
+                    <option value="Netherlands" {% if row.get('favorito_caiu') == 'Netherlands' %}selected{% endif %}>Holanda</option>
+                    <option value="Spain" {% if row.get('favorito_caiu') == 'Spain' %}selected{% endif %}>Espanha</option>
+                    <option value="France" {% if row.get('favorito_caiu') == 'France' %}selected{% endif %}>França</option>
+                    <option value="Portugal" {% if row.get('favorito_caiu') == 'Portugal' %}selected{% endif %}>Portugal</option>
+                    <option value="England" {% if row.get('favorito_caiu') == 'England' %}selected{% endif %}>Inglaterra</option>
                 </select>
             </div>
 
