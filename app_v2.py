@@ -84,9 +84,8 @@ def get_flag_url(team_name):
         'Algeria': 'dz', 'Nigeria': 'ng', 'Egypt': 'eg', 'Burkina Faso': 'bf',
         'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no', 'Austria': 'at',
         'Jordan': 'jo', 'Uzbekistan': 'uz',
-        # Playoffs (use generic flag)
-        'UEFA Playoff A': 'eu', 'UEFA Playoff B': 'eu', 'UEFA Playoff C': 'eu', 'UEFA Playoff D': 'eu',
-        'FIFA Playoff 1': 'eu', 'FIFA Playoff 2': 'eu', 'OFC Playoff': 'nz',
+        'Democratic Republic of the Congo': 'cd', 'Turkey': 'tr', 'Iraq': 'iq', 'Bosnia and Herzegovina': 'ba',
+        'Sweden': 'se', 'Czech Republic': 'cz',
     }
 
     code = flag_map.get(team_name, '')
@@ -114,9 +113,9 @@ def get_team_abbr(team_name):
         'Trinidad and Tobago': 'TRI', 'El Salvador': 'SLV', 'Guatemala': 'GUA',
         'Algeria': 'ALG', 'Nigeria': 'NGA', 'Egypt': 'EGY', 'Burkina Faso': 'BFA',
         'New Zealand': 'NZL', 'Cabo Verde': 'CPV', 'Norway': 'NOR', 'Austria': 'AUT',
-        'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'UEFA Playoff A': 'UPA',
-        'UEFA Playoff B': 'UPB', 'UEFA Playoff C': 'UPC', 'UEFA Playoff D': 'UPD',
-        'FIFA Playoff 1': 'FP1', 'FIFA Playoff 2': 'FP2', 'OFC Playoff': 'OFC',
+        'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'Democratic Republic of the Congo': 'COD',
+        'Turkey': 'TUR', 'Iraq': 'IRQ', 'Bosnia and Herzegovina': 'BIH',
+        'Sweden': 'SWE', 'Czech Republic': 'CZE',
     }
 
     if team_name in abbr_map:
@@ -172,7 +171,7 @@ def translate_team_name(team_name):
         'Japan': 'Japão',
         'Mexico': 'México',
         'Morocco': 'Marrocos',
-        'Netherlands': 'Países Baixos',
+        'Netherlands': 'Holanda',
         'Poland': 'Polônia',
         'Portugal': 'Portugal',
         'Qatar': 'Catar',
@@ -217,13 +216,12 @@ def translate_team_name(team_name):
         'Austria': 'Áustria',
         'Jordan': 'Jordânia',
         'Uzbekistan': 'Uzbequistão',
-        'UEFA Playoff A': 'UEFA A',
-        'UEFA Playoff B': 'UEFA B',
-        'UEFA Playoff C': 'UEFA C',
-        'UEFA Playoff D': 'UEFA D',
-        'FIFA Playoff 1': 'UEFA 1',
-        'FIFA Playoff 2': 'UEFA 2',
-        'OFC Playoff': 'OFC',
+        'Democratic Republic of the Congo': 'RD Congo',
+        'Turkey': 'Turquia',
+        'Iraq': 'Iraque',
+        'Bosnia and Herzegovina': 'Bósnia / Herzegovina',
+        'Sweden': 'Suécia',
+        'Czech Republic': 'República Checa',
     }
 
     return translations.get(team_name, team_name)
@@ -751,8 +749,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <!-- Welcome Header -->
         <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}! 👋</h1>
-            <p class="text-base md:text-lg text-slate-600">Bem-vindo ao seu painel do Bolão Copa 2026</p>
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Olá, {{ user_name }}!</h1>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -776,57 +773,28 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
                 <div class="text-xs md:text-sm opacity-75 mt-1">pontos acumulados</div>
             </div>
 
-            <!-- Exact Matches -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="mb-2">
-                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Palpites Exatos</span>
-                </div>
-                <div class="text-3xl md:text-4xl font-black">{{ exact_matches }}</div>
-                <div class="text-xs md:text-sm opacity-75 mt-1">placares corretos</div>
-            </div>
-
-            <!-- Total Bets -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="mb-2">
-                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Total Palpites</span>
-                </div>
-                <div class="text-3xl md:text-4xl font-black">{{ total_bets }}</div>
-                <div class="text-xs md:text-sm opacity-75 mt-1">jogos palpitados</div>
-            </div>
-
-            <!-- Matches Finished -->
-            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-                <div class="mb-2">
-                    <span class="text-xs md:text-sm font-semibold uppercase tracking-wide opacity-90">Jogos Finalizados</span>
-                </div>
-                <div class="text-3xl md:text-4xl font-black">{{ matches_finished }}</div>
-                <div class="text-xs md:text-sm opacity-75 mt-1">resultados disponíveis</div>
-            </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Make Predictions Card -->
-            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] border-l-4 border-blue-500">
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+            <!-- View Ranking Card -->
+            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
-                    <p class="text-slate-600">Aposte nos próximos jogos</p>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
                 </div>
             </a>
 
-            <!-- View Ranking Card -->
-            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] border-l-4 border-yellow-500">
+            <!-- Make Predictions Card -->
+            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
-                    <p class="text-slate-600">Confira sua posição</p>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
                 </div>
             </a>
 
             <!-- Palpites Gerais Card -->
-            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-green-500">
+            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Palpites Gerais</h3>
-                    <p class="text-slate-600">Aposte no campeão, artilheiro e mais</p>
                 </div>
             </a>
         </div>
