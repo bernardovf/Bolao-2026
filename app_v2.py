@@ -623,6 +623,13 @@ def palpites_gerais():
     )
 
 
+@app.route('/regras')
+@login_required
+def regras():
+    """Rules and scoring system"""
+    return render_template_string(REGRAS_TEMPLATE)
+
+
 # ============================================================================
 # TEMPLATES
 # ============================================================================
@@ -740,6 +747,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -828,6 +836,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -933,6 +942,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1153,6 +1163,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Palpites Gerais</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1246,6 +1257,199 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 Salvar Palpites Gerais
             </button>
         </form>
+    </div>
+</body>
+</html>
+'''
+
+REGRAS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regras - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Regras do Bolão</h1>
+            <p class="text-base md:text-lg text-slate-600">Sistema de pontuação e regras gerais</p>
+        </div>
+
+        <!-- Pontos por Fase -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Pontos por Fase</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm md:text-base">
+                    <thead class="bg-slate-100 border-b-2 border-slate-300">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-slate-700">Fase</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700"># Jogos</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Pontos por jogo</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Total Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Grupos</td>
+                            <td class="px-4 py-3 text-center">72</td>
+                            <td class="px-4 py-3 text-center">6</td>
+                            <td class="px-4 py-3 text-center font-bold">432</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">16 avos</td>
+                            <td class="px-4 py-3 text-center">16</td>
+                            <td class="px-4 py-3 text-center">18</td>
+                            <td class="px-4 py-3 text-center font-bold">288</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Oitavas</td>
+                            <td class="px-4 py-3 text-center">8</td>
+                            <td class="px-4 py-3 text-center">24</td>
+                            <td class="px-4 py-3 text-center font-bold">192</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Quartas</td>
+                            <td class="px-4 py-3 text-center">4</td>
+                            <td class="px-4 py-3 text-center">36</td>
+                            <td class="px-4 py-3 text-center font-bold">144</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Semi</td>
+                            <td class="px-4 py-3 text-center">2</td>
+                            <td class="px-4 py-3 text-center">48</td>
+                            <td class="px-4 py-3 text-center font-bold">96</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Terceiro Lugar</td>
+                            <td class="px-4 py-3 text-center">1</td>
+                            <td class="px-4 py-3 text-center">48</td>
+                            <td class="px-4 py-3 text-center font-bold">48</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Final</td>
+                            <td class="px-4 py-3 text-center">1</td>
+                            <td class="px-4 py-3 text-center">72</td>
+                            <td class="px-4 py-3 text-center font-bold">72</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Regras de Pontuação -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Regras de Pontuação por Jogo</h2>
+            <ul class="space-y-3 text-sm md:text-base">
+                <li class="flex items-start">
+                    <span class="font-bold text-blue-600 mr-2">•</span>
+                    <span><strong>Acerto de placar exato:</strong> 100% dos pontos</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="font-bold text-blue-600 mr-2">•</span>
+                    <span><strong>Acerto resultado (coluna) e saldo de gols (exceto empate):</strong> 66% dos pontos</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="font-bold text-blue-600 mr-2">•</span>
+                    <span><strong>Acerto resultado (coluna) exceto empate:</strong> 50% dos pontos</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="font-bold text-blue-600 mr-2">•</span>
+                    <span><strong>Acerto resultado (coluna) exceto empate:</strong> 33% dos pontos</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Extras -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Extras</h2>
+
+            <!-- Zebra -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-slate-700 mb-3">1. 60 pontos: Zebra que foi mais longe, opções fechadas:</h3>
+                <p class="text-sm italic mb-2">Haiti, Curaçao, Nova Zelândia, Cabo Verde, Iraque, Jordânia, DR Congo, Uzbequistão, Panamá</p>
+                <ul class="ml-6 space-y-2 text-sm">
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se ninguém cair na primeira fase ou nos 16 avos, o campeão será quem acertou a zebra que foi mais longe na competição (será decidido pela ordem dos jogos no tempo normal/tempo normal + prorrogação) (fase de grupos não conta)</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se todos caírem na primeira fase ou nos 16 avos de final, desempate será decidido pelo saldo de gols do jogo da primeira fase (normalmente tempo normal/tempo normal + prorrogação) em que eles caíram</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se os últimos caírem nas oitavas, quartas, <strong>semi</strong> ou final, sem critério de desempate, todos os que apostaram ganham</span>
+                    </li>
+                    <li class="ml-4 space-y-1 text-xs">
+                        <li>◦ Se Haiti e Cabo Verde caírem nas oitavas, Cabo Verde nas quartas e todas as outras na fase de grupos</li>
+                        <li class="ml-6">▪ Apenas quem apostou em Cabo Verde ganha</li>
+                        <li>◦ Se Haiti e Cabo Verde caírem nas oitavas e todas as outras na fase de grupos</li>
+                        <li class="ml-6">▪ Quem apostou em Haiti ganha todos os pontos</li>
+                        <li>◦ Se Haiti e Cabo Verde caírem nas <strong>16 avos</strong> de final com Haiti e Cabo Verde saindo nos pênaltis e todas as outras na fase de grupos</li>
+                        <li class="ml-6">▪ Quem for melhor campanha na fase de grupos ganha</li>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Favorito -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-slate-700 mb-3">2. 60 pontos: Favorito que caiu antes, opções fechadas:</h3>
+                <p class="text-sm italic mb-2">Brasil, Argentina, Alemanha, Holanda, Espanha, França, Portugal, Inglaterra</p>
+                <ul class="ml-6 space-y-2 text-sm">
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se todos caírem na primeira fase ou nos 16 avos de final será anulado</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se os primeiros caírem na fase de grupos ou 16 avos de final, não há desempate, todos ganham os pontos</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Se os primeiros caírem nas oitavas em diante, usar critério de desempate como acima</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Outros Extras -->
+            <div class="space-y-2 text-sm md:text-base">
+                <p><strong>3. 60 pontos: Campeão</strong></p>
+                <p><strong>4. 60 pontos: Artilheiro</strong></p>
+                <p><strong>5. 60 pontos: Melhor Jogador</strong></p>
+                <p><strong>6. 4 pontos por classificado certo na fase de grupos</strong></p>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar ao Início
+            </a>
+        </div>
     </div>
 </body>
 </html>
