@@ -417,25 +417,19 @@ def ranking():
         SELECT
             u.id,
             u.user_name,
-            COUNT(CASE WHEN b.home_goals = f.final_home_goals
-                       AND b.away_goals = f.final_away_goals THEN 1 END) as exact_matches,
-            COUNT(CASE WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
-                         OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
-                         OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
-                    THEN 1 END) as partial_matches,
-            SUM(CASE
+            COALESCE(SUM(CASE
                 WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
                 WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
                      OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
                      OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
                 THEN 5
                 ELSE 0
-            END) as total_points
+            END), 0) as total_points
         FROM users u
         LEFT JOIN bet b ON u.id = b.user_id
         LEFT JOIN fixtures f ON b.match_id = f.id AND f.final_home_goals IS NOT NULL
         GROUP BY u.id, u.user_name
-        ORDER BY total_points DESC, exact_matches DESC, u.user_name ASC
+        ORDER BY total_points DESC, u.user_name ASC
     ''').fetchall()
 
     conn.close()
@@ -443,6 +437,58 @@ def ranking():
     return render_template_string(RANKING_TEMPLATE,
                                  rankings=rankings,
                                  current_user_id=session['user_id'])
+
+
+@app.route('/jogador/<int:user_id>')
+@login_required
+def jogador_detail(user_id):
+    """Player detail page with all their bets"""
+    conn = get_db()
+
+    # Get player info
+    player = conn.execute('SELECT id, user_name FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not player:
+        conn.close()
+        flash('Jogador não encontrado', 'error')
+        return redirect(url_for('ranking'))
+
+    # Get all player bets with match info and points
+    bets = conn.execute('''
+        SELECT
+            f.id as match_id,
+            f.phase,
+            f.home,
+            f.away,
+            f.kickoff_utc,
+            f.final_home_goals,
+            f.final_away_goals,
+            b.home_goals as bet_home,
+            b.away_goals as bet_away,
+            CASE
+                WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
+                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
+                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
+                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
+                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
+                THEN 5
+                ELSE 0
+            END as points
+        FROM fixtures f
+        LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
+        ORDER BY f.id
+    ''', (user_id,)).fetchall()
+
+    # Calculate total points
+    total_points = sum(bet['points'] for bet in bets if bet['points'] is not None)
+
+    conn.close()
+
+    return render_template_string(
+        JOGADOR_DETAIL_TEMPLATE,
+        player=player,
+        bets=bets,
+        total_points=total_points
+    )
 
 @app.route('/matches')
 @login_required
@@ -855,41 +901,27 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Pos</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
                             <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider">Exatos</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider hidden sm:table-cell">Parciais</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider">Pts</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
-                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition">
-                                <td class="px-3 md:px-6 py-3 md:py-4">
-                                    <div class="flex items-center space-x-1 md:space-x-2">
-                                        <span class="text-base md:text-lg font-bold {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
-                                    </div>
+                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition cursor-pointer" onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'">
+                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                    <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
                                 </td>
                                 <td class="px-3 md:px-6 py-3 md:py-4">
-                                    <div class="font-bold text-sm md:text-base text-slate-800 truncate">
+                                    <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-1 md:ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full">Você</span>
+                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
                                         {% endif %}
-                                    </div>
+                                    </a>
                                 </td>
                                 <td class="px-3 md:px-6 py-3 md:py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-800 text-sm md:text-base font-bold rounded-full">
-                                        {{ rank.exact_matches or 0 }}
-                                    </span>
-                                </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center hidden sm:table-cell">
-                                    <span class="inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-800 text-sm md:text-base font-bold rounded-full">
-                                        {{ rank.partial_matches or 0 }}
-                                    </span>
-                                </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
-                                    <span class="text-xl md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                    <span class="text-2xl md:text-3xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -1257,6 +1289,111 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 Salvar Palpites Gerais
             </button>
         </form>
+    </div>
+</body>
+</html>
+'''
+
+JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ player.user_name }} - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
+                </div>
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">{{ player.user_name }}</h1>
+            <p class="text-base md:text-lg text-slate-600">Total: <span class="font-bold text-blue-600">{{ total_points }} pontos</span></p>
+        </div>
+
+        <!-- Bets Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-100 border-b-2 border-slate-300">
+                        <tr>
+                            <th class="px-3 py-3 text-left font-bold text-slate-700">Fase</th>
+                            <th class="px-3 py-3 text-left font-bold text-slate-700">Jogo</th>
+                            <th class="px-3 py-3 text-center font-bold text-slate-700">Palpite</th>
+                            <th class="px-3 py-3 text-center font-bold text-slate-700">Resultado</th>
+                            <th class="px-3 py-3 text-center font-bold text-slate-700">Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for bet in bets %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-3 py-3 text-xs text-slate-600">{{ bet.phase }}</td>
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold truncate">{{ translate_team_name(bet.home) }}</span>
+                                        <span class="text-slate-400">×</span>
+                                        <span class="font-semibold truncate">{{ translate_team_name(bet.away) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    {% if bet.bet_home is not none and bet.bet_away is not none %}
+                                        <span class="font-bold text-blue-600">{{ bet.bet_home }} - {{ bet.bet_away }}</span>
+                                    {% else %}
+                                        <span class="text-slate-400 text-xs">Sem palpite</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    {% if bet.final_home_goals is not none and bet.final_away_goals is not none %}
+                                        <span class="font-bold text-slate-700">{{ bet.final_home_goals }} - {{ bet.final_away_goals }}</span>
+                                    {% else %}
+                                        <span class="text-slate-400 text-xs">Aguardando</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    {% if bet.points is not none %}
+                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
+                                            {% if bet.points == 10 %}bg-green-100 text-green-800
+                                            {% elif bet.points == 5 %}bg-blue-100 text-blue-800
+                                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                            +{{ bet.points }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-slate-400 text-xs">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar ao Ranking
+            </a>
+        </div>
     </div>
 </body>
 </html>
