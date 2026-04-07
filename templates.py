@@ -668,15 +668,17 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Phase Filter -->
         <div class="mb-6">
-            <div class="flex flex-wrap gap-2">
-                {% for phase in phases %}
-                    <a href="{{ url_for('jogador_detail', user_id=player.id, phase=phase) }}"
-                       class="px-4 py-2 rounded-lg font-semibold text-sm transition
-                              {% if phase == phase_filter %}bg-blue-600 text-white
-                              {% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-300{% endif %}">
-                        {{ phase }}
-                    </a>
-                {% endfor %}
+            <div class="flex items-center gap-3">
+                <label for="phase-filter" class="font-semibold text-slate-700">Fase:</label>
+                <select id="phase-filter"
+                        onchange="window.location.href='{{ url_for('jogador_detail', user_id=player.id) }}?phase=' + this.value"
+                        class="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% for phase in phases %}
+                        <option value="{{ phase }}" {% if phase == phase_filter %}selected{% endif %}>
+                            {{ phase }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 
