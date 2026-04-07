@@ -52,12 +52,14 @@ def migrate_palpites_gerais():
     if 'favorito_caiu' not in cols:
         conn.execute("ALTER TABLE palpites_gerais ADD COLUMN favorito_caiu TEXT")
 
+    if 'anfitriao_longe' not in cols:
+        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN anfitriao_longe TEXT")
+
     conn.commit()
     conn.close()
 
 # Run migration on startup
 migrate_palpites_gerais()
-
 
 # ============================================================================
 # AUTHENTICATION
@@ -377,24 +379,25 @@ def palpites_gerais():
             'melhor_jogador': (request.form.get('melhor_jogador') or '').strip(),
             'zebra_longe': (request.form.get('zebra_longe') or '').strip(),
             'favorito_caiu': (request.form.get('favorito_caiu') or '').strip(),
+            'anfitriao_longe': (request.form.get('anfitriao_longe') or '').strip(),
         }
         cur = conn.execute(
             '''UPDATE palpites_gerais
                SET campeao=?, artilheiro=?, melhor_jogador=?,
-                   zebra_longe=?, favorito_caiu=?, updated_at=?
+                   zebra_longe=?, favorito_caiu=?, anfitriao_longe=?, updated_at=?
                WHERE user_id=?''',
             (data['campeao'], data['artilheiro'], data['melhor_jogador'],
-             data['zebra_longe'], data['favorito_caiu'],
+             data['zebra_longe'], data['favorito_caiu'], data['anfitriao_longe'],
              datetime.utcnow().isoformat(timespec='seconds'), user_id)
         )
         if cur.rowcount == 0:
             conn.execute(
                 '''INSERT INTO palpites_gerais
                    (user_id, campeao, artilheiro, melhor_jogador,
-                    zebra_longe, favorito_caiu, updated_at)
+                    zebra_longe, favorito_caiu, anfitriao_longe, updated_at)
                    VALUES (?,?,?,?,?,?,?)''',
                 (user_id, data['campeao'], data['artilheiro'], data['melhor_jogador'],
-                 data['zebra_longe'], data['favorito_caiu'],
+                 data['zebra_longe'], data['favorito_caiu'], data['anfitriao_longe'],
                  datetime.utcnow().isoformat(timespec='seconds'))
             )
         conn.commit()

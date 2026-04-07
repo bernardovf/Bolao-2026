@@ -547,7 +547,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Underdog That Went Furthest -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que foi mais longe</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que vai mais longe</label>
                 <select name="zebra_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
@@ -565,7 +565,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Favorite That Fell Early -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que caiu antes</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que vai cair antes</label>
                 <select name="favorito_caiu"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
                     <option value="">-- Selecione --</option>
@@ -577,6 +577,18 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <option value="France" {% if row.get('favorito_caiu') == 'France' %}selected{% endif %}>França</option>
                     <option value="Portugal" {% if row.get('favorito_caiu') == 'Portugal' %}selected{% endif %}>Portugal</option>
                     <option value="England" {% if row.get('favorito_caiu') == 'England' %}selected{% endif %}>Inglaterra</option>
+                </select>
+            </div>
+
+            <!-- Anfitrião que vai mais longe -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Anfitrião que vai mais longe</label>
+                <select name="anfitriao_longe"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                    <option value="">-- Selecione --</option>
+                    <option value="USA" {% if row.get('anfitriao_longe') == 'USA' %}selected{% endif %}>Estados Unidos</option>
+                    <option value="Canada" {% if row.get('anfitriao_longe') == 'Argentina' %}selected{% endif %}>Canadá</option>
+                    <option value="Mexico" {% if row.get('anfitriao_longe') == 'Mexico' %}selected{% endif %}>México</option>
                 </select>
             </div>
 
@@ -790,15 +802,15 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                 </li>
                 <li class="flex items-start">
                     <span class="font-bold text-blue-600 mr-2">•</span>
-                    <span><strong>Acerto resultado (coluna) e saldo de gols (exceto empate):</strong> 66% dos pontos</span>
+                    <span><strong>Acerto coluna e saldo de gols (exceto empate):</strong> 66% dos pontos</span>
                 </li>
                 <li class="flex items-start">
                     <span class="font-bold text-blue-600 mr-2">•</span>
-                    <span><strong>Acerto resultado (coluna) exceto empate:</strong> 50% dos pontos</span>
+                    <span><strong>Acerto coluna (empate):</strong> 50% dos pontos</span>
                 </li>
                 <li class="flex items-start">
                     <span class="font-bold text-blue-600 mr-2">•</span>
-                    <span><strong>Acerto resultado (coluna) exceto empate:</strong> 33% dos pontos</span>
+                    <span><strong>Acerto coluna (exceto empate):</strong> 33% dos pontos</span>
                 </li>
             </ul>
         </div>
@@ -809,7 +821,7 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Zebra -->
             <div class="mb-6">
-                <h3 class="text-lg font-bold text-slate-700 mb-3">60 pontos: Zebra que foi mais longe, opções fechadas:</h3>
+                <h3 class="text-lg font-bold text-slate-700 mb-3">30 pontos: Zebra que for mais longe, opções fechadas:</h3>
                 <p class="text-sm italic mb-2">Haiti, Curaçao, Nova Zelândia, Cabo Verde, Iraque, Jordânia, DR Congo, Uzbequistão, Panamá</p>
                 <ul class="ml-6 space-y-2 text-sm">
                     <li class="flex items-start">
@@ -820,7 +832,7 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
                         <span>
-                            Se o último eliminado ocorrer até as oitavas de final (inclusive), vence quem apostou no time que chegou mais longe.
+                            Se o último eliminado for até as oitavas de final (inclusive), vence quem apostou no time que chegou mais longe.
                             Em caso de empate (eliminação na mesma fase), o desempate será definido por:
                             (1) saldo de gols no jogo eliminatório (tempo normal) e,
                             (2) persistindo empate, pela campanha na fase de grupos.
@@ -831,14 +843,21 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
                         <span>
-                            Se o último eliminado ocorrer a partir das quartas de final (quartas, semifinal ou final),
-                            todos que apostaram em times que chegaram pelo menos às quartas pontuam.
+                            Se o último eliminado sair a partir das quartas de final (quartas, semifinal ou final),
+                            todos que apostaram em times que chegaram pelo menos às quartas pontuam o total.
+                        </span>
+                    </li>
+
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>
+                            Exemplos:
                         </span>
                     </li>
 
                     <li class="ml-4 space-y-1 text-xs list-none">
                         <ul class="space-y-1">
-                            <li>◦ Se o Haiti cair nas oitavas, Cabo Verde nas quartas e os demais na fase de grupos:</li>
+                            <li>◦ Se Haiti cair nas oitavas, Cabo Verde nas quartas e os demais na fase de grupos:</li>
                             <li class="ml-6">▪ Apenas quem apostou em Cabo Verde ganha</li>
 
                             <li>◦ Se Haiti e Cabo Verde caírem nas quartas e os demais na fase de grupos (ou nas oitavas):</li>
@@ -853,30 +872,48 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Favorito -->
             <div class="mb-6">
-                <h3 class="text-lg font-bold text-slate-700 mb-3">60 pontos: Favorito que caiu antes, opções fechadas:</h3>
+                <h3 class="text-lg font-bold text-slate-700 mb-3">30 pontos: Favorito que cair antes, opções fechadas:</h3>
                 <p class="text-sm italic mb-2">Brasil, Argentina, Alemanha, Holanda, Espanha, França, Portugal, Inglaterra</p>
                 <ul class="ml-6 space-y-2 text-sm">
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se todos caírem na primeira fase ou nos 16 avos de final será anulado</span>
+                        <span>Se todos caírem na primeira fase, ninguém pontua</span>
                     </li>
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se os primeiros caírem na fase de grupos ou 16 avos de final, não há desempate, todos ganham os pontos</span>
+                        <span>Se os primeiros caírem na fase de grupos, não há desempate, todos que apostaram nesses ganham os pontos</span>
                     </li>
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se os primeiros caírem nas oitavas em diante, usar critério de desempate como acima</span>
+                        <span>Se os primeiros caírem nos 16 avos de final em diante, usar critério de desempate como acima</span>
                     </li>
                 </ul>
             </div>
 
+            <!-- Anfitrião -->
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-slate-700 mb-3">15 pontos: Anfitrião que for mais longe:</h3>
+                <p class="text-sm italic mb-2">EUA, México e Canadá</p>
+                <ul class="ml-6 space-y-2 text-sm">
+                    <li class="flex items-start">
+                        <span class="mr-2">◦</span>
+                        <span>Quem chegar mais longe ganha. 
+                        Em caso de empate (eliminação na mesma fase), o desempate será definido por:
+                            (1) saldo de gols no jogo eliminatório (tempo normal) e,
+                            (2) persistindo empate, pela campanha na fase de grupos.
+                            Apenas um vencedor.
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+
             <!-- Outros Extras -->
             <div class="space-y-2 text-sm md:text-base">
-                <p><strong>60 pontos: Campeão</strong></p>
-                <p><strong>60 pontos: Artilheiro</strong></p>
-                <p><strong>60 pontos: Melhor Jogador</strong></p>
-                <p><strong>4 pontos por classificado certo na fase de grupos</strong></p>
+                <p><strong>30 pontos: Campeão</strong></p>
+                <p><strong>30 pontos: Artilheiro</strong></p>
+                <p><strong>30 pontos: Melhor Jogador</strong></p>
+                <p><strong>2 pontos por classificado certo na fase de grupos</strong></p>
             </div>
         </div>
 
