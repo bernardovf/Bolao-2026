@@ -662,6 +662,10 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <p class="text-xs text-slate-500 mb-1">Favorito que caiu antes</p>
                     <p class="font-semibold text-slate-800">{{ palpites_gerais.favorito_caiu or '-' }}</p>
                 </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Anfitrião que vai mais longe</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.anfitriao_longe or '-' }}</p>
+                </div>
             </div>
         </div>
         {% endif %}
