@@ -446,13 +446,23 @@ def save_bets():
                         home_goals = int(home_goals)
                         away_goals = int(away_goals)
 
-                        # Insert or update
-                        conn.execute('''
-                            INSERT INTO bet (user_id, match_id, home_goals, away_goals)
-                            VALUES (?, ?, ?, ?)
-                            ON CONFLICT(user_id, match_id)
-                            DO UPDATE SET home_goals=?, away_goals=?
-                        ''', (user_id, match_id, home_goals, away_goals, home_goals, away_goals))
+                        # Check if bet exists
+                        existing_bet = conn.execute('''
+                            SELECT id FROM bet WHERE user_id = ? AND match_id = ?
+                        ''', (user_id, match_id)).fetchone()
+
+                        if existing_bet:
+                            # Update existing bet
+                            conn.execute('''
+                                UPDATE bet SET home_goals = ?, away_goals = ?
+                                WHERE user_id = ? AND match_id = ?
+                            ''', (home_goals, away_goals, user_id, match_id))
+                        else:
+                            # Insert new bet
+                            conn.execute('''
+                                INSERT INTO bet (user_id, match_id, home_goals, away_goals)
+                                VALUES (?, ?, ?, ?)
+                            ''', (user_id, match_id, home_goals, away_goals))
 
                         saved_count += 1
                     except ValueError:
