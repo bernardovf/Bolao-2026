@@ -478,6 +478,64 @@ def save_bets():
         return redirect(url_for('matches', phase=phase))
     return redirect(url_for('matches'))
 
+@app.route('/match/<int:match_id>/stats')
+@login_required
+def match_stats(match_id):
+    """Match statistics showing all users' bets"""
+    conn = get_db()
+
+    # Get match info
+    match = conn.execute('SELECT * FROM fixtures WHERE id = ?', (match_id,)).fetchone()
+    if not match:
+        conn.close()
+        flash('Jogo não encontrado', 'error')
+        return redirect(url_for('matches'))
+
+    # Get all bets for this match with user names
+    bets = conn.execute('''
+        SELECT u.id as user_id, u.user_name, b.home_goals, b.away_goals
+        FROM users u
+        LEFT JOIN bet b ON u.id = b.user_id AND b.match_id = ?
+        ORDER BY u.user_name
+    ''', (match_id,)).fetchall()
+
+    # Calculate statistics
+    total_bets = sum(1 for b in bets if b['home_goals'] is not None)
+    home_wins = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] > b['away_goals'])
+    draws = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] == b['away_goals'])
+    away_wins = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] < b['away_goals'])
+
+    # Calculate points for each bet if match has finished
+    bets_with_points = []
+    for bet in bets:
+        bet_dict = dict(bet)
+        if match['final_home_goals'] is not None:
+            points, _ = calculate_match_points(
+                bet['home_goals'], bet['away_goals'],
+                match['final_home_goals'], match['final_away_goals']
+            )
+            bet_dict['points'] = points if bet['home_goals'] is not None else None
+        else:
+            bet_dict['points'] = None
+        bets_with_points.append(bet_dict)
+
+    conn.close()
+
+    stats = {
+        'total_bets': total_bets,
+        'home_wins': home_wins,
+        'draws': draws,
+        'away_wins': away_wins,
+    }
+
+    return render_template_string(
+        MATCH_STATS_TEMPLATE,
+        match=match,
+        bets=bets_with_points,
+        stats=stats,
+        translate_team_name=translate_team_name,
+    )
+
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
 @login_required
 def palpites_gerais():

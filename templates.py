@@ -366,7 +366,14 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
                     <div class="space-y-3 md:space-y-4">
                         {% for match in fixtures %}
-                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200">
+                            <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
+                                <!-- Stats Link -->
+                                <a href="{{ url_for('match_stats', match_id=match.id) }}"
+                                   class="absolute top-3 right-3 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                                   title="Ver estatísticas">
+                                    📊 Stats
+                                </a>
+
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
                                     <div class="text-[11px] md:text-xs text-slate-500 mb-3 font-semibold tracking-wide">
@@ -967,6 +974,160 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
         <div class="mt-6 text-center">
             <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
                 ← Voltar ao Início
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatísticas - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <!-- Match Header -->
+        <div class="mb-6 md:mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-2">{{ match.phase }}</p>
+                <div class="flex items-center justify-center gap-4 mb-4">
+                    <div class="text-center flex-1">
+                        <p class="text-lg md:text-2xl font-bold text-slate-800">{{ translate_team_name(match.home) }}</p>
+                    </div>
+                    <div class="text-center px-4">
+                        {% if match.final_home_goals is not none %}
+                            <p class="text-2xl md:text-4xl font-black text-slate-800">
+                                {{ match.final_home_goals }} - {{ match.final_away_goals }}
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">Resultado Final</p>
+                        {% else %}
+                            <p class="text-xl md:text-3xl font-black text-slate-400">× - ×</p>
+                            <p class="text-xs text-slate-500 mt-1">Aguardando</p>
+                        {% endif %}
+                    </div>
+                    <div class="text-center flex-1">
+                        <p class="text-lg md:text-2xl font-bold text-slate-800">{{ translate_team_name(match.away) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-1">Total de Palpites</p>
+                <p class="text-2xl font-bold text-slate-800">{{ stats.total_bets }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
+                <p class="text-2xl font-bold text-blue-600">{{ stats.home_wins }}</p>
+                {% if stats.total_bets > 0 %}
+                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-1">Empate</p>
+                <p class="text-2xl font-bold text-slate-600">{{ stats.draws }}</p>
+                {% if stats.total_bets > 0 %}
+                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
+                <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
+                <p class="text-2xl font-bold text-green-600">{{ stats.away_wins }}</p>
+                {% if stats.total_bets > 0 %}
+                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- All Bets Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+            <div class="px-4 py-3 bg-slate-100 border-b border-slate-300">
+                <h2 class="text-lg font-bold text-slate-800">Todos os Palpites</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-slate-700">Jogador</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Palpite</th>
+                            {% if match.final_home_goals is not none %}
+                                <th class="px-4 py-3 text-center font-bold text-slate-700">Pontos</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for bet in bets %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-3">
+                                    <a href="{{ url_for('jogador_detail', user_id=bet.user_id) }}"
+                                       class="font-semibold text-blue-600 hover:text-blue-700">
+                                        {{ bet.user_name }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    {% if bet.home_goals is not none %}
+                                        <span class="font-bold text-slate-700">{{ bet.home_goals }} - {{ bet.away_goals }}</span>
+                                    {% else %}
+                                        <span class="text-slate-400 text-xs">Sem palpite</span>
+                                    {% endif %}
+                                </td>
+                                {% if match.final_home_goals is not none %}
+                                    <td class="px-4 py-3 text-center">
+                                        {% if bet.points is not none %}
+                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
+                                                {% if bet.points == 6 %}bg-green-100 text-green-800
+                                                {% elif bet.points == 4 %}bg-blue-100 text-blue-800
+                                                {% elif bet.points == 3 %}bg-purple-100 text-purple-800
+                                                {% elif bet.points == 2 %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                                +{{ bet.points }}
+                                            </span>
+                                        {% elif bet.home_goals is not none %}
+                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold bg-slate-100 text-slate-600">
+                                                +0
+                                            </span>
+                                        {% else %}
+                                            <span class="text-slate-400 text-xs">-</span>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('matches') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar aos Palpites
             </a>
         </div>
     </div>
