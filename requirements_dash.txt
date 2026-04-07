@@ -1,9 +1,0 @@
-# Dash Application Dependencies
-dash>=2.14.0
-dash-bootstrap-components>=1.5.0
-plotly>=5.18.0
-pandas>=2.0.0
-
-# Existing dependencies from Flask app
-sqlite3  # Built-in to Python
-bcrypt>=4.0.0

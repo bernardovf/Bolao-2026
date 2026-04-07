@@ -1,13 +1,10 @@
-"""
-Bolão Copa 2026 - Fresh Modern Redesign
-Clean Flask application with Tailwind CSS
-"""
-
 from flask import Flask, render_template_string, request, redirect, url_for, session, flash
 import sqlite3
 from datetime import datetime
 from functools import wraps
 import os
+from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings
+from calculate_points import calculate_match_points
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -59,252 +56,6 @@ def migrate_palpites_gerais():
 # Run migration on startup
 migrate_palpites_gerais()
 
-# ============================================================================
-# HELPERS
-# ============================================================================
-
-def get_flag_url(team_name):
-    """Get flag URL for a team"""
-    # FIFA country codes mapping
-    flag_map = {
-        'Argentina': 'ar', 'Australia': 'au', 'Belgium': 'be', 'Brazil': 'br',
-        'Cameroon': 'cm', 'Canada': 'ca', 'Costa Rica': 'cr', 'Croatia': 'hr',
-        'Denmark': 'dk', 'Ecuador': 'ec', 'England': 'gb-eng', 'France': 'fr',
-        'Germany': 'de', 'Ghana': 'gh', 'Iran': 'ir', 'Japan': 'jp',
-        'Mexico': 'mx', 'Morocco': 'ma', 'Netherlands': 'nl', 'Poland': 'pl',
-        'Portugal': 'pt', 'Qatar': 'qa', 'Saudi Arabia': 'sa', 'Senegal': 'sn',
-        'Serbia': 'rs', 'South Korea': 'kr', 'Spain': 'es', 'Switzerland': 'ch',
-        'Tunisia': 'tn', 'Uruguay': 'uy', 'USA': 'us', 'Wales': 'gb-wls',
-        'Korea Republic': 'kr', 'South Africa': 'za', 'Scotland': 'gb-sct',
-        'Haiti': 'ht', 'Paraguay': 'py', 'Curacao': 'cw', 'Curaçao': 'cw',
-        'Ivory Coast': 'ci', 'Côte d\'Ivoire': 'ci', 'Cote d\'Ivoire': 'ci',
-        'Colombia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Venezuela': 've',
-        'Bolivia': 'bo', 'Panama': 'pa', 'Honduras': 'hn', 'Jamaica': 'jm',
-        'Trinidad and Tobago': 'tt', 'El Salvador': 'sv', 'Guatemala': 'gt',
-        'Algeria': 'dz', 'Nigeria': 'ng', 'Egypt': 'eg', 'Burkina Faso': 'bf',
-        'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no', 'Austria': 'at',
-        'Jordan': 'jo', 'Uzbekistan': 'uz',
-        'Democratic Republic of the Congo': 'cd', 'Turkey': 'tr', 'Iraq': 'iq', 'Bosnia and Herzegovina': 'ba',
-        'Sweden': 'se', 'Czech Republic': 'cz',
-    }
-
-    code = flag_map.get(team_name, '')
-    if code:
-        return f'https://flagcdn.com/w40/{code}.png'
-    return None
-
-
-def get_team_abbr(team_name):
-    """Return a 3-letter abbreviation for a team name."""
-    abbr_map = {
-        'Argentina': 'ARG', 'Australia': 'AUS', 'Belgium': 'BEL', 'Brazil': 'BRA',
-        'Cameroon': 'CMR', 'Canada': 'CAN', 'Costa Rica': 'CRC', 'Croatia': 'CRO',
-        'Denmark': 'DEN', 'Ecuador': 'ECU', 'England': 'ENG', 'France': 'FRA',
-        'Germany': 'GER', 'Ghana': 'GHA', 'Iran': 'IRN', 'Japan': 'JPN',
-        'Mexico': 'MEX', 'Morocco': 'MAR', 'Netherlands': 'NED', 'Poland': 'POL',
-        'Portugal': 'POR', 'Qatar': 'QAT', 'Saudi Arabia': 'KSA', 'Senegal': 'SEN',
-        'Serbia': 'SRB', 'South Korea': 'KOR', 'Spain': 'ESP', 'Switzerland': 'SUI',
-        'Tunisia': 'TUN', 'Uruguay': 'URU', 'USA': 'USA', 'Wales': 'WAL',
-        'Korea Republic': 'KOR', 'South Africa': 'RSA', 'Scotland': 'SCO',
-        'Haiti': 'HAI', 'Paraguay': 'PAR', 'Curacao': 'CUW', 'Curaçao': 'CUW',
-        "Ivory Coast": 'CIV', "Côte d'Ivoire": 'CIV', "Cote d'Ivoire": 'CIV',
-        'Colombia': 'COL', 'Chile': 'CHI', 'Peru': 'PER', 'Venezuela': 'VEN',
-        'Bolivia': 'BOL', 'Panama': 'PAN', 'Honduras': 'HON', 'Jamaica': 'JAM',
-        'Trinidad and Tobago': 'TRI', 'El Salvador': 'SLV', 'Guatemala': 'GUA',
-        'Algeria': 'ALG', 'Nigeria': 'NGA', 'Egypt': 'EGY', 'Burkina Faso': 'BFA',
-        'New Zealand': 'NZL', 'Cabo Verde': 'CPV', 'Norway': 'NOR', 'Austria': 'AUT',
-        'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'Democratic Republic of the Congo': 'COD',
-        'Turkey': 'TUR', 'Iraq': 'IRQ', 'Bosnia and Herzegovina': 'BIH',
-        'Sweden': 'SWE', 'Czech Republic': 'CZE',
-    }
-
-    if team_name in abbr_map:
-        return abbr_map[team_name]
-
-    cleaned = ''.join(ch for ch in team_name.upper() if ch.isalnum())
-    if len(cleaned) >= 3:
-        return cleaned[:3]
-    return cleaned.ljust(3, 'X')
-
-def calculate_match_points(bet_home, bet_away, final_home, final_away):
-    """
-    Calculate points for a single match
-    Returns: points (int), match_type (str: 'exact', 'partial', 'miss')
-    """
-    if bet_home is None or bet_away is None or final_home is None or final_away is None:
-        return 0, 'none'
-
-    # Exact match: 5 points
-    if bet_home == final_home and bet_away == final_away:
-        return 5, 'exact'
-
-    # Correct winner: 3 points
-    bet_diff = bet_home - bet_away
-    final_diff = final_home - final_away
-
-    # Same sign (both positive, both negative, or both zero) means correct winner/draw
-    if (bet_diff > 0 and final_diff > 0) or (bet_diff < 0 and final_diff < 0) or (bet_diff == 0 and final_diff == 0):
-        return 3, 'partial'
-
-    # Wrong: 0 points
-    return 0, 'miss'
-
-
-def translate_team_name(team_name):
-    """Return Portuguese display name for a given team."""
-    translations = {
-        'Argentina': 'Argentina',
-        'Australia': 'Austrália',
-        'Belgium': 'Bélgica',
-        'Brazil': 'Brasil',
-        'Cameroon': 'Camarões',
-        'Canada': 'Canadá',
-        'Costa Rica': 'Costa Rica',
-        'Croatia': 'Croácia',
-        'Denmark': 'Dinamarca',
-        'Ecuador': 'Equador',
-        'England': 'Inglaterra',
-        'France': 'França',
-        'Germany': 'Alemanha',
-        'Ghana': 'Gana',
-        'Iran': 'Irã',
-        'Japan': 'Japão',
-        'Mexico': 'México',
-        'Morocco': 'Marrocos',
-        'Netherlands': 'Holanda',
-        'Poland': 'Polônia',
-        'Portugal': 'Portugal',
-        'Qatar': 'Catar',
-        'Saudi Arabia': 'Arábia Saudita',
-        'Senegal': 'Senegal',
-        'Serbia': 'Sérvia',
-        'South Korea': 'Coreia do Sul',
-        'Spain': 'Espanha',
-        'Switzerland': 'Suíça',
-        'Tunisia': 'Tunísia',
-        'Uruguay': 'Uruguai',
-        'USA': 'Estados Unidos',
-        'Wales': 'País de Gales',
-        'Korea Republic': 'Coreia do Sul',
-        'South Africa': 'África do Sul',
-        'Scotland': 'Escócia',
-        'Haiti': 'Haiti',
-        'Paraguay': 'Paraguai',
-        'Curacao': 'Curaçao',
-        'Curaçao': 'Curaçao',
-        "Ivory Coast": 'Costa do Marfim',
-        "Côte d'Ivoire": 'Costa do Marfim',
-        "Cote d'Ivoire": 'Costa do Marfim',
-        'Colombia': 'Colômbia',
-        'Chile': 'Chile',
-        'Peru': 'Peru',
-        'Venezuela': 'Venezuela',
-        'Bolivia': 'Bolívia',
-        'Panama': 'Panamá',
-        'Honduras': 'Honduras',
-        'Jamaica': 'Jamaica',
-        'Trinidad and Tobago': 'Trinidad e Tobago',
-        'El Salvador': 'El Salvador',
-        'Guatemala': 'Guatemala',
-        'Algeria': 'Argélia',
-        'Nigeria': 'Nigéria',
-        'Egypt': 'Egito',
-        'Burkina Faso': 'Burkina Faso',
-        'New Zealand': 'Nova Zelândia',
-        'Cabo Verde': 'Cabo Verde',
-        'Norway': 'Noruega',
-        'Austria': 'Áustria',
-        'Jordan': 'Jordânia',
-        'Uzbekistan': 'Uzbequistão',
-        'Democratic Republic of the Congo': 'RD Congo',
-        'Turkey': 'Turquia',
-        'Iraq': 'Iraque',
-        'Bosnia and Herzegovina': 'Bósnia / Herzegovina',
-        'Sweden': 'Suécia',
-        'Czech Republic': 'República Checa',
-    }
-
-    return translations.get(team_name, team_name)
-
-def format_match_datetime(kickoff_utc):
-    """Format match datetime for display"""
-    if not kickoff_utc:
-        return None
-    try:
-        # Parse UTC datetime
-        dt = datetime.fromisoformat(kickoff_utc.replace('Z', '+00:00'))
-        # Format as: "21/06 14:00"
-        return dt.strftime('%d/%m %H:%M')
-    except:
-        return None
-
-def calculate_group_standings(fixtures, user_bets):
-    """
-    Calculate standings for teams in fixtures based on the user's bets.
-    Returns: list of dicts with team stats sorted by points.
-    """
-
-    def ensure_team(team_name):
-        if team_name not in standings:
-            standings[team_name] = {
-                'team': team_name,
-                'played': 0,
-                'won': 0,
-                'drawn': 0,
-                'lost': 0,
-                'gf': 0,
-                'ga': 0,
-                'gd': 0,
-                'points': 0
-            }
-
-    standings = {}
-
-    for match in fixtures:
-        home = match['home']
-        away = match['away']
-        ensure_team(home)
-        ensure_team(away)
-
-        bet = user_bets.get(match['id'])
-        if not bet:
-            # No bet for this match: don't count stats yet
-            continue
-
-        home_goals = bet['home_goals']
-        away_goals = bet['away_goals']
-
-        standings[home]['played'] += 1
-        standings[away]['played'] += 1
-        standings[home]['gf'] += home_goals
-        standings[home]['ga'] += away_goals
-        standings[away]['gf'] += away_goals
-        standings[away]['ga'] += home_goals
-
-        if home_goals > away_goals:  # Home win
-            standings[home]['won'] += 1
-            standings[home]['points'] += 3
-            standings[away]['lost'] += 1
-        elif home_goals < away_goals:  # Away win
-            standings[away]['won'] += 1
-            standings[away]['points'] += 3
-            standings[home]['lost'] += 1
-        else:  # Draw
-            standings[home]['drawn'] += 1
-            standings[away]['drawn'] += 1
-            standings[home]['points'] += 1
-            standings[away]['points'] += 1
-
-        standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
-        standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
-
-    sorted_standings = sorted(
-        standings.values(),
-        key=lambda x: (x['points'], x['gd'], x['gf']),
-        reverse=True
-    )
-
-    return sorted_standings
 
 # ============================================================================
 # AUTHENTICATION
@@ -487,7 +238,8 @@ def jogador_detail(user_id):
         JOGADOR_DETAIL_TEMPLATE,
         player=player,
         bets=bets,
-        total_points=total_points
+        total_points=total_points,
+        translate_team_name=translate_team_name,
     )
 
 @app.route('/matches')
@@ -646,7 +398,7 @@ def palpites_gerais():
             )
         conn.commit()
         conn.close()
-        flash('✓ Palpites gerais salvos com sucesso!', 'success')
+        flash('✓ Extras salvos com sucesso!', 'success')
         return redirect(url_for('palpites_gerais'))
 
     row = conn.execute('SELECT * FROM palpites_gerais WHERE user_id=?', (user_id,)).fetchone()
@@ -656,9 +408,8 @@ def palpites_gerais():
     conn.close()
 
     teams = [t[0] for t in teams if not t[0].startswith(('UEFA', 'FIFA'))]
-    from constants import TEAM_TRANSLATIONS
     translated_teams = sorted(
-        [(t, TEAM_TRANSLATIONS.get(t, t)) for t in teams],
+        [(t, translations.get(t, t)) for t in teams],
         key=lambda x: x[1]
     )
 
@@ -782,24 +533,6 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
-                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
-                    <a href="{{ url_for('dashboard') }}" class="font-semibold text-blue-600">Início</a>
-                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
-                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <!-- Welcome Header -->
         <div class="mb-6 md:mb-8">
@@ -831,10 +564,18 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+        
+            <!-- View Regras Card -->
+            <a href="{{ url_for('regras') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Regras</h3>
+                </div>
+            </a>
+        
             <!-- View Ranking Card -->
             <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-1">Ver Ranking</h3>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Ranking</h3>
                 </div>
             </a>
 
@@ -845,10 +586,10 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
                 </div>
             </a>
 
-            <!-- Palpites Gerais Card -->
+            <!-- Extras Card -->
             <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-1">Palpites Gerais</h3>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Extras</h3>
                 </div>
             </a>
         </div>
@@ -862,7 +603,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking - Bolão 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
@@ -874,13 +614,10 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     <nav class="bg-white shadow-md">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
@@ -966,13 +703,10 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
     <nav class="bg-white shadow-md">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
@@ -1175,7 +909,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palpites Gerais - Bolão 2026</title>
+    <title>Extras - Bolão 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
@@ -1187,13 +921,10 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
     <nav class="bg-white shadow-md">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
@@ -1204,7 +935,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Palpites Gerais</h1>
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Extras</h1>
             <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
         </div>
 
@@ -1286,7 +1017,7 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <button type="submit"
                     class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition">
-                Salvar Palpites Gerais
+                Salvar Extras
             </button>
         </form>
     </div>
@@ -1311,13 +1042,10 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
     <nav class="bg-white shadow-md">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
@@ -1416,13 +1144,10 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
     <nav class="bg-white shadow-md">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-2 md:space-x-3">
-                    <span class="text-base md:text-xl font-black text-blue-600">Bolão 2026</span>
-                </div>
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
-                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites Gerais</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
@@ -1445,7 +1170,6 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-slate-100 border-b-2 border-slate-300">
                         <tr>
                             <th class="px-4 py-3 text-left font-bold text-slate-700">Fase</th>
-                            <th class="px-4 py-3 text-center font-bold text-slate-700"># Jogos</th>
                             <th class="px-4 py-3 text-center font-bold text-slate-700">Pontos por jogo</th>
                             <th class="px-4 py-3 text-center font-bold text-slate-700">Total Pontos</th>
                         </tr>
@@ -1453,43 +1177,36 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <tbody class="divide-y divide-slate-200">
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Grupos</td>
-                            <td class="px-4 py-3 text-center">72</td>
                             <td class="px-4 py-3 text-center">6</td>
                             <td class="px-4 py-3 text-center font-bold">432</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">16 avos</td>
-                            <td class="px-4 py-3 text-center">16</td>
                             <td class="px-4 py-3 text-center">18</td>
                             <td class="px-4 py-3 text-center font-bold">288</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Oitavas</td>
-                            <td class="px-4 py-3 text-center">8</td>
                             <td class="px-4 py-3 text-center">24</td>
                             <td class="px-4 py-3 text-center font-bold">192</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Quartas</td>
-                            <td class="px-4 py-3 text-center">4</td>
                             <td class="px-4 py-3 text-center">36</td>
                             <td class="px-4 py-3 text-center font-bold">144</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Semi</td>
-                            <td class="px-4 py-3 text-center">2</td>
                             <td class="px-4 py-3 text-center">48</td>
                             <td class="px-4 py-3 text-center font-bold">96</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Terceiro Lugar</td>
-                            <td class="px-4 py-3 text-center">1</td>
                             <td class="px-4 py-3 text-center">48</td>
                             <td class="px-4 py-3 text-center font-bold">48</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">Final</td>
-                            <td class="px-4 py-3 text-center">1</td>
                             <td class="px-4 py-3 text-center">72</td>
                             <td class="px-4 py-3 text-center font-bold">72</td>
                         </tr>
@@ -1527,35 +1244,51 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Zebra -->
             <div class="mb-6">
-                <h3 class="text-lg font-bold text-slate-700 mb-3">1. 60 pontos: Zebra que foi mais longe, opções fechadas:</h3>
+                <h3 class="text-lg font-bold text-slate-700 mb-3">60 pontos: Zebra que foi mais longe, opções fechadas:</h3>
                 <p class="text-sm italic mb-2">Haiti, Curaçao, Nova Zelândia, Cabo Verde, Iraque, Jordânia, DR Congo, Uzbequistão, Panamá</p>
                 <ul class="ml-6 space-y-2 text-sm">
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se ninguém cair na primeira fase ou nos 16 avos, o campeão será quem acertou a zebra que foi mais longe na competição (será decidido pela ordem dos jogos no tempo normal/tempo normal + prorrogação) (fase de grupos não conta)</span>
+                        <span>Se todos forem eliminados na fase de grupos, ninguém pontua.</span>
                     </li>
+                
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se todos caírem na primeira fase ou nos 16 avos de final, desempate será decidido pelo saldo de gols do jogo da primeira fase (normalmente tempo normal/tempo normal + prorrogação) em que eles caíram</span>
+                        <span>
+                            Se o último eliminado ocorrer até as oitavas de final (inclusive), vence quem apostou no time que chegou mais longe.
+                            Em caso de empate (eliminação na mesma fase), o desempate será definido por:
+                            (1) saldo de gols no jogo eliminatório (tempo normal) e,
+                            (2) persistindo empate, pela campanha na fase de grupos.
+                            Apenas um vencedor.
+                        </span>
                     </li>
+                
                     <li class="flex items-start">
                         <span class="mr-2">◦</span>
-                        <span>Se os últimos caírem nas oitavas, quartas, <strong>semi</strong> ou final, sem critério de desempate, todos os que apostaram ganham</span>
+                        <span>
+                            Se o último eliminado ocorrer a partir das quartas de final (quartas, semifinal ou final),
+                            todos que apostaram em times que chegaram pelo menos às quartas pontuam.
+                        </span>
                     </li>
-                    <li class="ml-4 space-y-1 text-xs">
-                        <li>◦ Se Haiti e Cabo Verde caírem nas oitavas, Cabo Verde nas quartas e todas as outras na fase de grupos</li>
-                        <li class="ml-6">▪ Apenas quem apostou em Cabo Verde ganha</li>
-                        <li>◦ Se Haiti e Cabo Verde caírem nas oitavas e todas as outras na fase de grupos</li>
-                        <li class="ml-6">▪ Quem apostou em Haiti ganha todos os pontos</li>
-                        <li>◦ Se Haiti e Cabo Verde caírem nas <strong>16 avos</strong> de final com Haiti e Cabo Verde saindo nos pênaltis e todas as outras na fase de grupos</li>
-                        <li class="ml-6">▪ Quem for melhor campanha na fase de grupos ganha</li>
+                
+                    <li class="ml-4 space-y-1 text-xs list-none">
+                        <ul class="space-y-1">
+                            <li>◦ Se o Haiti cair nas oitavas, Cabo Verde nas quartas e os demais na fase de grupos:</li>
+                            <li class="ml-6">▪ Apenas quem apostou em Cabo Verde ganha</li>
+                
+                            <li>◦ Se Haiti e Cabo Verde caírem nas quartas e os demais na fase de grupos (ou nas oitavas):</li>
+                            <li class="ml-6">▪ Quem apostou em Haiti ou Cabo Verde ganha</li>
+                
+                            <li>◦ Se Haiti e Cabo Verde caírem nas oitavas, ambos eliminados nos pênaltis e os demais na fase de grupos:</li>
+                            <li class="ml-6">▪ Vence quem tiver melhor campanha na fase de grupos</li>
+                        </ul>
                     </li>
-                </ul>
-            </div>
+                </ul>            
+                </div>
 
             <!-- Favorito -->
             <div class="mb-6">
-                <h3 class="text-lg font-bold text-slate-700 mb-3">2. 60 pontos: Favorito que caiu antes, opções fechadas:</h3>
+                <h3 class="text-lg font-bold text-slate-700 mb-3">60 pontos: Favorito que caiu antes, opções fechadas:</h3>
                 <p class="text-sm italic mb-2">Brasil, Argentina, Alemanha, Holanda, Espanha, França, Portugal, Inglaterra</p>
                 <ul class="ml-6 space-y-2 text-sm">
                     <li class="flex items-start">
@@ -1575,10 +1308,10 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Outros Extras -->
             <div class="space-y-2 text-sm md:text-base">
-                <p><strong>3. 60 pontos: Campeão</strong></p>
-                <p><strong>4. 60 pontos: Artilheiro</strong></p>
-                <p><strong>5. 60 pontos: Melhor Jogador</strong></p>
-                <p><strong>6. 4 pontos por classificado certo na fase de grupos</strong></p>
+                <p><strong>60 pontos: Campeão</strong></p>
+                <p><strong>60 pontos: Artilheiro</strong></p>
+                <p><strong>60 pontos: Melhor Jogador</strong></p>
+                <p><strong>4 pontos por classificado certo na fase de grupos</strong></p>
             </div>
         </div>
 
