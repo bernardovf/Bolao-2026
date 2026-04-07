@@ -58,8 +58,55 @@ def migrate_palpites_gerais():
     conn.commit()
     conn.close()
 
-# Run migration on startup
+def migrate_bet_table():
+    """Recreate bet table without foreign key constraints"""
+    conn = get_db()
+
+    # Check if we need to migrate (check if foreign keys exist)
+    cursor = conn.execute("PRAGMA foreign_key_list(bet)")
+    foreign_keys = cursor.fetchall()
+
+    # If foreign keys reference 'user' or 'match' tables, we need to migrate
+    needs_migration = any(fk[2] in ('user', 'match') for fk in foreign_keys)
+
+    if needs_migration:
+        print("Migrating bet table...")
+
+        # Backup existing data
+        conn.execute("CREATE TABLE bet_backup AS SELECT * FROM bet")
+
+        # Drop old table
+        conn.execute("DROP TABLE bet")
+
+        # Create new table without problematic foreign keys
+        conn.execute('''
+            CREATE TABLE bet (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                match_id INTEGER NOT NULL,
+                home_goals INTEGER NOT NULL,
+                away_goals INTEGER NOT NULL,
+                UNIQUE(user_id, match_id)
+            )
+        ''')
+
+        # Restore data
+        conn.execute('''
+            INSERT INTO bet (id, user_id, match_id, home_goals, away_goals)
+            SELECT id, user_id, match_id, home_goals, away_goals FROM bet_backup
+        ''')
+
+        # Drop backup table
+        conn.execute("DROP TABLE bet_backup")
+
+        conn.commit()
+        print("Bet table migration completed")
+
+    conn.close()
+
+# Run migrations on startup
 migrate_palpites_gerais()
+migrate_bet_table()
 
 # ============================================================================
 # AUTHENTICATION
