@@ -644,7 +644,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Campeão</p>
-                    <p class="font-semibold text-slate-800">{{ palpites_gerais.campeao or '-' }}</p>
+                    <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.campeao) if palpites_gerais.campeao else '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Artilheiro</p>
@@ -656,11 +656,11 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Zebra que foi mais longe</p>
-                    <p class="font-semibold text-slate-800">{{ palpites_gerais.zebra_longe or '-' }}</p>
+                    <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.zebra_longe) if palpites_gerais.zebra_longe else '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Favorito que caiu antes</p>
-                    <p class="font-semibold text-slate-800">{{ palpites_gerais.favorito_caiu or '-' }}</p>
+                    <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.favorito_caiu) if palpites_gerais.favorito_caiu else '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Anfitrião que vai mais longe</p>
