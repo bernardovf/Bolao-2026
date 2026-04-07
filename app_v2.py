@@ -129,31 +129,30 @@ def dashboard():
         (user_id,)
     ).fetchone()['count']
 
-    # Points
-    points_query = '''
-        SELECT
-            SUM(CASE
-                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
-                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
-                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
-                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
-                THEN 5
-                ELSE 0
-            END) as total_points,
-            COUNT(CASE WHEN b.home_goals = f.final_home_goals
-                       AND b.away_goals = f.final_away_goals THEN 1 END) as exact_matches,
-            COUNT(CASE WHEN f.final_home_goals IS NOT NULL THEN 1 END) as matches_finished
+    # Get all user bets with results
+    user_bets = conn.execute('''
+        SELECT b.home_goals as bet_home, b.away_goals as bet_away,
+               f.final_home_goals, f.final_away_goals
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE b.user_id = ? AND f.final_home_goals IS NOT NULL
-    '''
+    ''', (user_id,)).fetchall()
 
-    stats = conn.execute(points_query, (user_id,)).fetchone()
     conn.close()
 
-    total_points = stats['total_points'] or 0
-    exact_matches = stats['exact_matches'] or 0
-    matches_finished = stats['matches_finished'] or 0
+    # Calculate points and stats using calculate_match_points
+    total_points = 0
+    exact_matches = 0
+    matches_finished = len(user_bets)
+
+    for bet in user_bets:
+        points, match_type = calculate_match_points(
+            bet['bet_home'], bet['bet_away'],
+            bet['final_home_goals'], bet['final_away_goals']
+        )
+        total_points += points
+        if match_type == 'exact':
+            exact_matches += 1
 
     return render_template_string(DASHBOARD_TEMPLATE,
                                  user_name=user_name,
@@ -168,26 +167,41 @@ def ranking():
     """Rankings page"""
     conn = get_db()
 
-    rankings = conn.execute('''
-        SELECT
-            u.id,
-            u.user_name,
-            COALESCE(SUM(CASE
-                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
-                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
-                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
-                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
-                THEN 5
-                ELSE 0
-            END), 0) as total_points
-        FROM users u
-        LEFT JOIN bet b ON u.id = b.user_id
-        LEFT JOIN fixtures f ON b.match_id = f.id AND f.final_home_goals IS NOT NULL
-        GROUP BY u.id, u.user_name
-        ORDER BY total_points DESC, u.user_name ASC
+    # Get all users
+    users = conn.execute('SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+
+    # Get all bets with fixture results
+    bets_data = conn.execute('''
+        SELECT b.user_id, b.home_goals as bet_home, b.away_goals as bet_away,
+               f.final_home_goals, f.final_away_goals
+        FROM bet b
+        JOIN fixtures f ON b.match_id = f.id
+        WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
     ''').fetchall()
 
     conn.close()
+
+    # Calculate points for each user using calculate_match_points
+    user_points = {}
+    for bet in bets_data:
+        points, _ = calculate_match_points(
+            bet['bet_home'], bet['bet_away'],
+            bet['final_home_goals'], bet['final_away_goals']
+        )
+        user_id = bet['user_id']
+        user_points[user_id] = user_points.get(user_id, 0) + points
+
+    # Build rankings list
+    rankings = []
+    for user in users:
+        rankings.append({
+            'id': user['id'],
+            'user_name': user['user_name'],
+            'total_points': user_points.get(user['id'], 0)
+        })
+
+    # Sort by points descending, then by name
+    rankings.sort(key=lambda x: (-x['total_points'], x['user_name']))
 
     return render_template_string(RANKING_TEMPLATE,
                                  rankings=rankings,
@@ -206,8 +220,8 @@ def jogador_detail(user_id):
         flash('Jogador não encontrado', 'error')
         return redirect(url_for('ranking'))
 
-    # Get all player bets with match info and points
-    bets = conn.execute('''
+    # Get all player bets with match info (no points in SQL)
+    bets_raw = conn.execute('''
         SELECT
             f.id as match_id,
             f.phase,
@@ -217,25 +231,31 @@ def jogador_detail(user_id):
             f.final_home_goals,
             f.final_away_goals,
             b.home_goals as bet_home,
-            b.away_goals as bet_away,
-            CASE
-                WHEN f.final_home_goals IS NULL OR f.final_away_goals IS NULL THEN NULL
-                WHEN b.home_goals = f.final_home_goals AND b.away_goals = f.final_away_goals THEN 10
-                WHEN (b.home_goals > b.away_goals AND f.final_home_goals > f.final_away_goals)
-                     OR (b.home_goals < b.away_goals AND f.final_home_goals < f.final_away_goals)
-                     OR (b.home_goals = b.away_goals AND f.final_home_goals = f.final_away_goals)
-                THEN 5
-                ELSE 0
-            END as points
+            b.away_goals as bet_away
         FROM fixtures f
         LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
         ORDER BY f.id
     ''', (user_id,)).fetchall()
 
-    # Calculate total points
-    total_points = sum(bet['points'] for bet in bets if bet['points'] is not None)
-
     conn.close()
+
+    # Calculate points using calculate_match_points
+    bets = []
+    total_points = 0
+
+    for bet in bets_raw:
+        points, _ = calculate_match_points(
+            bet['bet_home'], bet['bet_away'],
+            bet['final_home_goals'], bet['final_away_goals']
+        )
+
+        # Convert Row to dict and add points
+        bet_dict = dict(bet)
+        bet_dict['points'] = points if bet['final_home_goals'] is not None else None
+        bets.append(bet_dict)
+
+        if bet_dict['points'] is not None:
+            total_points += bet_dict['points']
 
     return render_template_string(
         JOGADOR_DETAIL_TEMPLATE,
