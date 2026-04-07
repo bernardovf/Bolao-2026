@@ -637,13 +637,55 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             <p class="text-base md:text-lg text-slate-600">Total: <span class="font-bold text-blue-600">{{ total_points }} pontos</span></p>
         </div>
 
+        <!-- Palpites Gerais -->
+        {% if palpites_gerais %}
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Palpites Gerais</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Campeão</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.campeao or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Artilheiro</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.artilheiro or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Melhor Jogador</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.melhor_jogador or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Zebra que foi mais longe</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.zebra_longe or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Favorito que caiu antes</p>
+                    <p class="font-semibold text-slate-800">{{ palpites_gerais.favorito_caiu or '-' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Phase Filter -->
+        <div class="mb-6">
+            <div class="flex flex-wrap gap-2">
+                {% for phase in phases %}
+                    <a href="{{ url_for('jogador_detail', user_id=player.id, phase=phase) }}"
+                       class="px-4 py-2 rounded-lg font-semibold text-sm transition
+                              {% if phase == phase_filter %}bg-blue-600 text-white
+                              {% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-300{% endif %}">
+                        {{ phase }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- Bets Table -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-slate-100 border-b-2 border-slate-300">
                         <tr>
-                            <th class="px-3 py-3 text-left font-bold text-slate-700">Fase</th>
                             <th class="px-3 py-3 text-left font-bold text-slate-700">Jogo</th>
                             <th class="px-3 py-3 text-center font-bold text-slate-700">Palpite</th>
                             <th class="px-3 py-3 text-center font-bold text-slate-700">Resultado</th>
@@ -653,7 +695,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <tbody class="divide-y divide-slate-200">
                         {% for bet in bets %}
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="px-3 py-3 text-xs text-slate-600">{{ bet.phase }}</td>
                                 <td class="px-3 py-3">
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold truncate">{{ translate_team_name(bet.home) }}</span>

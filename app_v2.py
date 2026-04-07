@@ -220,22 +220,55 @@ def jogador_detail(user_id):
         flash('Jogador não encontrado', 'error')
         return redirect(url_for('ranking'))
 
-    # Get all player bets with match info (no points in SQL)
-    bets_raw = conn.execute('''
-        SELECT
-            f.id as match_id,
-            f.phase,
-            f.home,
-            f.away,
-            f.kickoff_utc,
-            f.final_home_goals,
-            f.final_away_goals,
-            b.home_goals as bet_home,
-            b.away_goals as bet_away
-        FROM fixtures f
-        LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
-        ORDER BY f.id
-    ''', (user_id,)).fetchall()
+    # Get all phases
+    phases = conn.execute('SELECT DISTINCT phase FROM fixtures ORDER BY id').fetchall()
+
+    # Determine active phase filter
+    phase_filter = request.args.get('phase')
+    if not phase_filter and phases:
+        phase_filter = phases[0]['phase']
+
+    # Get all player bets with match info (no points in SQL), filtered by phase
+    if phase_filter:
+        bets_raw = conn.execute('''
+            SELECT
+                f.id as match_id,
+                f.phase,
+                f.home,
+                f.away,
+                f.kickoff_utc,
+                f.final_home_goals,
+                f.final_away_goals,
+                b.home_goals as bet_home,
+                b.away_goals as bet_away
+            FROM fixtures f
+            LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
+            WHERE f.phase = ?
+            ORDER BY f.id
+        ''', (user_id, phase_filter)).fetchall()
+    else:
+        bets_raw = conn.execute('''
+            SELECT
+                f.id as match_id,
+                f.phase,
+                f.home,
+                f.away,
+                f.kickoff_utc,
+                f.final_home_goals,
+                f.final_away_goals,
+                b.home_goals as bet_home,
+                b.away_goals as bet_away
+            FROM fixtures f
+            LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
+            ORDER BY f.id
+        ''', (user_id,)).fetchall()
+
+    # Get palpites gerais
+    palpites_gerais = conn.execute('''
+        SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu
+        FROM palpites_gerais
+        WHERE user_id = ?
+    ''', (user_id,)).fetchone()
 
     conn.close()
 
@@ -262,6 +295,9 @@ def jogador_detail(user_id):
         player=player,
         bets=bets,
         total_points=total_points,
+        phases=[p['phase'] for p in phases],
+        phase_filter=phase_filter,
+        palpites_gerais=palpites_gerais,
         translate_team_name=translate_team_name,
     )
 
