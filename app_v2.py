@@ -312,7 +312,7 @@ def jogador_detail(user_id):
 
     # Get palpites gerais
     palpites_gerais = conn.execute('''
-        SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu
+        SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu, anfitriao_longe
         FROM palpites_gerais
         WHERE user_id = ?
     ''', (user_id,)).fetchone()
