@@ -8,6 +8,14 @@ from constants import translations
 from calculate_points import calculate_match_points
 from templates import *
 
+# PostgreSQL support
+try:
+    import psycopg2
+    import psycopg2.extras
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
@@ -31,21 +39,41 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 BETTING_CLOSED = True
 
 # ============================================================================
-# DATABASE PATH
+# DATABASE CONFIGURATION
 # ============================================================================
 
-# Database path
-DB_PATH = 'bolao_2026_dev.db'
+# Database URL - usa PostgreSQL em produção, SQLite local para desenvolvimento
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Se DATABASE_URL existe (Render), usa PostgreSQL
+# Se não existe (desenvolvimento local), usa SQLite
+if DATABASE_URL:
+    # Render/PostgreSQL
+    # Fix: Render usa postgres:// mas psycopg2 precisa de postgresql://
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    DB_PATH = None
+else:
+    # Local/SQLite
+    DB_PATH = 'bolao_2026_dev.db'
+    DATABASE_URL = None
 
 # ============================================================================
 # DATABASE HELPERS
 # ============================================================================
 
 def get_db():
-    """Get database connection"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Get database connection - PostgreSQL ou SQLite"""
+    if DATABASE_URL and POSTGRES_AVAILABLE:
+        # PostgreSQL (produção)
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.cursor_factory = psycopg2.extras.RealDictCursor
+        return conn
+    else:
+        # SQLite (desenvolvimento local)
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 def query_db(query, args=(), one=False):
     """Execute a query and return results"""
