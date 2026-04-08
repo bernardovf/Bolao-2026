@@ -671,7 +671,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Anfitrião que vai mais longe</p>
-                    <p class="font-semibold text-slate-800">{{ palpites_gerais.anfitriao_longe or '-' }}</p>
+                    <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.anfitriao_longe) if palpites_gerais.anfitriao_longe else '-' }}</p>
                 </div>
             </div>
         </div>
@@ -1011,50 +1011,24 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
     </nav>
 
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
-        <!-- Match Header -->
-        <div class="mb-6 md:mb-8">
-            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 border border-slate-200">
-                <p class="text-xs text-slate-500 mb-2">{{ match.phase }}</p>
-                <div class="flex items-center justify-center gap-4 mb-4">
-                    <div class="text-center flex-1">
-                        <p class="text-lg md:text-2xl font-bold text-slate-800">{{ translate_team_name(match.home) }}</p>
-                    </div>
-                    <div class="text-center px-4">
-                        {% if match.final_home_goals is not none %}
-                            <p class="text-2xl md:text-4xl font-black text-slate-800">
-                                {{ match.final_home_goals }} - {{ match.final_away_goals }}
-                            </p>
-                            <p class="text-xs text-slate-500 mt-1">Resultado Final</p>
-                        {% else %}
-                            <p class="text-xl md:text-3xl font-black text-slate-400">× - ×</p>
-                            <p class="text-xs text-slate-500 mt-1">Aguardando</p>
-                        {% endif %}
-                    </div>
-                    <div class="text-center flex-1">
-                        <p class="text-lg md:text-2xl font-bold text-slate-800">{{ translate_team_name(match.away) }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Statistics Summary -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Home Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
-                <p class="text-2xl font-bold text-blue-600">{{ stats.home_wins }}</p>
+                <p class="text-base text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
+                <p class="text-3xl font-bold text-blue-600">{{ stats.home_wins }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
+                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
                 {% endif %}
 
                 {% if stats.home_win_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
                         <div class="space-y-1">
                             {% for score, count in stats.home_win_scores %}
-                                <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
                                 </div>
                             {% endfor %}
                         </div>
@@ -1064,20 +1038,20 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Draws -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-xs text-slate-500 mb-1">Empate</p>
-                <p class="text-2xl font-bold text-slate-600">{{ stats.draws }}</p>
+                <p class="text-s text-slate-500 mb-1">Empate</p>
+                <p class="text-3xl font-bold text-slate-600">{{ stats.draws }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
+                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
                 {% endif %}
 
                 {% if stats.draw_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
                         <div class="space-y-1">
                             {% for score, count in stats.draw_scores %}
-                                <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
                                 </div>
                             {% endfor %}
                         </div>
@@ -1087,20 +1061,20 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Away Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
-                <p class="text-2xl font-bold text-green-600">{{ stats.away_wins }}</p>
+                <p class="text-s text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.away_wins }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
+                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
                 {% endif %}
 
                 {% if stats.away_win_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
                         <div class="space-y-1">
                             {% for score, count in stats.away_win_scores %}
-                                <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
                                 </div>
                             {% endfor %}
                         </div>
