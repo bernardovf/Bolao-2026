@@ -587,10 +587,6 @@ def palpites_gerais():
     teams = conn.execute(
         'SELECT DISTINCT home FROM fixtures UNION SELECT DISTINCT away FROM fixtures ORDER BY 1'
     ).fetchall()
-
-    # Get all users' predictions for statistics
-    all_predictions = conn.execute('SELECT * FROM palpites_gerais').fetchall()
-
     conn.close()
 
     teams = [t[0] for t in teams if not t[0].startswith(('UEFA', 'FIFA'))]
@@ -599,33 +595,61 @@ def palpites_gerais():
         key=lambda x: x[1]
     )
 
-    # Calculate statistics for each category
-    def count_predictions(field):
-        """Count occurrences of each prediction for a given field"""
-        counts = {}
-        for pred in all_predictions:
-            value = pred[field]
-            if value and value.strip():
-                counts[value] = counts.get(value, 0) + 1
-        return sorted(counts.items(), key=lambda x: x[1], reverse=True)
-
-    stats = {
-        'campeao': count_predictions('campeao'),
-        'artilheiro': count_predictions('artilheiro'),
-        'melhor_jogador': count_predictions('melhor_jogador'),
-        'zebra_longe': count_predictions('zebra_longe'),
-        'favorito_caiu': count_predictions('favorito_caiu'),
-    }
-
-    total_predictions = len(all_predictions)
-
     return render_template_string(
         PALPITES_GERAIS_TEMPLATE,
         row=dict(row) if row else {},
         translated_teams=translated_teams,
-        stats=stats,
+    )
+
+@app.route('/extras/<category>/stats')
+@login_required
+def extras_stats(category):
+    """Statistics for a specific extras category"""
+    conn = get_db()
+
+    # Valid categories
+    valid_categories = {
+        'campeao': 'Campeão',
+        'artilheiro': 'Artilheiro',
+        'melhor_jogador': 'Melhor Jogador',
+        'zebra_longe': 'Zebra que vai mais longe',
+        'favorito_caiu': 'Favorito que vai cair antes',
+    }
+
+    if category not in valid_categories:
+        flash('Categoria não encontrada', 'error')
+        return redirect(url_for('palpites_gerais'))
+
+    # Get all predictions for this category
+    all_predictions = conn.execute(
+        f'SELECT u.id as user_id, u.user_name, p.{category} FROM users u LEFT JOIN palpites_gerais p ON u.id = p.user_id ORDER BY u.user_name'
+    ).fetchall()
+
+    # Calculate statistics
+    option_counts = {}
+    for pred in all_predictions:
+        value = pred[category]
+        if value and value.strip():
+            option_counts[value] = option_counts.get(value, 0) + 1
+
+    sorted_options = sorted(option_counts.items(), key=lambda x: x[1], reverse=True)
+    total_predictions = sum(count for _, count in sorted_options)
+
+    # Check if this category uses team names
+    is_team_category = category in ['campeao', 'zebra_longe', 'favorito_caiu']
+
+    conn.close()
+
+    return render_template_string(
+        EXTRAS_STATS_TEMPLATE,
+        category=category,
+        category_title=valid_categories[category],
+        predictions=all_predictions,
+        options=sorted_options,
         total_predictions=total_predictions,
+        is_team_category=is_team_category,
         translate_team_name=translate_team_name,
+        get_flag_url=get_flag_url,
     )
 
 @app.route('/regras')

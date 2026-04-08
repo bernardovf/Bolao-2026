@@ -523,7 +523,12 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
         <form method="POST" class="space-y-5">
             <!-- Champion -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                <a href="{{ url_for('extras_stats', category='campeao') }}"
+                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                   title="Ver estatísticas">
+                    📊 Stats
+                </a>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Campeão</label>
                 <select name="campeao"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
@@ -535,7 +540,12 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Top Scorer -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                <a href="{{ url_for('extras_stats', category='artilheiro') }}"
+                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                   title="Ver estatísticas">
+                    📊 Stats
+                </a>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Artilheiro</label>
                 <input type="text" name="artilheiro"
                        value="{{ row.get('artilheiro', '') }}"
@@ -544,7 +554,12 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Best Player -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                <a href="{{ url_for('extras_stats', category='melhor_jogador') }}"
+                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                   title="Ver estatísticas">
+                    📊 Stats
+                </a>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Melhor Jogador</label>
                 <input type="text" name="melhor_jogador"
                        value="{{ row.get('melhor_jogador', '') }}"
@@ -553,7 +568,12 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Underdog That Went Furthest -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                <a href="{{ url_for('extras_stats', category='zebra_longe') }}"
+                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                   title="Ver estatísticas">
+                    📊 Stats
+                </a>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que vai mais longe</label>
                 <select name="zebra_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
@@ -571,7 +591,12 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Favorite That Fell Early -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                <a href="{{ url_for('extras_stats', category='favorito_caiu') }}"
+                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                   title="Ver estatísticas">
+                    📊 Stats
+                </a>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que vai cair antes</label>
                 <select name="favorito_caiu"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
@@ -604,111 +629,6 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 Salvar Extras
             </button>
         </form>
-
-        <!-- Statistics Section -->
-        <div class="mt-10">
-            <h2 class="text-xl md:text-2xl font-black text-slate-800 mb-6">Estatísticas dos Palpites</h2>
-
-            <!-- Campeão Stats -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
-                <h3 class="text-base font-bold text-slate-700 mb-3">Campeão</h3>
-                {% if stats.campeao %}
-                    <div class="space-y-2">
-                        {% for team, count in stats.campeao %}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
-                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
-                {% endif %}
-            </div>
-
-            <!-- Artilheiro Stats -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
-                <h3 class="text-base font-bold text-slate-700 mb-3">Artilheiro</h3>
-                {% if stats.artilheiro %}
-                    <div class="space-y-2">
-                        {% for player, count in stats.artilheiro %}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                                <span class="font-semibold text-slate-800">{{ player }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
-                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
-                {% endif %}
-            </div>
-
-            <!-- Melhor Jogador Stats -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
-                <h3 class="text-base font-bold text-slate-700 mb-3">Melhor Jogador</h3>
-                {% if stats.melhor_jogador %}
-                    <div class="space-y-2">
-                        {% for player, count in stats.melhor_jogador %}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                                <span class="font-semibold text-slate-800">{{ player }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
-                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
-                {% endif %}
-            </div>
-
-            <!-- Zebra que foi mais longe Stats -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
-                <h3 class="text-base font-bold text-slate-700 mb-3">Zebra que vai mais longe</h3>
-                {% if stats.zebra_longe %}
-                    <div class="space-y-2">
-                        {% for team, count in stats.zebra_longe %}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
-                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
-                {% endif %}
-            </div>
-
-            <!-- Favorito que caiu antes Stats -->
-            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
-                <h3 class="text-base font-bold text-slate-700 mb-3">Favorito que vai cair antes</h3>
-                {% if stats.favorito_caiu %}
-                    <div class="space-y-2">
-                        {% for team, count in stats.favorito_caiu %}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
-                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
-                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
-                {% endif %}
-            </div>
-        </div>
     </div>
 </body>
 </html>
@@ -1296,6 +1216,167 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             rows.forEach(row => {
                 const resultType = row.dataset.result;
                 if (resultType === type) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+'''
+
+EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category_title }} - Estatísticas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <!-- Header -->
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">{{ category_title }}</h1>
+            <p class="text-base md:text-lg text-slate-600">Estatísticas dos palpites</p>
+        </div>
+
+        <!-- Options Summary -->
+        {% if options %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {% for option, count in options %}
+                <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-blue-400 transition-all filter-card"
+                     data-filter="{{ option }}" onclick="filterPlayers('{{ option }}', this)">
+                    <div class="flex items-center gap-2 mb-2">
+                        {% if is_team_category %}
+                            {% set flag = get_flag_url(option) %}
+                            {% if flag %}
+                                <img src="{{ flag }}" alt="{{ translate_team_name(option) }}" class="w-10 h-7 rounded border border-slate-200 shadow-sm">
+                            {% endif %}
+                        {% endif %}
+                        <div class="flex-1">
+                            <p class="text-base font-bold text-slate-800">
+                                {% if is_team_category %}
+                                    {{ translate_team_name(option) }}
+                                {% else %}
+                                    {{ option }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl font-black text-blue-600">{{ count }}</p>
+                        <p class="text-sm text-slate-600">{% if count == 1 %}palpite{% else %}palpites{% endif %}</p>
+                        <p class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="bg-white rounded-xl shadow-lg p-8 border border-slate-200 text-center">
+                <p class="text-slate-500">Nenhum palpite registrado ainda</p>
+            </div>
+        {% endif %}
+
+        <!-- All Predictions Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+            <div class="px-4 py-3 bg-slate-100 border-b border-slate-300">
+                <h2 class="text-lg font-bold text-slate-800">Todos os Palpites</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-slate-700">Jogador</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Palpite</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for pred in predictions %}
+                            <tr class="hover:bg-slate-50 transition player-row" data-prediction="{{ pred[category] or '' }}">
+                                <td class="px-4 py-3">
+                                    <a href="{{ url_for('jogador_detail', user_id=pred.user_id) }}"
+                                       class="font-semibold text-blue-600 hover:text-blue-700">
+                                        {{ pred.user_name }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    {% if pred[category] %}
+                                        <span class="font-bold text-slate-700">
+                                            {% if is_team_category %}
+                                                {{ translate_team_name(pred[category]) }}
+                                            {% else %}
+                                                {{ pred[category] }}
+                                            {% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-slate-400 text-xs">Sem palpite</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('palpites_gerais') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar aos Extras
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = null;
+
+        function filterPlayers(option, element) {
+            const rows = document.querySelectorAll('.player-row');
+            const cards = document.querySelectorAll('.filter-card');
+
+            // If clicking the same filter, reset
+            if (currentFilter === option) {
+                currentFilter = null;
+                rows.forEach(row => row.style.display = '');
+                cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400'));
+                return;
+            }
+
+            // Set new filter
+            currentFilter = option;
+
+            // Update card styles
+            cards.forEach(card => {
+                card.classList.remove('ring-4', 'ring-blue-400');
+            });
+            element.classList.add('ring-4', 'ring-blue-400');
+
+            // Filter rows
+            rows.forEach(row => {
+                const prediction = row.dataset.prediction;
+                if (prediction === option) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
