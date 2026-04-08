@@ -1038,51 +1038,76 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
         </div>
 
         <!-- Statistics Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-xs text-slate-500 mb-1">Total de Palpites</p>
-                <p class="text-2xl font-bold text-slate-800">{{ stats.total_bets }}</p>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Home Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
                 <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
                 <p class="text-2xl font-bold text-blue-600">{{ stats.home_wins }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
+                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+
+                {% if stats.home_win_scores %}
+                    <div class="mt-3 pt-3 border-t border-slate-200">
+                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <div class="space-y-1">
+                            {% for score, count in stats.home_win_scores %}
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
             </div>
+
+            <!-- Draws -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
                 <p class="text-xs text-slate-500 mb-1">Empate</p>
                 <p class="text-2xl font-bold text-slate-600">{{ stats.draws }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
+                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+
+                {% if stats.draw_scores %}
+                    <div class="mt-3 pt-3 border-t border-slate-200">
+                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <div class="space-y-1">
+                            {% for score, count in stats.draw_scores %}
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
             </div>
+
+            <!-- Away Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
                 <p class="text-xs text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
                 <p class="text-2xl font-bold text-green-600">{{ stats.away_wins }}</p>
                 {% if stats.total_bets > 0 %}
-                    <p class="text-xs text-slate-500 mt-1">{{ "%.1f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
+                    <p class="text-xs text-slate-500 mb-3">{{ "%.1f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
+                {% endif %}
+
+                {% if stats.away_win_scores %}
+                    <div class="mt-3 pt-3 border-t border-slate-200">
+                        <p class="text-xs font-bold text-slate-600 mb-2">Placares:</p>
+                        <div class="space-y-1">
+                            {% for score, count in stats.away_win_scores %}
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <span class="text-slate-500">{{ count }} ({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
-
-        <!-- Score Distribution -->
-        {% if score_distribution %}
-        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
-            <h2 class="text-lg font-bold text-slate-800 mb-4">Distribuição de Palpites por Placar</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {% for score, count in score_distribution %}
-                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <p class="text-xl font-black text-slate-800 mb-1">{{ score }}</p>
-                        <div class="flex items-baseline gap-2">
-                            <p class="text-sm font-semibold text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</p>
-                            <p class="text-xs text-slate-500">({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
 
         <!-- All Bets Table -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">

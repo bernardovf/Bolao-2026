@@ -499,29 +499,39 @@ def match_stats(match_id):
         ORDER BY u.user_name
     ''', (match_id,)).fetchall()
 
-    # Calculate statistics
+    # Calculate statistics and organize scores by result type
     total_bets = sum(1 for b in bets if b['home_goals'] is not None)
-    home_wins = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] > b['away_goals'])
-    draws = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] == b['away_goals'])
-    away_wins = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] < b['away_goals'])
 
-    # Calculate score distribution
-    score_distribution = {}
+    home_win_scores = {}
+    draw_scores = {}
+    away_win_scores = {}
+
     for bet in bets:
         if bet['home_goals'] is not None and bet['away_goals'] is not None:
             score = f"{bet['home_goals']}-{bet['away_goals']}"
-            score_distribution[score] = score_distribution.get(score, 0) + 1
 
-    # Sort by count (most popular first)
-    sorted_scores = sorted(score_distribution.items(), key=lambda x: x[1], reverse=True)
+            if bet['home_goals'] > bet['away_goals']:
+                home_win_scores[score] = home_win_scores.get(score, 0) + 1
+            elif bet['home_goals'] == bet['away_goals']:
+                draw_scores[score] = draw_scores.get(score, 0) + 1
+            else:
+                away_win_scores[score] = away_win_scores.get(score, 0) + 1
+
+    # Sort each category by count
+    home_win_scores = sorted(home_win_scores.items(), key=lambda x: x[1], reverse=True)
+    draw_scores = sorted(draw_scores.items(), key=lambda x: x[1], reverse=True)
+    away_win_scores = sorted(away_win_scores.items(), key=lambda x: x[1], reverse=True)
 
     conn.close()
 
     stats = {
         'total_bets': total_bets,
-        'home_wins': home_wins,
-        'draws': draws,
-        'away_wins': away_wins,
+        'home_wins': sum(count for _, count in home_win_scores),
+        'draws': sum(count for _, count in draw_scores),
+        'away_wins': sum(count for _, count in away_win_scores),
+        'home_win_scores': home_win_scores,
+        'draw_scores': draw_scores,
+        'away_win_scores': away_win_scores,
     }
 
     return render_template_string(
@@ -529,7 +539,6 @@ def match_stats(match_id):
         match=match,
         bets=[dict(b) for b in bets],
         stats=stats,
-        score_distribution=sorted_scores,
         translate_team_name=translate_team_name,
     )
 
