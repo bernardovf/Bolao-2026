@@ -210,17 +210,26 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
-                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition cursor-pointer" onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'">
+                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
                                 <td class="px-3 md:px-6 py-3 md:py-4 text-center">
                                     <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
                                 </td>
                                 <td class="px-3 md:px-6 py-3 md:py-4">
+                                    {% if betting_closed %}
                                     <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
                                             <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
                                         {% endif %}
                                     </a>
+                                    {% else %}
+                                    <span class="font-bold text-base md:text-lg text-slate-800">
+                                        {{ rank.user_name }}
+                                        {% if rank.id == current_user_id %}
+                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
+                                        {% endif %}
+                                    </span>
+                                    {% endif %}
                                 </td>
                                 <td class="px-3 md:px-6 py-3 md:py-4 text-center">
                                     <span class="text-2xl md:text-3xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
@@ -367,12 +376,14 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <div class="space-y-3 md:space-y-4">
                         {% for match in fixtures %}
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
-                                <!-- Stats Link -->
+                                <!-- Stats Link (only visible when betting is closed) -->
+                                {% if betting_closed %}
                                 <a href="{{ url_for('match_stats', match_id=match.id) }}"
                                    class="absolute top-3 right-3 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                                    title="Ver estatísticas">
                                     📊 Stats
                                 </a>
+                                {% endif %}
 
                                 {% set match_time = format_match_datetime(match.kickoff_utc) %}
                                 {% if match_time %}
@@ -524,11 +535,13 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         <form method="POST" class="space-y-5">
             <!-- Champion -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                {% if betting_closed %}
                 <a href="{{ url_for('extras_stats', category='campeao') }}"
                    class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                    title="Ver estatísticas">
                     📊 Stats
                 </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Campeão</label>
                 <select name="campeao"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
@@ -541,11 +554,13 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Top Scorer -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                {% if betting_closed %}
                 <a href="{{ url_for('extras_stats', category='artilheiro') }}"
                    class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                    title="Ver estatísticas">
                     📊 Stats
                 </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Artilheiro</label>
                 <input type="text" name="artilheiro"
                        value="{{ row.get('artilheiro', '') }}"
@@ -555,11 +570,13 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Best Player -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                {% if betting_closed %}
                 <a href="{{ url_for('extras_stats', category='melhor_jogador') }}"
                    class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                    title="Ver estatísticas">
                     📊 Stats
                 </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Melhor Jogador</label>
                 <input type="text" name="melhor_jogador"
                        value="{{ row.get('melhor_jogador', '') }}"
@@ -569,11 +586,13 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Underdog That Went Furthest -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                {% if betting_closed %}
                 <a href="{{ url_for('extras_stats', category='zebra_longe') }}"
                    class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                    title="Ver estatísticas">
                     📊 Stats
                 </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que vai mais longe</label>
                 <select name="zebra_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
@@ -592,11 +611,13 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Favorite That Fell Early -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
+                {% if betting_closed %}
                 <a href="{{ url_for('extras_stats', category='favorito_caiu') }}"
                    class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                    title="Ver estatísticas">
                     📊 Stats
                 </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que vai cair antes</label>
                 <select name="favorito_caiu"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">

@@ -11,6 +11,29 @@ from templates import *
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
+# ============================================================================
+# CONFIGURAÇÕES DO BOLÃO
+# ============================================================================
+
+# Flag para controlar se os palpites estão fechados
+#
+# BETTING_CLOSED = False (Palpites ABERTOS)
+#   - Botões "📊 Stats" ficam ESCONDIDOS em todas as páginas
+#   - Nomes no Ranking NÃO são clicáveis
+#   - Jogadores não podem ver palpites dos outros
+#
+# BETTING_CLOSED = True (Palpites FECHADOS)
+#   - Botões "📊 Stats" ficam VISÍVEIS
+#   - Nomes no Ranking são clicáveis
+#   - Todos podem ver estatísticas e palpites dos outros
+#
+# IMPORTANTE: Altere para True um dia antes do início das partidas!
+BETTING_CLOSED = False
+
+# ============================================================================
+# DATABASE PATH
+# ============================================================================
+
 # Database path
 DB_PATH = 'bolao_2026_dev.db'
 
@@ -252,7 +275,8 @@ def ranking():
 
     return render_template_string(RANKING_TEMPLATE,
                                  rankings=rankings,
-                                 current_user_id=session['user_id'])
+                                 current_user_id=session['user_id'],
+                                 betting_closed=BETTING_CLOSED)
 
 @app.route('/jogador/<int:user_id>')
 @login_required
@@ -422,7 +446,8 @@ def matches():
                                  calculate_match_points=calculate_match_points,
                                  format_match_datetime=format_match_datetime,
                                  group_standings=group_standings,
-                                 best_third_qualifiers=best_third_qualifiers)
+                                 best_third_qualifiers=best_third_qualifiers,
+                                 betting_closed=BETTING_CLOSED)
 
 @app.route('/save-bets', methods=['POST'])
 @login_required
@@ -599,6 +624,7 @@ def palpites_gerais():
         PALPITES_GERAIS_TEMPLATE,
         row=dict(row) if row else {},
         translated_teams=translated_teams,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/extras/<category>/stats')
