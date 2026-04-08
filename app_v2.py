@@ -411,7 +411,7 @@ def matches():
     # Calculate group standings if viewing group stage
     group_standings = {}
     best_third_qualifiers = set()
-    if 'Group' in phase_filter:
+    if 'Grupo' in phase_filter:
         # Group fixtures by their specific group (e.g., "Group A", "Group B")
         from collections import defaultdict
         groups = defaultdict(list)
@@ -640,6 +640,7 @@ def extras_stats(category):
         'melhor_jogador': 'Melhor Jogador',
         'zebra_longe': 'Zebra que vai mais longe',
         'favorito_caiu': 'Favorito que vai cair antes',
+        'anfitriao_longe': 'Anfitrião que vai mais longe',
     }
 
     if category not in valid_categories:
@@ -662,7 +663,7 @@ def extras_stats(category):
     total_predictions = sum(count for _, count in sorted_options)
 
     # Check if this category uses team names
-    is_team_category = category in ['campeao', 'zebra_longe', 'favorito_caiu']
+    is_team_category = category in ['campeao', 'zebra_longe', 'favorito_caiu', 'anfitriao_longe']
 
     conn.close()
 
