@@ -1014,9 +1014,18 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
         <!-- Statistics Summary -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Home Wins -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-base text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
-                <p class="text-3xl font-bold text-blue-600">{{ stats.home_wins }}</p>
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-blue-400 transition-all filter-card"
+                 data-filter="home" onclick="filterBets('home', this)">
+                <div class="flex items-center gap-2 mb-2">
+                    {% set home_flag = get_flag_url(match.home) %}
+                    {% if home_flag %}
+                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-10 h-7 rounded border border-slate-200 shadow-sm">
+                    {% endif %}
+                    <div class="flex-1">
+                        <p class="text-base text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ stats.home_wins }}</p>
+                    </div>
+                </div>
                 {% if stats.total_bets > 0 %}
                     <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
                 {% endif %}
@@ -1037,7 +1046,8 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Draws -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-slate-400 transition-all filter-card"
+                 data-filter="draw" onclick="filterBets('draw', this)">
                 <p class="text-s text-slate-500 mb-1">Empate</p>
                 <p class="text-3xl font-bold text-slate-600">{{ stats.draws }}</p>
                 {% if stats.total_bets > 0 %}
@@ -1060,9 +1070,18 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Away Wins -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-                <p class="text-s text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
-                <p class="text-3xl font-bold text-green-600">{{ stats.away_wins }}</p>
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-green-400 transition-all filter-card"
+                 data-filter="away" onclick="filterBets('away', this)">
+                <div class="flex items-center gap-2 mb-2">
+                    {% set away_flag = get_flag_url(match.away) %}
+                    {% if away_flag %}
+                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-10 h-7 rounded border border-slate-200 shadow-sm">
+                    {% endif %}
+                    <div class="flex-1">
+                        <p class="text-s text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
+                        <p class="text-3xl font-bold text-green-600">{{ stats.away_wins }}</p>
+                    </div>
+                </div>
                 {% if stats.total_bets > 0 %}
                     <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
                 {% endif %}
@@ -1098,7 +1117,18 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for bet in bets %}
-                            <tr class="hover:bg-slate-50 transition">
+                            {% if bet.home_goals is not none and bet.away_goals is not none %}
+                                {% if bet.home_goals > bet.away_goals %}
+                                    {% set result_type = 'home' %}
+                                {% elif bet.home_goals == bet.away_goals %}
+                                    {% set result_type = 'draw' %}
+                                {% else %}
+                                    {% set result_type = 'away' %}
+                                {% endif %}
+                            {% else %}
+                                {% set result_type = 'none' %}
+                            {% endif %}
+                            <tr class="hover:bg-slate-50 transition bet-row" data-result="{{ result_type }}">
                                 <td class="px-4 py-3">
                                     <a href="{{ url_for('jogador_detail', user_id=bet.user_id) }}"
                                        class="font-semibold text-blue-600 hover:text-blue-700">
@@ -1125,6 +1155,49 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             </a>
         </div>
     </div>
+
+    <script>
+        let currentFilter = null;
+
+        function filterBets(type, element) {
+            const rows = document.querySelectorAll('.bet-row');
+            const cards = document.querySelectorAll('.filter-card');
+
+            // If clicking the same filter, reset
+            if (currentFilter === type) {
+                currentFilter = null;
+                rows.forEach(row => row.style.display = '');
+                cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400'));
+                return;
+            }
+
+            // Set new filter
+            currentFilter = type;
+
+            // Update card styles
+            cards.forEach(card => {
+                card.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400');
+            });
+
+            if (type === 'home') {
+                element.classList.add('ring-4', 'ring-blue-400');
+            } else if (type === 'draw') {
+                element.classList.add('ring-4', 'ring-slate-400');
+            } else if (type === 'away') {
+                element.classList.add('ring-4', 'ring-green-400');
+            }
+
+            // Filter rows
+            rows.forEach(row => {
+                const resultType = row.dataset.result;
+                if (resultType === type) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
 '''

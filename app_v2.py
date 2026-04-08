@@ -540,6 +540,7 @@ def match_stats(match_id):
         bets=[dict(b) for b in bets],
         stats=stats,
         translate_team_name=translate_team_name,
+        get_flag_url=get_flag_url,
     )
 
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
