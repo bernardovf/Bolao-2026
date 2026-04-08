@@ -62,19 +62,35 @@ def get_db():
     """Get database connection - PostgreSQL ou SQLite"""
     if DATABASE_URL and POSTGRES_AVAILABLE:
         # PostgreSQL (produção)
-        conn = psycopg2.connect(DATABASE_URL)
-        conn.cursor_factory = psycopg2.extras.RealDictCursor
-        return conn
+        return psycopg2.connect(DATABASE_URL)
     else:
         # SQLite (desenvolvimento local)
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         return conn
 
+def _is_postgres_connection(conn):
+    """Check if connection is PostgreSQL"""
+    return DATABASE_URL and POSTGRES_AVAILABLE and isinstance(conn, psycopg2.extensions.connection)
+
+def _adapt_query_for_postgres(query):
+    """Convert SQLite placeholders (?) to PostgreSQL placeholders (%s)."""
+    return query.replace('?', '%s')
+
+def db_execute(conn, query, args=()):
+    """Execute query in a backend-agnostic way (SQLite/PostgreSQL)."""
+    if _is_postgres_connection(conn):
+        query = _adapt_query_for_postgres(query)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(query, args)
+        return cur
+
+    return conn.execute(query, args)
+
 def query_db(query, args=(), one=False):
     """Execute a query and return results"""
     conn = get_db()
-    cur = conn.execute(query, args)
+    cur = db_execute(conn, query, args)
     rv = cur.fetchall()
     conn.close()
     return (rv[0] if rv else None) if one else rv
@@ -82,7 +98,7 @@ def query_db(query, args=(), one=False):
 def execute_db(query, args=()):
     """Execute a write query"""
     conn = get_db()
-    cur = conn.execute(query, args)
+    cur = db_execute(conn, query, args)
     conn.commit()
     rowcount = cur.rowcount
     conn.close()
@@ -95,16 +111,16 @@ def migrate_palpites_gerais():
         return
 
     conn = get_db()
-    cols = [row[1] for row in conn.execute("PRAGMA table_info(palpites_gerais)").fetchall()]
+    cols = [row[1] for row in db_execute(conn, "PRAGMA table_info(palpites_gerais)").fetchall()]
 
     if 'zebra_longe' not in cols:
-        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN zebra_longe TEXT")
+        db_execute(conn, "ALTER TABLE palpites_gerais ADD COLUMN zebra_longe TEXT")
 
     if 'favorito_caiu' not in cols:
-        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN favorito_caiu TEXT")
+        db_execute(conn, "ALTER TABLE palpites_gerais ADD COLUMN favorito_caiu TEXT")
 
     if 'anfitriao_longe' not in cols:
-        conn.execute("ALTER TABLE palpites_gerais ADD COLUMN anfitriao_longe TEXT")
+        db_execute(conn, "ALTER TABLE palpites_gerais ADD COLUMN anfitriao_longe TEXT")
 
     conn.commit()
     conn.close()
@@ -118,7 +134,7 @@ def migrate_bet_table():
     conn = get_db()
 
     # Check if we need to migrate (check if foreign keys exist)
-    cursor = conn.execute("PRAGMA foreign_key_list(bet)")
+    cursor = db_execute(conn, "PRAGMA foreign_key_list(bet)")
     foreign_keys = cursor.fetchall()
 
     # If foreign keys reference 'user' or 'match' tables, we need to migrate
@@ -128,13 +144,13 @@ def migrate_bet_table():
         print("Migrating bet table...")
 
         # Backup existing data
-        conn.execute("CREATE TABLE bet_backup AS SELECT * FROM bet")
+        db_execute(conn, "CREATE TABLE bet_backup AS SELECT * FROM bet")
 
         # Drop old table
-        conn.execute("DROP TABLE bet")
+        db_execute(conn, "DROP TABLE bet")
 
         # Create new table without problematic foreign keys
-        conn.execute('''
+        db_execute(conn, '''
             CREATE TABLE bet (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -146,13 +162,13 @@ def migrate_bet_table():
         ''')
 
         # Restore data
-        conn.execute('''
+        db_execute(conn, '''
             INSERT INTO bet (id, user_id, match_id, home_goals, away_goals)
             SELECT id, user_id, match_id, home_goals, away_goals FROM bet_backup
         ''')
 
         # Drop backup table
-        conn.execute("DROP TABLE bet_backup")
+        db_execute(conn, "DROP TABLE bet_backup")
 
         conn.commit()
         print("Bet table migration completed")
@@ -226,13 +242,13 @@ def dashboard():
     conn = get_db()
 
     # Total bets
-    total_bets = conn.execute(
+    total_bets = db_execute(conn, 
         'SELECT COUNT(*) as count FROM bet WHERE user_id = ?',
         (user_id,)
     ).fetchone()['count']
 
     # Get all user bets with results
-    user_bets = conn.execute('''
+    user_bets = db_execute(conn, '''
         SELECT b.home_goals as bet_home, b.away_goals as bet_away,
                f.final_home_goals, f.final_away_goals
         FROM bet b
@@ -270,10 +286,10 @@ def ranking():
     conn = get_db()
 
     # Get all users
-    users = conn.execute('SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+    users = db_execute(conn, 'SELECT id, user_name FROM users ORDER BY user_name').fetchall()
 
     # Get all bets with fixture results
-    bets_data = conn.execute('''
+    bets_data = db_execute(conn, '''
         SELECT b.user_id, b.home_goals as bet_home, b.away_goals as bet_away,
                f.final_home_goals, f.final_away_goals
         FROM bet b
@@ -317,14 +333,19 @@ def jogador_detail(user_id):
     conn = get_db()
 
     # Get player info
-    player = conn.execute('SELECT id, user_name FROM users WHERE id = ?', (user_id,)).fetchone()
+    player = db_execute(conn, 'SELECT id, user_name FROM users WHERE id = ?', (user_id,)).fetchone()
     if not player:
         conn.close()
         flash('Jogador não encontrado', 'error')
         return redirect(url_for('ranking'))
 
     # Get all phases
-    phases = conn.execute('SELECT DISTINCT phase FROM fixtures ORDER BY id').fetchall()
+    phases = db_execute(conn, '''
+        SELECT phase
+        FROM fixtures
+        GROUP BY phase
+        ORDER BY MIN(id)
+    ''').fetchall()
 
     # Determine active phase filter
     phase_filter = request.args.get('phase')
@@ -333,7 +354,7 @@ def jogador_detail(user_id):
 
     # Get all player bets with match info (no points in SQL), filtered by phase
     if phase_filter:
-        bets_raw = conn.execute('''
+        bets_raw = db_execute(conn, '''
             SELECT
                 f.id as match_id,
                 f.phase,
@@ -350,7 +371,7 @@ def jogador_detail(user_id):
             ORDER BY f.id
         ''', (user_id, phase_filter)).fetchall()
     else:
-        bets_raw = conn.execute('''
+        bets_raw = db_execute(conn, '''
             SELECT
                 f.id as match_id,
                 f.phase,
@@ -367,7 +388,7 @@ def jogador_detail(user_id):
         ''', (user_id,)).fetchall()
 
     # Get palpites gerais
-    palpites_gerais = conn.execute('''
+    palpites_gerais = db_execute(conn, '''
         SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu, anfitriao_longe
         FROM palpites_gerais
         WHERE user_id = ?
@@ -411,8 +432,11 @@ def matches():
     conn = get_db()
 
     # Get all phases
-    phases = conn.execute('''
-        SELECT DISTINCT phase FROM fixtures ORDER BY id
+    phases = db_execute(conn, '''
+        SELECT phase
+        FROM fixtures
+        GROUP BY phase
+        ORDER BY MIN(id)
     ''').fetchall()
 
     # Determine active phase (default to first phase)
@@ -421,7 +445,7 @@ def matches():
         phase_filter = phases[0]['phase'] if phases else ''
 
     # Get matches
-    fixtures = conn.execute('''
+    fixtures = db_execute(conn, '''
         SELECT * FROM fixtures
         WHERE phase = ?
         ORDER BY id
@@ -432,7 +456,7 @@ def matches():
     if fixtures:
         fixture_ids = [f['id'] for f in fixtures]
         placeholders = ','.join('?' * len(fixture_ids))
-        bets = conn.execute(f'''
+        bets = db_execute(conn, f'''
             SELECT * FROM bet
             WHERE user_id = ? AND match_id IN ({placeholders})
         ''', [session['user_id']] + fixture_ids).fetchall()
@@ -504,19 +528,19 @@ def save_bets():
                         away_goals = int(away_goals)
 
                         # Check if bet exists
-                        existing_bet = conn.execute('''
+                        existing_bet = db_execute(conn, '''
                             SELECT id FROM bet WHERE user_id = ? AND match_id = ?
                         ''', (user_id, match_id)).fetchone()
 
                         if existing_bet:
                             # Update existing bet
-                            conn.execute('''
+                            db_execute(conn, '''
                                 UPDATE bet SET home_goals = ?, away_goals = ?
                                 WHERE user_id = ? AND match_id = ?
                             ''', (home_goals, away_goals, user_id, match_id))
                         else:
                             # Insert new bet
-                            conn.execute('''
+                            db_execute(conn, '''
                                 INSERT INTO bet (user_id, match_id, home_goals, away_goals)
                                 VALUES (?, ?, ?, ?)
                             ''', (user_id, match_id, home_goals, away_goals))
@@ -542,14 +566,14 @@ def match_stats(match_id):
     conn = get_db()
 
     # Get match info
-    match = conn.execute('SELECT * FROM fixtures WHERE id = ?', (match_id,)).fetchone()
+    match = db_execute(conn, 'SELECT * FROM fixtures WHERE id = ?', (match_id,)).fetchone()
     if not match:
         conn.close()
         flash('Jogo não encontrado', 'error')
         return redirect(url_for('matches'))
 
     # Get all bets for this match with user names
-    bets = conn.execute('''
+    bets = db_execute(conn, '''
         SELECT u.id as user_id, u.user_name, b.home_goals, b.away_goals
         FROM users u
         LEFT JOIN bet b ON u.id = b.user_id AND b.match_id = ?
@@ -616,7 +640,7 @@ def palpites_gerais():
             'favorito_caiu': (request.form.get('favorito_caiu') or '').strip(),
             'anfitriao_longe': (request.form.get('anfitriao_longe') or '').strip(),
         }
-        cur = conn.execute(
+        cur = db_execute(conn, 
             '''UPDATE palpites_gerais
                SET campeao=?, artilheiro=?, melhor_jogador=?,
                    zebra_longe=?, favorito_caiu=?, anfitriao_longe=?, updated_at=?
@@ -626,7 +650,7 @@ def palpites_gerais():
              datetime.utcnow().isoformat(timespec='seconds'), user_id)
         )
         if cur.rowcount == 0:
-            conn.execute(
+            db_execute(conn, 
                 '''INSERT INTO palpites_gerais
                    (user_id, campeao, artilheiro, melhor_jogador,
                     zebra_longe, favorito_caiu, anfitriao_longe, updated_at)
@@ -640,13 +664,19 @@ def palpites_gerais():
         flash('✓ Extras salvos com sucesso!', 'success')
         return redirect(url_for('palpites_gerais'))
 
-    row = conn.execute('SELECT * FROM palpites_gerais WHERE user_id=?', (user_id,)).fetchone()
-    teams = conn.execute(
+    row = db_execute(conn, 'SELECT * FROM palpites_gerais WHERE user_id=?', (user_id,)).fetchone()
+    teams = db_execute(conn, 
         'SELECT DISTINCT home FROM fixtures UNION SELECT DISTINCT away FROM fixtures ORDER BY 1'
     ).fetchall()
     conn.close()
 
-    teams = [t[0] for t in teams if not t[0].startswith(('UEFA', 'FIFA'))]
+    team_names = []
+    for team_row in teams:
+        team_name = team_row['home'] if isinstance(team_row, dict) else team_row[0]
+        if not team_name.startswith(('UEFA', 'FIFA')):
+            team_names.append(team_name)
+
+    teams = team_names
     translated_teams = sorted(
         [(t, translations.get(t, t)) for t in teams],
         key=lambda x: x[1]
@@ -680,7 +710,7 @@ def extras_stats(category):
         return redirect(url_for('palpites_gerais'))
 
     # Get all predictions for this category
-    all_predictions = conn.execute(
+    all_predictions = db_execute(conn, 
         f'SELECT u.id as user_id, u.user_name, p.{category} FROM users u LEFT JOIN palpites_gerais p ON u.id = p.user_id ORDER BY u.user_name'
     ).fetchall()
 
@@ -719,4 +749,3 @@ def regras():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
-
