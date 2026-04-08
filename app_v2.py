@@ -505,19 +505,15 @@ def match_stats(match_id):
     draws = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] == b['away_goals'])
     away_wins = sum(1 for b in bets if b['home_goals'] is not None and b['home_goals'] < b['away_goals'])
 
-    # Calculate points for each bet if match has finished
-    bets_with_points = []
+    # Calculate score distribution
+    score_distribution = {}
     for bet in bets:
-        bet_dict = dict(bet)
-        if match['final_home_goals'] is not None:
-            points, _ = calculate_match_points(
-                bet['home_goals'], bet['away_goals'],
-                match['final_home_goals'], match['final_away_goals']
-            )
-            bet_dict['points'] = points if bet['home_goals'] is not None else None
-        else:
-            bet_dict['points'] = None
-        bets_with_points.append(bet_dict)
+        if bet['home_goals'] is not None and bet['away_goals'] is not None:
+            score = f"{bet['home_goals']}-{bet['away_goals']}"
+            score_distribution[score] = score_distribution.get(score, 0) + 1
+
+    # Sort by count (most popular first)
+    sorted_scores = sorted(score_distribution.items(), key=lambda x: x[1], reverse=True)
 
     conn.close()
 
@@ -531,8 +527,9 @@ def match_stats(match_id):
     return render_template_string(
         MATCH_STATS_TEMPLATE,
         match=match,
-        bets=bets_with_points,
+        bets=[dict(b) for b in bets],
         stats=stats,
+        score_distribution=sorted_scores,
         translate_team_name=translate_team_name,
     )
 

@@ -1066,6 +1066,24 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Score Distribution -->
+        {% if score_distribution %}
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Distribuição de Palpites por Placar</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {% for score, count in score_distribution %}
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                        <p class="text-xl font-black text-slate-800 mb-1">{{ score }}</p>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-sm font-semibold text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</p>
+                            <p class="text-xs text-slate-500">({{ "%.1f"|format((count / stats.total_bets * 100)) }}%)</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- All Bets Table -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
             <div class="px-4 py-3 bg-slate-100 border-b border-slate-300">
@@ -1077,9 +1095,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                         <tr>
                             <th class="px-4 py-3 text-left font-bold text-slate-700">Jogador</th>
                             <th class="px-4 py-3 text-center font-bold text-slate-700">Palpite</th>
-                            {% if match.final_home_goals is not none %}
-                                <th class="px-4 py-3 text-center font-bold text-slate-700">Pontos</th>
-                            {% endif %}
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -1098,26 +1113,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                                         <span class="text-slate-400 text-xs">Sem palpite</span>
                                     {% endif %}
                                 </td>
-                                {% if match.final_home_goals is not none %}
-                                    <td class="px-4 py-3 text-center">
-                                        {% if bet.points is not none %}
-                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
-                                                {% if bet.points == 6 %}bg-green-100 text-green-800
-                                                {% elif bet.points == 4 %}bg-blue-100 text-blue-800
-                                                {% elif bet.points == 3 %}bg-purple-100 text-purple-800
-                                                {% elif bet.points == 2 %}bg-yellow-100 text-yellow-800
-                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
-                                                +{{ bet.points }}
-                                            </span>
-                                        {% elif bet.home_goals is not none %}
-                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold bg-slate-100 text-slate-600">
-                                                +0
-                                            </span>
-                                        {% else %}
-                                            <span class="text-slate-400 text-xs">-</span>
-                                        {% endif %}
-                                    </td>
-                                {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>
