@@ -9,3 +9,13 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bolao-2026-db
+          property: connectionString
+
+databases:
+  - name: bolao-2026-db
+    databaseName: bolao_2026
+    user: bolao_user
+    plan: free
