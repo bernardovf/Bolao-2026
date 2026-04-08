@@ -94,6 +94,10 @@ def execute_db(query, args=()):
 
 def migrate_palpites_gerais():
     """Add new columns to palpites_gerais table if they don't exist"""
+    # Skip migrations for PostgreSQL (schema is created from init_db.sql)
+    if DATABASE_URL:
+        return
+
     conn = get_db()
     cols = [row[1] for row in conn.execute("PRAGMA table_info(palpites_gerais)").fetchall()]
 
@@ -111,6 +115,10 @@ def migrate_palpites_gerais():
 
 def migrate_bet_table():
     """Recreate bet table without foreign key constraints"""
+    # Skip migrations for PostgreSQL (schema is created from init_db.sql)
+    if DATABASE_URL:
+        return
+
     conn = get_db()
 
     # Check if we need to migrate (check if foreign keys exist)
