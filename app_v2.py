@@ -16,6 +16,7 @@ try:
 except ImportError:
     POSTGRES_AVAILABLE = False
 
+POSTGRES_AVAILABLE = True
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
