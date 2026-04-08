@@ -604,6 +604,111 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 Salvar Extras
             </button>
         </form>
+
+        <!-- Statistics Section -->
+        <div class="mt-10">
+            <h2 class="text-xl md:text-2xl font-black text-slate-800 mb-6">Estatísticas dos Palpites</h2>
+
+            <!-- Campeão Stats -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
+                <h3 class="text-base font-bold text-slate-700 mb-3">Campeão</h3>
+                {% if stats.campeao %}
+                    <div class="space-y-2">
+                        {% for team, count in stats.campeao %}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
+                {% endif %}
+            </div>
+
+            <!-- Artilheiro Stats -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
+                <h3 class="text-base font-bold text-slate-700 mb-3">Artilheiro</h3>
+                {% if stats.artilheiro %}
+                    <div class="space-y-2">
+                        {% for player, count in stats.artilheiro %}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                                <span class="font-semibold text-slate-800">{{ player }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
+                {% endif %}
+            </div>
+
+            <!-- Melhor Jogador Stats -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
+                <h3 class="text-base font-bold text-slate-700 mb-3">Melhor Jogador</h3>
+                {% if stats.melhor_jogador %}
+                    <div class="space-y-2">
+                        {% for player, count in stats.melhor_jogador %}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                                <span class="font-semibold text-slate-800">{{ player }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
+                {% endif %}
+            </div>
+
+            <!-- Zebra que foi mais longe Stats -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
+                <h3 class="text-base font-bold text-slate-700 mb-3">Zebra que vai mais longe</h3>
+                {% if stats.zebra_longe %}
+                    <div class="space-y-2">
+                        {% for team, count in stats.zebra_longe %}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
+                {% endif %}
+            </div>
+
+            <!-- Favorito que caiu antes Stats -->
+            <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 mb-5">
+                <h3 class="text-base font-bold text-slate-700 mb-3">Favorito que vai cair antes</h3>
+                {% if stats.favorito_caiu %}
+                    <div class="space-y-2">
+                        {% for team, count in stats.favorito_caiu %}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                                <span class="font-semibold text-slate-800">{{ translate_team_name(team) }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600">{{ count }} {% if count == 1 %}palpite{% else %}palpites{% endif %}</span>
+                                    <span class="text-xs text-slate-500">({{ "%.0f"|format((count / total_predictions * 100)) }}%)</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-slate-500">Nenhum palpite ainda</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </body>
 </html>

@@ -587,6 +587,10 @@ def palpites_gerais():
     teams = conn.execute(
         'SELECT DISTINCT home FROM fixtures UNION SELECT DISTINCT away FROM fixtures ORDER BY 1'
     ).fetchall()
+
+    # Get all users' predictions for statistics
+    all_predictions = conn.execute('SELECT * FROM palpites_gerais').fetchall()
+
     conn.close()
 
     teams = [t[0] for t in teams if not t[0].startswith(('UEFA', 'FIFA'))]
@@ -595,10 +599,33 @@ def palpites_gerais():
         key=lambda x: x[1]
     )
 
+    # Calculate statistics for each category
+    def count_predictions(field):
+        """Count occurrences of each prediction for a given field"""
+        counts = {}
+        for pred in all_predictions:
+            value = pred[field]
+            if value and value.strip():
+                counts[value] = counts.get(value, 0) + 1
+        return sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+    stats = {
+        'campeao': count_predictions('campeao'),
+        'artilheiro': count_predictions('artilheiro'),
+        'melhor_jogador': count_predictions('melhor_jogador'),
+        'zebra_longe': count_predictions('zebra_longe'),
+        'favorito_caiu': count_predictions('favorito_caiu'),
+    }
+
+    total_predictions = len(all_predictions)
+
     return render_template_string(
         PALPITES_GERAIS_TEMPLATE,
         row=dict(row) if row else {},
         translated_teams=translated_teams,
+        stats=stats,
+        total_predictions=total_predictions,
+        translate_team_name=translate_team_name,
     )
 
 @app.route('/regras')
