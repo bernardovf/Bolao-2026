@@ -6,7 +6,7 @@ def get_flag_url(team_name):
     # FIFA country codes mapping
     code = flag_map.get(team_name, '')
     if code:
-        return f'https://flagcdn.com/w40/{code}.png'
+        return f'https://flagcdn.com/w80/{code}.png'
     return None
 
 def get_team_abbr(team_name):

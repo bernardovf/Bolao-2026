@@ -16,7 +16,7 @@ def calculate_match_points(bet_home, bet_away, final_home, final_away):
     if (bet_diff == 0 and final_diff == 0):
         return 3, 'draw'
 
-    if bet_diff == final_diff > 0:
+    if bet_diff == final_diff:
         return 4, 'saldo'
 
     if (bet_diff > 0 and final_diff > 0) or (bet_diff < 0 and final_diff < 0):

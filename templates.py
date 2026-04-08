@@ -351,9 +351,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                     <div class="flex items-center gap-1 md:gap-2">
                                                         {% set team_flag = get_flag_url(team.team) %}
                                                         {% if team_flag %}
-                                                            <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-4 h-3 md:w-5 md:h-4 rounded border border-slate-200 flex-shrink-0">
+                                                            <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-7 h-5 md:w-8 md:h-6 rounded border border-slate-200 flex-shrink-0">
                                                         {% endif %}
-                                                        <span class="font-semibold text-slate-800 truncate text-xs md:text-sm">{{ translate_team_name(team.team) }}</span>
+                                                        <span class="font-semibold text-slate-800 truncate text-sm md:text-sm">{{ translate_team_name(team.team) }}</span>
                                                     </div>
                                                 </td>
                                                 <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
@@ -408,7 +408,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right hidden sm:inline">{{ translate_team_name(match.home) }}</span>
                                                 <span class="font-bold text-sm md:text-base text-slate-900 truncate text-right sm:hidden">{{ home_abbr }}</span>
                                                 {% if home_flag %}
-                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
+                                                    <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-11 h-8 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700 flex-shrink-0">{{ home_abbr }}</div>
                                                 {% endif %}
@@ -434,7 +434,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 {% set away_flag = get_flag_url(match.away) %}
                                                 {% set away_abbr = get_team_abbr(match.away) %}
                                                 {% if away_flag %}
-                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-8 h-6 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
+                                                    <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-11 h-8 rounded-md border border-slate-200 shadow-sm flex-shrink-0">
                                                 {% else %}
                                                     <div class="w-8 h-6 rounded-md border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-700 flex-shrink-0">{{ away_abbr }}</div>
                                                 {% endif %}
@@ -446,18 +446,20 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                                     <!-- Result & Points -->
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
-                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm md:min-w-[160px]">
-                                            <span class="text-[11px] md:text-xs font-black uppercase text-emerald-700 tracking-wide">Resultado</span>
+                                        <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
+                                            <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
                                             {% if match.final_home_goals is not none %}
-                                                <span class="text-base md:text-lg font-black text-emerald-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
+                                                <span class="text-base md:text-lg font-black text-neutral-800">{{ match.final_home_goals }} × {{ match.final_away_goals }}</span>
                                             {% else %}
-                                                <span class="text-[11px] font-semibold text-emerald-700">Aguardando</span>
+                                                <span class="text-[11px] font-semibold text-neutral-700">Aguardando</span>
                                             {% endif %}
                                         </div>
 
                                         {% set points_classes = {
-                                            'exact': 'border-amber-300 bg-amber-100 text-amber-900',
-                                            'partial': 'border-blue-200 bg-blue-50 text-blue-900'
+                                            'exact': 'border-green-300 bg-green-100 text-green-900',
+                                            'partial': 'border-yellow-200 bg-yellow-50 text-yellow-900',
+                                            'draw': 'border-amber-200 bg-amber-50 text-amber-900',
+                                            'saldo': 'border-emerald-200 bg-emerald-50 text-emerald-900'
                                         } %}
                                         {% set badge_class = points_classes.get(match_type, 'border-slate-200 bg-slate-50 text-slate-900') %}
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border shadow-sm md:min-w-[160px] {{ badge_class }}">
@@ -1072,7 +1074,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center gap-2 mb-2">
                     {% set home_flag = get_flag_url(match.home) %}
                     {% if home_flag %}
-                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-10 h-7 rounded border border-slate-200 shadow-sm">
+                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
                     {% endif %}
                     <div class="flex-1">
                         <p class="text-base text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
@@ -1128,7 +1130,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center gap-2 mb-2">
                     {% set away_flag = get_flag_url(match.away) %}
                     {% if away_flag %}
-                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-10 h-7 rounded border border-slate-200 shadow-sm">
+                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
                     {% endif %}
                     <div class="flex-1">
                         <p class="text-s text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
