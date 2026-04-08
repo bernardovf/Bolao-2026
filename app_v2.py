@@ -7,16 +7,11 @@ from utils import get_flag_url, get_team_abbr, translate_team_name, format_match
 from constants import translations
 from calculate_points import calculate_match_points
 from templates import *
-
-# PostgreSQL support
-try:
-    import psycopg2
-    import psycopg2.extras
-    POSTGRES_AVAILABLE = True
-except ImportError:
-    POSTGRES_AVAILABLE = False
+import psycopg2
+import psycopg2.extras
 
 POSTGRES_AVAILABLE = True
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
