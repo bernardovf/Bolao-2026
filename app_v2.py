@@ -340,7 +340,12 @@ def jogador_detail(user_id):
         return redirect(url_for('ranking'))
 
     # Get all phases
-    phases = db_execute(conn, 'SELECT DISTINCT phase FROM fixtures ORDER BY id').fetchall()
+    phases = db_execute(conn, '''
+        SELECT phase
+        FROM fixtures
+        GROUP BY phase
+        ORDER BY MIN(id)
+    ''').fetchall()
 
     # Determine active phase filter
     phase_filter = request.args.get('phase')
@@ -428,7 +433,10 @@ def matches():
 
     # Get all phases
     phases = db_execute(conn, '''
-        SELECT DISTINCT phase FROM fixtures ORDER BY id
+        SELECT phase
+        FROM fixtures
+        GROUP BY phase
+        ORDER BY MIN(id)
     ''').fetchall()
 
     # Determine active phase (default to first phase)
@@ -657,9 +665,12 @@ def palpites_gerais():
         return redirect(url_for('palpites_gerais'))
 
     row = db_execute(conn, 'SELECT * FROM palpites_gerais WHERE user_id=?', (user_id,)).fetchone()
-    teams = db_execute(conn, 
-        'SELECT DISTINCT home FROM fixtures UNION SELECT DISTINCT away FROM fixtures ORDER BY 1'
-    ).fetchall()
+    teams = db_execute(conn, '''
+        SELECT home
+        FROM fixtures
+        GROUP BY home
+        ORDER BY MIN(id)
+    ''').fetchall()
     conn.close()
 
     team_names = []
