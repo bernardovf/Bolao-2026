@@ -74,8 +74,14 @@ def _is_postgres_connection(conn):
     return DATABASE_URL and POSTGRES_AVAILABLE and isinstance(conn, psycopg2.extensions.connection)
 
 def _adapt_query_for_postgres(query):
-    """Convert SQLite placeholders (?) to PostgreSQL placeholders (%s)."""
-    return query.replace('?', '%s')
+    """Convert SQLite placeholders (?) to PostgreSQL placeholders (%s).
+    Also escape existing % signs in LIKE clauses by doubling them."""
+    # First, escape existing % signs (but not in comments)
+    # Replace % with %% so PostgreSQL doesn't treat them as placeholders
+    query = query.replace('%', '%%')
+    # Then convert SQLite placeholders ? to PostgreSQL placeholders %s
+    query = query.replace('?', '%s')
+    return query
 
 def db_execute(conn, query, args=()):
     """Execute query in a backend-agnostic way (SQLite/PostgreSQL)."""
