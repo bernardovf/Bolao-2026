@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 import os
-from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings
+from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams
 from constants import translations
 from calculate_points import calculate_match_points
 from templates import *
@@ -394,6 +394,12 @@ def jogador_detail(user_id):
         WHERE user_id = ?
     ''', (user_id,)).fetchone()
 
+    # Calculate qualified teams based on user bets
+    user_qualified = calculate_qualified_teams(conn, user_id=user_id, use_real_results=False)
+
+    # Calculate qualified teams based on real results
+    real_qualified = calculate_qualified_teams(conn, user_id=None, use_real_results=True)
+
     conn.close()
 
     # Calculate points using calculate_match_points
@@ -414,6 +420,15 @@ def jogador_detail(user_id):
         if bet_dict['points'] is not None:
             total_points += bet_dict['points']
 
+    # Calculate qualification stats
+    correct_qualified = user_qualified & real_qualified
+    qualification_points = len(correct_qualified) * 2
+
+    # Sort for display
+    user_qualified_sorted = sorted(user_qualified)
+    real_qualified_sorted = sorted(real_qualified)
+    correct_qualified_sorted = sorted(correct_qualified)
+
     return render_template_string(
         JOGADOR_DETAIL_TEMPLATE,
         player=player,
@@ -423,6 +438,10 @@ def jogador_detail(user_id):
         phase_filter=phase_filter,
         palpites_gerais=palpites_gerais,
         translate_team_name=translate_team_name,
+        user_qualified=user_qualified_sorted,
+        real_qualified=real_qualified_sorted,
+        correct_qualified=correct_qualified_sorted,
+        qualification_points=qualification_points,
     )
 
 @app.route('/matches')
