@@ -1,9 +1,9 @@
 from flask import Flask, render_template_string, request, redirect, url_for, flash, session, abort
 import sqlite3, os
-from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING, MATCH_BREAKDOWN
+from templates import BASE, HOME, LOGIN, MATCHES, PALPITES, FLAT_PHASE_PAGE, RANKING, MATCH_BREAKDOWN, USER_DETAIL
 from utils import flag_url, fmt_kickoff, check_password, get_conn, list_teams, _fetch_user_bets, _fetch_phase_rows, \
     _select_match_ids, require_login, _calc_points, _compute_group_table_from_bets, phase_locked, rank_best_thirds, \
-    team_color, DRAW_COLOR, abbr3, fmt_kickoff_pt, _compute_group_table_real, _fetch_results
+    team_color, DRAW_COLOR, abbr3, fmt_kickoff_pt, _compute_group_table_real, _fetch_results, compute_qualified_teams
 from datetime import datetime
 from collections import defaultdict
 from constants import unlocks, PHASE_ROUTES, PHASE_PAGES
@@ -434,6 +434,46 @@ def ranking():
         BASE,
         content=render_template_string(RANKING, rows=rows, current_id=session["id"]),
     )
+
+
+@app.route("/user/<int:user_id>")
+def user_detail(user_id):
+    if not session.get("id"):
+        flash("Please log in.")
+        return redirect(url_for("login"))
+
+    with get_conn() as conn:
+        conn.row_factory = sqlite3.Row
+
+        # Get user info
+        user = conn.execute("SELECT id, user_name FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not user:
+            abort(404)
+
+        # Compute qualified teams based on user's bets
+        user_qualified = compute_qualified_teams(conn, user_id=user_id, use_real_results=False)
+
+        # Compute qualified teams based on real results
+        real_qualified = compute_qualified_teams(conn, user_id=None, use_real_results=True)
+
+        # Find correct predictions
+        correct_qualified = user_qualified & real_qualified
+        qualification_points = len(correct_qualified) * 2
+
+        # Sort for display
+        user_qualified_sorted = sorted(user_qualified)
+        real_qualified_sorted = sorted(real_qualified)
+        correct_qualified_sorted = sorted(correct_qualified)
+
+    html = render_template_string(
+        USER_DETAIL,
+        user=user,
+        user_qualified=user_qualified_sorted,
+        real_qualified=real_qualified_sorted,
+        correct_qualified=correct_qualified_sorted,
+        qualification_points=qualification_points,
+    )
+    return render_template_string(BASE, content=html)
 
 @app.route("/fase_grupos")
 def fase_grupos():

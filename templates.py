@@ -538,7 +538,11 @@ RANKING = """
             <span class="cell-value">{{ loop.index }}</span>
           </td>
           <td class="left" data-label="Jogador">
-            <span class="cell-value">{{ r['user_name'] }}</span>
+            <span class="cell-value">
+              <a href="{{ url_for('user_detail', user_id=r['user_id']) }}" style="text-decoration: none; color: #1e40af; font-weight: 600;">
+                {{ r['user_name'] }}
+              </a>
+            </span>
           </td>
           <td class="center" data-label="Resultados Exatos" data-val="{{ r['number_exact_matches'] }}">
             <span class="cell-value">{{ r['number_exact_matches'] }}</span>
@@ -1962,6 +1966,68 @@ MATCH_BREAKDOWN = """
   <div style="margin-top:16px;">
     <a href="{{ back_url }}">&larr; Voltar</a>
   </div>
-  
+
 </div>
+"""
+
+
+USER_DETAIL = """
+<h2>{{ user['user_name'] }}</h2>
+<p><a class="button" href="{{ url_for('ranking') }}">← Voltar ao Ranking</a></p>
+
+<h3>Classificados da Fase de Grupos</h3>
+
+<div style="margin: 2rem 0;">
+  <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h4 style="margin-top: 0; color: #047857;">✓ Acertos: {{ correct_qualified|length }} times</h4>
+    <p style="font-size: 1.2rem; font-weight: 700; color: #047857; margin: 0;">
+      Pontos de Classificação: {{ qualification_points }}
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+
+    <!-- User's Predictions -->
+    <div style="background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 1.25rem;">
+      <h4 style="margin-top: 0; color: #1e40af;">Suas Apostas ({{ user_qualified|length }} times)</h4>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for team in user_qualified %}
+        <li style="padding: 0.4rem 0; border-bottom: 1px solid #e5e7eb;
+                   {% if team in correct_qualified %}color: #047857; font-weight: 600;{% endif %}">
+          {% if team in correct_qualified %}✓{% endif %} {{ team }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Real Results -->
+    <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 1.25rem;">
+      <h4 style="margin-top: 0; color: #047857;">Classificados Reais ({{ real_qualified|length }} times)</h4>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for team in real_qualified %}
+        <li style="padding: 0.4rem 0; border-bottom: 1px solid #e5e7eb;
+                   {% if team in correct_qualified %}color: #047857; font-weight: 600;{% endif %}">
+          {% if team in correct_qualified %}✓{% endif %} {{ team }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  </div>
+
+  <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px;">
+    <p style="margin: 0; font-size: 0.9rem; color: #78350f;">
+      <strong>Legenda:</strong> Times marcados com ✓ são acertos (apostados e classificados na realidade).
+      Cada acerto vale <strong>2 pontos</strong>.
+    </p>
+  </div>
+</div>
+
+<style>
+  @media (max-width: 640px) {
+    div[style*="grid-template-columns"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
 """

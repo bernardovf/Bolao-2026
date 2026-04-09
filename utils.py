@@ -419,3 +419,77 @@ def team_color(name: str) -> str:
     }
     key = aliases.get(name, name)
     return TEAM_COLOR_FALLBACKS.get(key, "#6366F1")  # default indigo
+
+
+def compute_qualified_teams(conn, user_id=None, use_real_results=False):
+    """
+    Compute which teams qualified from group stage (top 2 + best 8 thirds).
+
+    Args:
+        conn: database connection
+        user_id: if provided, use this user's bets; if None, use real results
+        use_real_results: if True, use real results instead of user bets
+
+    Returns:
+        set of team names that qualified
+    """
+    from collections import defaultdict
+
+    # Fetch all group stage matches
+    group_phases = [f"Group {c}" for c in "ABCDEFGHIJKL"]
+    placeholders = ",".join("?" * len(group_phases))
+
+    rows = conn.execute(f"""
+        SELECT id, phase, home, away, final_home_goals, final_away_goals
+        FROM fixtures
+        WHERE phase IN ({placeholders})
+        ORDER BY phase, id
+    """, group_phases).fetchall()
+
+    # Group fixtures by group name
+    groups = defaultdict(list)
+    for r in rows:
+        groups[r["phase"]].append(dict(r))
+
+    # Get bets or results
+    if use_real_results:
+        results = _fetch_results(conn)
+        standings_by_group = {}
+        for gname, grows in groups.items():
+            standings_by_group[gname] = _compute_group_table_real(grows, results)
+    else:
+        if user_id is None:
+            return set()
+        bets = _fetch_user_bets(conn, user_id)
+        standings_by_group = {}
+        for gname, grows in groups.items():
+            standings_by_group[gname] = _compute_group_table_from_bets(grows, bets)
+
+    # Get top 2 from each group
+    qualified = set()
+    thirds = []
+
+    for gname, table in standings_by_group.items():
+        if len(table) >= 2:
+            # Top 2 qualify directly
+            qualified.add(table[0]["team"])
+            qualified.add(table[1]["team"])
+        if len(table) >= 3:
+            # Collect third place for best thirds ranking
+            third = table[2]
+            thirds.append({
+                "group": gname,
+                "team": third["team"],
+                "pts": third["pts"],
+                "gd": third["gd"],
+                "gf": third["gf"],
+            })
+
+    # Rank best thirds (same logic as rank_best_thirds but simpler)
+    thirds.sort(key=lambda x: (x["pts"], x["gd"], x["gf"], x["team"]), reverse=True)
+
+    # Add best 8 thirds
+    for third in thirds[:8]:
+        qualified.add(third["team"])
+
+    return qualified
