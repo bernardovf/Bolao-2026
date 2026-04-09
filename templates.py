@@ -696,7 +696,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">{{ player.user_name }}</h1>
-            <p class="text-base md:text-lg text-slate-600">Total: <span class="font-bold text-blue-600">{{ total_points }} pontos</span></p>
         </div>
 
         <!-- Palpites Gerais -->
@@ -751,20 +750,16 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <!-- Qualified Teams Comparison -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-1 gap-4 md:gap-6">
 
                 <!-- User's Predictions -->
                 <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                    <h3 class="text-base md:text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
-                        <span>📋</span>
-                        <span>Suas Apostas ({{ user_qualified|length }})</span>
-                    </h3>
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
+                    <div class="space-y-0.25 max-h-80 overflow-y-auto">
                         {% for team in user_qualified %}
-                        <div class="flex items-center gap-2 px-3 py-2 bg-white rounded border
-                                    {% if team in correct_qualified %}border-green-400 bg-green-50{% else %}border-slate-200{% endif %}">
+                        <div class="flex items-center gap-2 px-2 py-1 bg-white rounded border
+                                    {% if team in correct_qualified %}border-green-400 bg-green-200{% else %}border-slate-200{% endif %}">
                             {% if team in correct_qualified %}
-                            <span class="text-green-600 font-bold">✓</span>
+                            <span class="text-green-600 font-bold ">✓</span>
                             {% endif %}
                             <span class="{% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
                                 {{ translate_team_name(team) }}
@@ -773,37 +768,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                         {% endfor %}
                     </div>
                 </div>
-
-                <!-- Real Results -->
-                <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                    <h3 class="text-base md:text-lg font-bold text-green-900 mb-3 flex items-center gap-2">
-                        <span>✅</span>
-                        <span>Classificados Reais ({{ real_qualified|length }})</span>
-                    </h3>
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        {% for team in real_qualified %}
-                        <div class="flex items-center gap-2 px-3 py-2 bg-white rounded border
-                                    {% if team in correct_qualified %}border-green-400 bg-green-50{% else %}border-slate-200{% endif %}">
-                            {% if team in correct_qualified %}
-                            <span class="text-green-600 font-bold">✓</span>
-                            {% endif %}
-                            <span class="{% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
-                                {{ translate_team_name(team) }}
-                            </span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Legend -->
-            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p class="text-xs md:text-sm text-yellow-900">
-                    <strong>💡 Legenda:</strong> Times marcados com ✓ são acertos (apostados e classificados na realidade).
-                    Cada acerto vale <strong>2 pontos</strong>.
-                    Os 32 classificados são: 2 primeiros de cada grupo (24 times) + 8 melhores terceiros colocados.
-                </p>
             </div>
         </div>
 
