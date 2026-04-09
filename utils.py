@@ -124,7 +124,7 @@ def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_result
     group_fixtures = db_execute_fn(conn, '''
         SELECT id, phase, home, away, final_home_goals, final_away_goals
         FROM fixtures
-        WHERE phase LIKE 'Group %'
+        WHERE phase LIKE 'Grupo %'
         ORDER BY phase, id
     ''').fetchall()
 
