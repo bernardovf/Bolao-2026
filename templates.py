@@ -696,7 +696,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">{{ player.user_name }}</h1>
-            <p class="text-base md:text-lg text-slate-600">Total: <span class="font-bold text-blue-600">{{ total_points }} pontos</span></p>
         </div>
 
         <!-- Palpites Gerais -->
@@ -731,6 +730,46 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
         {% endif %}
+
+        <!-- Classificados da Fase de Grupos -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Classificados da Fase de Grupos</h2>
+
+            <!-- Summary Card -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-700 mb-1">Acertos de Classificação</p>
+                        <p class="text-2xl md:text-3xl font-black text-green-800">{{ correct_qualified|length }} / 32</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-green-700 mb-1">Pontos</p>
+                        <p class="text-2xl md:text-3xl font-black text-green-800">{{ qualification_points }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qualified Teams Comparison -->
+            <div class="grid grid-cols-1 lg:grid-cols-1 gap-4 md:gap-6">
+
+                <!-- User's Predictions -->
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <div class="space-y-0.25 max-h-80 overflow-y-auto">
+                        {% for team in user_qualified %}
+                        <div class="flex items-center gap-2 px-2 py-1 rounded border
+                                    {% if team in correct_qualified %}border-green-500 bg-green-200{% else %}bg-white border-slate-200{% endif %}">
+                            {% if team in correct_qualified %}
+                            <span class="text-green-900 font-bold">✓</span>
+                            {% endif %}
+                            <span class="{% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
+                                {{ translate_team_name(team) }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Phase Filter -->
         <div class="mb-6">

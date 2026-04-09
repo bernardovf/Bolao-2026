@@ -103,3 +103,87 @@ def calculate_group_standings(fixtures, user_bets):
     )
 
     return sorted_standings
+
+
+def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
+    """
+    Calculate which teams qualified from group stage (top 2 from each group + best 8 thirds).
+
+    Args:
+        db_execute_fn: function to execute database queries
+        conn: database connection
+        user_id: user ID to calculate based on their bets (ignored if use_real_results=True)
+        use_real_results: if True, use real results instead of user bets
+
+    Returns:
+        set of team names that qualified
+    """
+    from collections import defaultdict
+
+    # Get all group stage fixtures
+    group_fixtures = db_execute_fn(conn, '''
+        SELECT id, phase, home, away, final_home_goals, final_away_goals
+        FROM fixtures
+        WHERE phase LIKE 'Grupo %'
+        ORDER BY phase, id
+    ''').fetchall()
+
+    # Group fixtures by group name
+    groups = defaultdict(list)
+    for fixture in group_fixtures:
+        groups[fixture['phase']].append(dict(fixture))
+
+    # Get user bets or use real results
+    if use_real_results:
+        # Use real results - build a dict matching bet structure
+        user_bets = {}
+        for fixture in group_fixtures:
+            if fixture['final_home_goals'] is not None and fixture['final_away_goals'] is not None:
+                user_bets[fixture['id']] = {
+                    'home_goals': fixture['final_home_goals'],
+                    'away_goals': fixture['final_away_goals']
+                }
+    else:
+        # Get user's bets
+        if user_id is None:
+            return set()
+
+        bets_raw = db_execute_fn(conn, '''
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        ''', (user_id,)).fetchall()
+
+        user_bets = {bet['match_id']: {'home_goals': bet['home_goals'], 'away_goals': bet['away_goals']}
+                     for bet in bets_raw}
+
+    # Calculate standings for each group
+    qualified = set()
+    all_thirds = []
+
+    for group_name, group_fixtures in groups.items():
+        standings = calculate_group_standings(group_fixtures, user_bets)
+
+        # Top 2 from each group qualify directly
+        if len(standings) >= 2:
+            qualified.add(standings[0]['team'])
+            qualified.add(standings[1]['team'])
+
+        # Collect third place for best thirds comparison
+        if len(standings) >= 3:
+            third = standings[2]
+            all_thirds.append({
+                'team': third['team'],
+                'points': third['points'],
+                'gd': third['gd'],
+                'gf': third['gf']
+            })
+
+    # Sort thirds by points, goal difference, goals for
+    all_thirds.sort(key=lambda x: (x['points'], x['gd'], x['gf']), reverse=True)
+
+    # Add best 8 thirds
+    for third in all_thirds[:8]:
+        qualified.add(third['team'])
+
+    return qualified
