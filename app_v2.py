@@ -297,7 +297,8 @@ def ranking():
         WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
     ''').fetchall()
 
-    conn.close()
+    # Calculate qualified teams based on real results (once for all users)
+    real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
 
     # Calculate points for each user using calculate_match_points
     user_points = {}
@@ -308,6 +309,19 @@ def ranking():
         )
         user_id = bet['user_id']
         user_points[user_id] = user_points.get(user_id, 0) + points
+
+    # Calculate qualification points for each user
+    for user in users:
+        user_id = user['id']
+        # Calculate user's qualified teams
+        user_qualified = calculate_qualified_teams(db_execute, conn, user_id=user_id, use_real_results=False)
+        # Calculate correct predictions
+        correct_qualified = user_qualified & real_qualified
+        # Add qualification points (2 points per correct qualified team)
+        qualification_points = len(correct_qualified) * 2
+        user_points[user_id] = user_points.get(user_id, 0) + qualification_points
+
+    conn.close()
 
     # Build rankings list
     rankings = []
