@@ -105,11 +105,12 @@ def calculate_group_standings(fixtures, user_bets):
     return sorted_standings
 
 
-def calculate_qualified_teams(conn, user_id=None, use_real_results=False):
+def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
     """
     Calculate which teams qualified from group stage (top 2 from each group + best 8 thirds).
 
     Args:
+        db_execute_fn: function to execute database queries
         conn: database connection
         user_id: user ID to calculate based on their bets (ignored if use_real_results=True)
         use_real_results: if True, use real results instead of user bets
@@ -119,14 +120,8 @@ def calculate_qualified_teams(conn, user_id=None, use_real_results=False):
     """
     from collections import defaultdict
 
-    # Import here to avoid circular dependency
-    if use_real_results:
-        from app_v2 import db_execute
-    else:
-        from app_v2 import db_execute
-
     # Get all group stage fixtures
-    group_fixtures = db_execute(conn, '''
+    group_fixtures = db_execute_fn(conn, '''
         SELECT id, phase, home, away, final_home_goals, final_away_goals
         FROM fixtures
         WHERE phase LIKE 'Group %'
@@ -153,7 +148,7 @@ def calculate_qualified_teams(conn, user_id=None, use_real_results=False):
         if user_id is None:
             return set()
 
-        bets_raw = db_execute(conn, '''
+        bets_raw = db_execute_fn(conn, '''
             SELECT match_id, home_goals, away_goals
             FROM bet
             WHERE user_id = ?

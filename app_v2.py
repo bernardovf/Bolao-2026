@@ -395,10 +395,10 @@ def jogador_detail(user_id):
     ''', (user_id,)).fetchone()
 
     # Calculate qualified teams based on user bets
-    user_qualified = calculate_qualified_teams(conn, user_id=user_id, use_real_results=False)
+    user_qualified = calculate_qualified_teams(db_execute, conn, user_id=user_id, use_real_results=False)
 
     # Calculate qualified teams based on real results
-    real_qualified = calculate_qualified_teams(conn, user_id=None, use_real_results=True)
+    real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
 
     conn.close()
 
