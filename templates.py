@@ -756,10 +756,10 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                     <div class="space-y-0.25 max-h-80 overflow-y-auto">
                         {% for team in user_qualified %}
-                        <div class="flex items-center gap-2 px-2 py-1 bg-white rounded border
-                                    {% if team in correct_qualified %}border-green-400 bg-green-200{% else %}border-slate-200{% endif %}">
+                        <div class="flex items-center gap-2 px-2 py-1 rounded border
+                                    {% if team in correct_qualified %}border-green-500 bg-green-400{% else %}bg-white border-slate-200{% endif %}">
                             {% if team in correct_qualified %}
-                            <span class="text-green-600 font-bold ">✓</span>
+                            <span class="text-green-900 font-bold">✓</span>
                             {% endif %}
                             <span class="{% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
                                 {{ translate_team_name(team) }}
