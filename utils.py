@@ -1,421 +1,189 @@
+from constants import flag_map, abbr_map, translations
 from datetime import datetime
-import sqlite3
-from constants import TEAM_TO_CODE, DB_PATH, PHASE_LOCKS, TEAM_COLOR_FALLBACKS
-from collections import defaultdict
-from zoneinfo import ZoneInfo
 
-# Uppercase, without accents (matches your example "SABADO")
-WEEKDAY_PT_NOACC = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"]
-# If you prefer accents, swap to this:
-WEEKDAY_PT_ACC = ["SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO"]
-
-ABBR_MAP = {
-    "Brazil": "BRA", "Argentina": "ARG", "France": "FRA", "Germany": "GER",
-    "England": "ENG", "Spain": "ESP", "Portugal": "POR", "Italy": "ITA",
-    # …add the rest here (FIFA codes). Fallback will handle unknowns.
-}
-
-def abbr3(name: str) -> str:
-    if not name:
-        return ""
-    return ABBR_MAP.get(name, name[:3]).upper()
-
-
-def _calc_points(pick_h, pick_a, real_h, real_a):
-    """10 exact, 5 correct outcome, else 0. None if result/pick missing."""
-    if pick_h is None or pick_a is None:
-        return None
-    if real_h is None or real_a is None:
-        return None
-    if pick_h == real_h and pick_a == real_a:
-        return 10
-    def outcome(h, a):  # 1 home win, -1 away win, 0 draw
-        return (h > a) - (h < a)
-    return 5 if outcome(pick_h, pick_a) == outcome(real_h, real_a) else 0
-
-def require_login():
-    if not session.get("id"):
-        flash("Please log in.")
-        return redirect(url_for("login"))
+def get_flag_url(team_name):
+    """Get flag URL for a team"""
+    # FIFA country codes mapping
+    code = flag_map.get(team_name, '')
+    if code:
+        return f'https://flagcdn.com/w160/{code}.png'
     return None
 
-def _fetch_user_bets(conn, uid):
-    rows = conn.execute("""
-        SELECT match_id, home_goals, away_goals
-        FROM bet WHERE user_id = ?
-    """, (uid,)).fetchall()
-    return {r["match_id"]: dict(r) for r in rows}
+def get_team_abbr(team_name):
+    """Return a 3-letter abbreviation for a team name."""
 
-def _fetch_results(conn):
-    rows = conn.execute("""
-        SELECT id, final_home_goals, final_away_goals
-        FROM fixtures
-    """,).fetchall()
-    return {r["id"]: dict(r) for r in rows}
+    if team_name in abbr_map:
+        return abbr_map[team_name]
 
-def _fetch_phase_rows(conn, phases):
-    placeholders = ",".join("?" * len(phases))
-    return conn.execute(f"""
-        SELECT id, phase, home, away, kickoff_utc,
-               final_home_goals, final_away_goals
-        FROM fixtures
-        WHERE phase IN ({placeholders})
-        ORDER BY datetime(kickoff_utc), id
-    """, phases).fetchall()
+    cleaned = ''.join(ch for ch in team_name.upper() if ch.isalnum())
+    if len(cleaned) >= 3:
+        return cleaned[:3]
+    return cleaned.ljust(3, 'X')
 
-def _select_match_ids(conn, phases):
-    placeholders = ",".join("?" * len(phases))
-    rows = conn.execute(
-        f"SELECT id FROM fixtures WHERE phase IN ({placeholders}) ORDER BY id",
-        phases
-    ).fetchall()
-    return [r[0] for r in rows]
+def translate_team_name(team_name):
+    """Return Portuguese display name for a given team."""
+    return translations.get(team_name, team_name)
 
-def phase_locked(phase: str) -> bool:
-    return bool(PHASE_LOCKS.get(phase, False))
-
-def flag_url(team: str) -> str:
-    code = TEAM_TO_CODE.get(team)
-    return f"https://flagcdn.com/h80/{code}.png"
-
-def _day_suffix(d):
-    return "th" if 11 <= d % 100 <= 13 else {1:"st",2:"nd",3:"rd"}.get(d % 10, "th")
-
-def fmt_kickoff(value):
-    """
-    Render ISO datetime (e.g., '2022-11-20T12:00:00Z' or '+00:00') as 'dd/mm HH:MM'.
-    Keeps it in UTC (as your field name suggests). Adjust here if you want a TZ.
-    """
-    if not value:
-        return ""
-    s = str(value)
-    # Accept 'Z' suffix or '+00:00'
-    if s.endswith("Z"):
-        s = s[:-1] + "+00:00"
+def format_match_datetime(kickoff_utc):
+    """Format match datetime for display"""
+    if not kickoff_utc:
+        return None
     try:
-        dt = datetime.fromisoformat(s)
-    except ValueError:
-        # fallback: strip subseconds if present
-        if "." in s:
-            base, rest = s.split(".", 1)
-            s = base + s[-6:]  # keep timezone part
-            dt = datetime.fromisoformat(s)
-        else:
-            return str(value)
-    return dt.strftime("%d/%m %H:%M")
+        # Parse UTC datetime
+        dt = datetime.fromisoformat(kickoff_utc.replace('Z', '+00:00'))
+        # Format as: "21/06 14:00"
+        return dt.strftime('%d/%m %H:%M')
+    except:
+        return None
 
-def fmt_kickoff_pt(iso_utc: str, tz: str = "America/Sao_Paulo", accents: bool = False) -> str:
-    # Accept "...Z" or "+00:00"
-    dt_utc = datetime.fromisoformat(iso_utc.replace("Z", "+00:00"))
-    local = dt_utc.astimezone(ZoneInfo(tz))
-    names = WEEKDAY_PT_ACC if accents else WEEKDAY_PT_NOACC
-    wd = names[local.weekday()]  # 0=Mon ... 6=Sun
-    return f"{wd} {local:%d/%m %H:%M}"
+def calculate_group_standings(fixtures, user_bets):
+    """
+    Calculate standings for teams in fixtures based on the user's bets.
+    Returns: list of dicts with team stats sorted by points.
+    """
 
-def check_password(pwd, real_password):
-    if pwd == real_password:
-        return True
+    def ensure_team(team_name):
+        if team_name not in standings:
+            standings[team_name] = {
+                'team': team_name,
+                'played': 0,
+                'won': 0,
+                'drawn': 0,
+                'lost': 0,
+                'gf': 0,
+                'ga': 0,
+                'gd': 0,
+                'points': 0
+            }
+
+    standings = {}
+
+    for match in fixtures:
+        home = match['home']
+        away = match['away']
+        ensure_team(home)
+        ensure_team(away)
+
+        bet = user_bets.get(match['id'])
+        if not bet:
+            # No bet for this match: don't count stats yet
+            continue
+
+        home_goals = bet['home_goals']
+        away_goals = bet['away_goals']
+
+        standings[home]['played'] += 1
+        standings[away]['played'] += 1
+        standings[home]['gf'] += home_goals
+        standings[home]['ga'] += away_goals
+        standings[away]['gf'] += away_goals
+        standings[away]['ga'] += home_goals
+
+        if home_goals > away_goals:  # Home win
+            standings[home]['won'] += 1
+            standings[home]['points'] += 3
+            standings[away]['lost'] += 1
+        elif home_goals < away_goals:  # Away win
+            standings[away]['won'] += 1
+            standings[away]['points'] += 3
+            standings[home]['lost'] += 1
+        else:  # Draw
+            standings[home]['drawn'] += 1
+            standings[away]['drawn'] += 1
+            standings[home]['points'] += 1
+            standings[away]['points'] += 1
+
+        standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
+        standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
+
+    sorted_standings = sorted(
+        standings.values(),
+        key=lambda x: (x['points'], x['gd'], x['gf']),
+        reverse=True
+    )
+
+    return sorted_standings
+
+
+def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
+    """
+    Calculate which teams qualified from group stage (top 2 from each group + best 8 thirds).
+
+    Args:
+        db_execute_fn: function to execute database queries
+        conn: database connection
+        user_id: user ID to calculate based on their bets (ignored if use_real_results=True)
+        use_real_results: if True, use real results instead of user bets
+
+    Returns:
+        set of team names that qualified
+    """
+    from collections import defaultdict
+
+    # Get all group stage fixtures
+    group_fixtures = db_execute_fn(conn, '''
+        SELECT id, phase, home, away, final_home_goals, final_away_goals
+        FROM fixtures
+        WHERE phase LIKE 'Grupo %'
+        ORDER BY phase, id
+    ''').fetchall()
+
+    # Group fixtures by group name
+    groups = defaultdict(list)
+    for fixture in group_fixtures:
+        groups[fixture['phase']].append(dict(fixture))
+
+    # Get user bets or use real results
+    if use_real_results:
+        # Use real results - build a dict matching bet structure
+        user_bets = {}
+        for fixture in group_fixtures:
+            if fixture['final_home_goals'] is not None and fixture['final_away_goals'] is not None:
+                user_bets[fixture['id']] = {
+                    'home_goals': fixture['final_home_goals'],
+                    'away_goals': fixture['final_away_goals']
+                }
     else:
-        return False
+        # Get user's bets
+        if user_id is None:
+            return set()
 
-def get_conn():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=30)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("PRAGMA synchronous=NORMAL;")
-    return conn
+        bets_raw = db_execute_fn(conn, '''
+            SELECT match_id, home_goals, away_goals
+            FROM bet
+            WHERE user_id = ?
+        ''', (user_id,)).fetchall()
 
-def list_teams():
-    with get_conn() as conn:
-        rows = conn.execute("""
-            SELECT team FROM (
-              SELECT DISTINCT home AS team FROM match
-              UNION
-              SELECT DISTINCT away AS team FROM match
-            )
-            ORDER BY team
-        """).fetchall()
-    return [r["team"] for r in rows]
+        user_bets = {bet['match_id']: {'home_goals': bet['home_goals'], 'away_goals': bet['away_goals']}
+                     for bet in bets_raw}
 
-def _match_outcome(h, a):
-    if h > a: return 1   # home win
-    if h < a: return -1  # away win
-    return 0             # draw
+    # Calculate standings for each group
+    qualified = set()
+    all_thirds = []
 
-def _compute_group_table_from_bets(fixtures_rows, bets_by_mid):
-    """
-    fixtures_rows: iterable of dict/Row with keys: id, phase ('Group A'..), home, away
-    bets_by_mid:  {match_id: {'home_goals': int, 'away_goals': int}}
-    Returns: list[dict] standings sorted with FIFA tiebreakers including head-to-head.
-    """
-    # base stats
-    stats = {
-        # team -> aggregate
-        # we’ll also keep a per-opponent ledger for head-to-head recomputation
-    }
-    agg = defaultdict(lambda: {
-        "team": "",
-        "played": 0, "won": 0, "draw": 0, "lost": 0,
-        "gf": 0, "ga": 0, "gd": 0, "pts": 0,
-        "h2h": defaultdict(lambda: {"gf": 0, "ga": 0, "pts": 0})  # vs opponent
-    })
+    for group_name, group_fixtures in groups.items():
+        standings = calculate_group_standings(group_fixtures, user_bets)
 
-    for m in fixtures_rows:
-        mid = m["id"]
-        bet = bets_by_mid.get(mid)
-        if not bet:  # no bet -> ignore for table (tournament hasn’t “happened” in user’s prediction)
-            continue
-        if bet.get("home_goals") is None or bet.get("away_goals") is None:
-            continue
+        # Top 2 from each group qualify directly
+        if len(standings) >= 2:
+            qualified.add(standings[0]['team'])
+            qualified.add(standings[1]['team'])
 
-        home, away = m["home"], m["away"]
-        h, a = int(bet["home_goals"]), int(bet["away_goals"])
-        res = _match_outcome(h, a)
+        # Collect third place for best thirds comparison
+        if len(standings) >= 3:
+            third = standings[2]
+            all_thirds.append({
+                'team': third['team'],
+                'points': third['points'],
+                'gd': third['gd'],
+                'gf': third['gf']
+            })
 
-        # init names
-        agg[home]["team"] = home
-        agg[away]["team"] = away
+    # Sort thirds by points, goal difference, goals for
+    all_thirds.sort(key=lambda x: (x['points'], x['gd'], x['gf']), reverse=True)
 
-        # played
-        agg[home]["played"] += 1
-        agg[away]["played"] += 1
+    # Add best 8 thirds
+    for third in all_thirds[:8]:
+        qualified.add(third['team'])
 
-        # gf/ga
-        agg[home]["gf"] += h; agg[home]["ga"] += a
-        agg[away]["gf"] += a; agg[away]["ga"] += h
-
-        # results & points
-        if res == 1:
-            agg[home]["won"]  += 1; agg[away]["lost"] += 1
-            agg[home]["pts"]  += 3
-            agg[home]["h2h"][away]["pts"] += 3
-        elif res == -1:
-            agg[away]["won"]  += 1; agg[home]["lost"] += 1
-            agg[away]["pts"]  += 3
-            agg[away]["h2h"][home]["pts"] += 3
-        else:
-            agg[home]["draw"] += 1; agg[away]["draw"] += 1
-            agg[home]["pts"]  += 1; agg[away]["pts"]  += 1
-            agg[home]["h2h"][away]["pts"] += 1
-            agg[away]["h2h"][home]["pts"] += 1
-
-        # head-to-head gf/ga
-        agg[home]["h2h"][away]["gf"] += h; agg[home]["h2h"][away]["ga"] += a
-        agg[away]["h2h"][home]["gf"] += a; agg[away]["h2h"][home]["ga"] += h
-
-    # compute GD
-    for t in agg.values():
-        t["gd"] = t["gf"] - t["ga"]
-
-    # base sort (points, gd, gf)
-    table = list(agg.values())
-
-    def _base_key(t):
-        return (t["pts"], t["gd"], t["gf"])
-
-    table.sort(key=_base_key, reverse=True)
-
-    # head-to-head for tied clusters (2+ teams)
-    i = 0
-    while i < len(table):
-        # find tie cluster with same base key
-        j = i + 1
-        while j < len(table) and _base_key(table[j]) == _base_key(table[i]):
-            j += 1
-        if j - i >= 2:
-            # apply mini-league among tied teams
-            tied = table[i:j]
-            tied_names = {t["team"] for t in tied}
-
-            def mini_row(team_name):
-                pts = gd = gf = 0
-                # recompute using only matches between tied teams via stored h2h ledger
-                for opp in tied_names:
-                    if opp == team_name: continue
-                    r = agg[team_name]["h2h"][opp]
-                    pts += r["pts"]
-                    gf  += r["gf"]
-                    gd  += (r["gf"] - r["ga"])
-                return (pts, gd, gf)
-
-            tied.sort(key=lambda t: (*mini_row(t["team"]),), reverse=True)
-
-            # If still tied after h2h, keep current order or fallback to alphabetic:
-            k = 0
-            while k < len(tied):
-                l = k + 1
-                while l < len(tied) and mini_row(tied[l]["team"]) == mini_row(tied[k]["team"]):
-                    l += 1
-                if l - k >= 2:
-                    # fallback: alphabetical to keep deterministic (instead of fair play / drawing lots)
-                    tied[k:l] = sorted(tied[k:l], key=lambda t: t["team"])
-                k = l
-
-            # put back
-            table[i:j] = tied
-        i = j
-
-    # add rank
-    for pos, row in enumerate(table, start=1):
-        row["rank"] = pos
-    return table
-
-def _compute_group_table_real(fixtures_rows, bets_by_mid):
-    """
-    fixtures_rows: iterable of dict/Row with keys: id, phase ('Group A'..), home, away
-    bets_by_mid:  {match_id: {'home_goals': int, 'away_goals': int}}
-    Returns: list[dict] standings sorted with FIFA tiebreakers including head-to-head.
-    """
-    # base stats
-    stats = {
-        # team -> aggregate
-        # we’ll also keep a per-opponent ledger for head-to-head recomputation
-    }
-    agg = defaultdict(lambda: {
-        "team": "",
-        "played": 0, "won": 0, "draw": 0, "lost": 0,
-        "gf": 0, "ga": 0, "gd": 0, "pts": 0,
-        "h2h": defaultdict(lambda: {"gf": 0, "ga": 0, "pts": 0})  # vs opponent
-    })
-
-    for m in fixtures_rows:
-        mid = m["id"]
-        bet = bets_by_mid.get(mid)
-        if not bet:  # no bet -> ignore for table (tournament hasn’t “happened” in user’s prediction)
-            continue
-        if bet.get("final_home_goals") is None or bet.get("final_away_goals") is None:
-            continue
-
-        home, away = m["home"], m["away"]
-        h, a = int(bet["final_home_goals"]), int(bet["final_away_goals"])
-        res = _match_outcome(h, a)
-
-        # init names
-        agg[home]["team"] = home
-        agg[away]["team"] = away
-
-        # played
-        agg[home]["played"] += 1
-        agg[away]["played"] += 1
-
-        # gf/ga
-        agg[home]["gf"] += h; agg[home]["ga"] += a
-        agg[away]["gf"] += a; agg[away]["ga"] += h
-
-        # results & points
-        if res == 1:
-            agg[home]["won"]  += 1; agg[away]["lost"] += 1
-            agg[home]["pts"]  += 3
-            agg[home]["h2h"][away]["pts"] += 3
-        elif res == -1:
-            agg[away]["won"]  += 1; agg[home]["lost"] += 1
-            agg[away]["pts"]  += 3
-            agg[away]["h2h"][home]["pts"] += 3
-        else:
-            agg[home]["draw"] += 1; agg[away]["draw"] += 1
-            agg[home]["pts"]  += 1; agg[away]["pts"]  += 1
-            agg[home]["h2h"][away]["pts"] += 1
-            agg[away]["h2h"][home]["pts"] += 1
-
-        # head-to-head gf/ga
-        agg[home]["h2h"][away]["gf"] += h; agg[home]["h2h"][away]["ga"] += a
-        agg[away]["h2h"][home]["gf"] += a; agg[away]["h2h"][home]["ga"] += h
-
-    # compute GD
-    for t in agg.values():
-        t["gd"] = t["gf"] - t["ga"]
-
-    # base sort (points, gd, gf)
-    table = list(agg.values())
-
-    def _base_key(t):
-        return (t["pts"], t["gd"], t["gf"])
-
-    table.sort(key=_base_key, reverse=True)
-
-    # head-to-head for tied clusters (2+ teams)
-    i = 0
-    while i < len(table):
-        # find tie cluster with same base key
-        j = i + 1
-        while j < len(table) and _base_key(table[j]) == _base_key(table[i]):
-            j += 1
-        if j - i >= 2:
-            # apply mini-league among tied teams
-            tied = table[i:j]
-            tied_names = {t["team"] for t in tied}
-
-            def mini_row(team_name):
-                pts = gd = gf = 0
-                # recompute using only matches between tied teams via stored h2h ledger
-                for opp in tied_names:
-                    if opp == team_name: continue
-                    r = agg[team_name]["h2h"][opp]
-                    pts += r["pts"]
-                    gf  += r["gf"]
-                    gd  += (r["gf"] - r["ga"])
-                return (pts, gd, gf)
-
-            tied.sort(key=lambda t: (*mini_row(t["team"]),), reverse=True)
-
-            # If still tied after h2h, keep current order or fallback to alphabetic:
-            k = 0
-            while k < len(tied):
-                l = k + 1
-                while l < len(tied) and mini_row(tied[l]["team"]) == mini_row(tied[k]["team"]):
-                    l += 1
-                if l - k >= 2:
-                    # fallback: alphabetical to keep deterministic (instead of fair play / drawing lots)
-                    tied[k:l] = sorted(tied[k:l], key=lambda t: t["team"])
-                k = l
-
-            # put back
-            table[i:j] = tied
-        i = j
-
-    # add rank
-    for pos, row in enumerate(table, start=1):
-        row["rank"] = pos
-    return table
-
-
-def rank_best_thirds(standings_by_group):
-    """
-    standings_by_group: dict {"Group A": [rows...], "Group B": [rows...], ...}
-    Each row has: team, pts, gd, gf, rank, etc (from _compute_group_table_from_bets).
-    Returns a set of team names that are the 8 best third-placed sides
-    using: points, goal difference, goals scored; fallback = alphabetical.
-    """
-    thirds = []
-    for g, table in standings_by_group.items():
-        # find the 3rd place row in this group's table
-        for r in table:
-            if r.get("rank") == 3:
-                thirds.append({
-                    "group": g,
-                    "team": r["team"],
-                    "pts": r["pts"],
-                    "gd":  r["gd"],
-                    "gf":  r["gf"],
-                })
-                break
-
-    # sort by pts, gd, gf, then alphabetical to keep deterministic
-    thirds.sort(key=lambda x: (x["pts"], x["gd"], x["gf"], x["team"]), reverse=True)
-
-    # take top 8; return as a set of team names for quick membership checks
-    best8 = {row["team"] for row in thirds[:8]}
-    return best8
-
-
-DRAW_COLOR = "#A3A3A3"
-
-def team_color(name: str) -> str:
-    # simple alias handling
-    aliases = {
-        "United States of America": "United States",
-        "Korea, Republic of": "South Korea",
-        "Cote d'Ivoire": "Ivory Coast",
-    }
-    key = aliases.get(name, name)
-    return TEAM_COLOR_FALLBACKS.get(key, "#6366F1")  # default indigo
+    return qualified
