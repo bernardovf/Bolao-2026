@@ -354,7 +354,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             {% if group_standings %}
                 <div class="md:w-5/12 lg:w-1/3">
                     {% for group_name, standings in group_standings.items()|sort %}
-                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden mb-6 md:mb-8">
                             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
                                 <h3 class="text-base font-black text-white">{{ group_name }}</h3>
                             </div>
@@ -405,7 +405,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             <!-- Matches Form -->
             <div class="md:flex-1">
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
-                    <div class="space-y-3 md:space-y-4">
+                    <div class="space-y-2 md:space-y-2.5">
                         {% set last_group = [None] %}
                         {% for match in fixtures %}
                             {# Show group header when phase changes (only for "Todos" view) #}
