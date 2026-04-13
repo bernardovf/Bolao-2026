@@ -538,6 +538,21 @@ def matches():
             ORDER BY match_date
         ''', (phase_filter,)).fetchall()
 
+    # Format dates with Portuguese day names and dd/mm/yyyy
+    from datetime import datetime
+    weekday_pt = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
+
+    formatted_dates = []
+    for date_row in dates:
+        date_str = date_row['match_date']
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        day_name = weekday_pt[date_obj.weekday()]
+        formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+        formatted_dates.append({
+            'value': date_str,  # ISO format for filtering
+            'label': formatted   # Pretty format for display
+        })
+
     # Get user's bets
     user_bets = {}
     if fixtures:
@@ -583,7 +598,7 @@ def matches():
                                  user_bets=user_bets,
                                  phases=phases,
                                  current_phase=phase_filter,
-                                 dates=dates,
+                                 dates=formatted_dates,
                                  current_date=date_filter,
                                  get_flag_url=get_flag_url,
                                  get_team_abbr=get_team_abbr,

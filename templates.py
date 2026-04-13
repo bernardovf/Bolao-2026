@@ -333,9 +333,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <option value="Todas" {% if current_date == 'Todas' %}selected{% endif %}>
                         📅 Todas as Datas
                     </option>
-                    {% for date_row in dates %}
-                        <option value="{{ date_row.match_date }}" {% if current_date == date_row.match_date %}selected{% endif %}>
-                            {{ date_row.match_date }}
+                    {% for date in dates %}
+                        <option value="{{ date.value }}" {% if current_date == date.value %}selected{% endif %}>
+                            {{ date.label }}
                         </option>
                     {% endfor %}
                 </select>
