@@ -548,6 +548,11 @@ def matches():
 @login_required
 def save_bets():
     """Save user bets"""
+    # Block if betting is closed
+    if BETTING_CLOSED:
+        flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites.', 'error')
+        return redirect(url_for('matches'))
+
     user_id = session['user_id']
     conn = get_db()
 
@@ -671,6 +676,11 @@ def palpites_gerais():
     conn = get_db()
 
     if request.method == 'POST':
+        # Block if betting is closed
+        if BETTING_CLOSED:
+            flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites gerais.', 'error')
+            return redirect(url_for('palpites_gerais'))
+
         data = {
             'campeao': (request.form.get('campeao') or '').strip(),
             'artilheiro': (request.form.get('artilheiro') or '').strip(),

@@ -417,8 +417,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Home input -->
                                             <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
-                                                   placeholder="0">
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   placeholder="0"
+                                                   {% if betting_closed %}disabled{% endif %}>
 
                                             <!-- Divider -->
                                             <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
@@ -426,8 +427,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Away input -->
                                             <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
-                                                   placeholder="0">
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   placeholder="0"
+                                                   {% if betting_closed %}disabled{% endif %}>
 
                                             <!-- Away team (flag + name) -->
                                             <div class="flex items-center gap-2 min-w-0 justify-start">
@@ -478,8 +480,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
-                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
-                            Salvar Palpites
+                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if betting_closed %}disabled{% endif %}>
+                            {% if betting_closed %}Apostas Encerradas{% else %}Salvar Palpites{% endif %}
                         </button>
                     </div>
                 </form>
@@ -546,7 +549,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Campeão</label>
                 <select name="campeao"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     {% for code, name in translated_teams %}
                         <option value="{{ code }}" {% if row.get('campeao') == code %}selected{% endif %}>{{ name }}</option>
@@ -567,7 +571,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 <input type="text" name="artilheiro"
                        value="{{ row.get('artilheiro', '') }}"
                        placeholder="Nome do jogador"
-                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                       {% if betting_closed %}disabled{% endif %}>
             </div>
 
             <!-- Best Player -->
@@ -583,7 +588,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 <input type="text" name="melhor_jogador"
                        value="{{ row.get('melhor_jogador', '') }}"
                        placeholder="Nome do jogador"
-                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                       {% if betting_closed %}disabled{% endif %}>
             </div>
 
             <!-- Underdog That Went Furthest -->
@@ -597,7 +603,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que vai mais longe</label>
                 <select name="zebra_longe"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="Haiti" {% if row.get('zebra_longe') == 'Haiti' %}selected{% endif %}>Haiti</option>
                     <option value="Curaçao" {% if row.get('zebra_longe') == 'Curaçao' %}selected{% endif %}>Curaçao</option>
@@ -622,7 +629,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que vai cair antes</label>
                 <select name="favorito_caiu"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="Brazil" {% if row.get('favorito_caiu') == 'Brazil' %}selected{% endif %}>Brasil</option>
                     <option value="Argentina" {% if row.get('favorito_caiu') == 'Argentina' %}selected{% endif %}>Argentina</option>
@@ -646,7 +654,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Anfitrião que vai mais longe</label>
                 <select name="anfitriao_longe"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="USA" {% if row.get('anfitriao_longe') == 'USA' %}selected{% endif %}>Estados Unidos</option>
                     <option value="Canada" {% if row.get('anfitriao_longe') == 'Argentina' %}selected{% endif %}>Canadá</option>
@@ -655,8 +664,9 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
             <button type="submit"
-                    class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition">
-                Salvar Extras
+                    class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if betting_closed %}disabled{% endif %}>
+                {% if betting_closed %}Apostas Encerradas{% else %}Salvar Extras{% endif %}
             </button>
         </form>
     </div>
