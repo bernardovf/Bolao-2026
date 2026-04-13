@@ -305,23 +305,50 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             {% endif %}
         {% endwith %}
 
-        <!-- Phase Filter -->
-        <div class="mb-6">
-            <label class="block text-sm font-bold text-slate-700 mb-2">Filtrar por fase ou grupo:</label>
-            <select onchange="window.location.href='{{ url_for('matches') }}?phase=' + this.value"
-                    class="px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                {% if phases and 'Grupo' in phases[0].phase %}
-                    <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
-                        📋 Todos os Grupos
+        <!-- Filters -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4">
+            <!-- Phase Filter -->
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Fase ou Grupo:</label>
+                <select id="phaseFilter" onchange="updateFilters()"
+                        class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                    {% if phases and 'Grupo' in phases[0].phase %}
+                        <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
+                            📋 Todos os Grupos
+                        </option>
+                    {% endif %}
+                    {% for phase in phases %}
+                        <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
+                            {{ phase.phase }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Data:</label>
+                <select id="dateFilter" onchange="updateFilters()"
+                        class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                    <option value="Todas" {% if current_date == 'Todas' %}selected{% endif %}>
+                        📅 Todas as Datas
                     </option>
-                {% endif %}
-                {% for phase in phases %}
-                    <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
-                        {{ phase.phase }}
-                    </option>
-                {% endfor %}
-            </select>
+                    {% for date_row in dates %}
+                        <option value="{{ date_row.match_date }}" {% if current_date == date_row.match_date %}selected{% endif %}>
+                            {{ date_row.match_date }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
+
+        <script>
+        function updateFilters() {
+            const phase = document.getElementById('phaseFilter').value;
+            const date = document.getElementById('dateFilter').value;
+            window.location.href = '{{ url_for("matches") }}?phase=' + phase + '&date=' + date;
+        }
+        </script>
 
         <div class="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
             {% if group_standings %}

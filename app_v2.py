@@ -487,20 +487,55 @@ def matches():
         else:
             phase_filter = phases[0]['phase'] if phases else ''
 
-    # Get matches based on filter
+    # Get date filter
+    date_filter = request.args.get('date', 'Todas')
+
+    # Build query based on filters
     if phase_filter == 'Todos':
         # Show all group matches
-        fixtures = db_execute(conn, '''
-            SELECT * FROM fixtures
-            WHERE phase LIKE 'Grupo %'
-            ORDER BY id
-        ''').fetchall()
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                ORDER BY id
+            ''').fetchall()
+        else:
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                  AND DATE(kickoff_utc) = ?
+                ORDER BY id
+            ''', (date_filter,)).fetchall()
     else:
         # Show specific phase
-        fixtures = db_execute(conn, '''
-            SELECT * FROM fixtures
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                ORDER BY id
+            ''', (phase_filter,)).fetchall()
+        else:
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                  AND DATE(kickoff_utc) = ?
+                ORDER BY id
+            ''', (phase_filter, date_filter)).fetchall()
+
+    # Get available dates for the current phase filter
+    if phase_filter == 'Todos':
+        dates = db_execute(conn, '''
+            SELECT DISTINCT DATE(kickoff_utc) as match_date
+            FROM fixtures
+            WHERE phase LIKE 'Grupo %'
+            ORDER BY match_date
+        ''').fetchall()
+    else:
+        dates = db_execute(conn, '''
+            SELECT DISTINCT DATE(kickoff_utc) as match_date
+            FROM fixtures
             WHERE phase = ?
-            ORDER BY id
+            ORDER BY match_date
         ''', (phase_filter,)).fetchall()
 
     # Get user's bets
@@ -548,6 +583,8 @@ def matches():
                                  user_bets=user_bets,
                                  phases=phases,
                                  current_phase=phase_filter,
+                                 dates=dates,
+                                 current_date=date_filter,
                                  get_flag_url=get_flag_url,
                                  get_team_abbr=get_team_abbr,
                                  translate_team_name=translate_team_name,
