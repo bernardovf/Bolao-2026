@@ -379,27 +379,16 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             <div class="md:flex-1">
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
                     <div class="space-y-3 md:space-y-4">
-                        {% if current_phase == 'Todos' %}
-                            {# Group matches by phase when showing all #}
-                            {% set grouped_fixtures = {} %}
-                            {% for match in fixtures %}
-                                {% if match.phase not in grouped_fixtures %}
-                                    {% set _ = grouped_fixtures.update({match.phase: []}) %}
-                                {% endif %}
-                                {% set _ = grouped_fixtures[match.phase].append(match) %}
-                            {% endfor %}
-
-                            {% for group_name in grouped_fixtures.keys()|sort %}
-                                <!-- Group Header -->
+                        {% set last_group = [None] %}
+                        {% for match in fixtures %}
+                            {# Show group header when phase changes (only for "Todos" view) #}
+                            {% if current_phase == 'Todos' and match.phase != last_group[0] %}
+                                {% set _ = last_group.append(match.phase) %}
+                                {% set _ = last_group.pop(0) %}
                                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-4 py-3 mt-6 first:mt-0">
-                                    <h3 class="text-base md:text-lg font-black text-white">{{ group_name }}</h3>
+                                    <h3 class="text-base md:text-lg font-black text-white">{{ match.phase }}</h3>
                                 </div>
-
-                                {% for match in grouped_fixtures[group_name] %}
-                        {% else %}
-                            {# Show matches without grouping for specific phase #}
-                            {% for match in fixtures %}
-                        {% endif %}
+                            {% endif %}
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
                                 <!-- Stats Link (only visible when betting is closed) -->
                                 {% if betting_closed %}
@@ -501,9 +490,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 </div>
                             </div>
                         {% endfor %}
-                        {% if current_phase == 'Todos' %}
-                            {% endfor %}
-                        {% endif %}
                     </div>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
