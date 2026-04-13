@@ -478,17 +478,30 @@ def matches():
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Determine active phase (default to first phase)
+    # Determine active phase (default to "Todos" for groups)
     phase_filter = request.args.get('phase')
     if not phase_filter:
-        phase_filter = phases[0]['phase'] if phases else ''
+        # Default to "Todos" if first phase is a group
+        if phases and 'Grupo' in phases[0]['phase']:
+            phase_filter = 'Todos'
+        else:
+            phase_filter = phases[0]['phase'] if phases else ''
 
-    # Get matches
-    fixtures = db_execute(conn, '''
-        SELECT * FROM fixtures
-        WHERE phase = ?
-        ORDER BY id
-    ''', (phase_filter,)).fetchall()
+    # Get matches based on filter
+    if phase_filter == 'Todos':
+        # Show all group matches
+        fixtures = db_execute(conn, '''
+            SELECT * FROM fixtures
+            WHERE phase LIKE 'Grupo %'
+            ORDER BY id
+        ''').fetchall()
+    else:
+        # Show specific phase
+        fixtures = db_execute(conn, '''
+            SELECT * FROM fixtures
+            WHERE phase = ?
+            ORDER BY id
+        ''', (phase_filter,)).fetchall()
 
     # Get user's bets
     user_bets = {}
@@ -506,8 +519,8 @@ def matches():
     # Calculate group standings if viewing group stage
     group_standings = {}
     best_third_qualifiers = set()
-    if 'Grupo' in phase_filter:
-        # Group fixtures by their specific group (e.g., "Group A", "Group B")
+    if phase_filter == 'Todos' or 'Grupo' in phase_filter:
+        # Group fixtures by their specific group (e.g., "Grupo A", "Grupo B")
         from collections import defaultdict
         groups = defaultdict(list)
         for fixture in fixtures:
