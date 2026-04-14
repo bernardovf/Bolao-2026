@@ -561,6 +561,7 @@ def matches():
         })
 
     # Get user's bets
+    # Get user's bets for filtered fixtures (for display)
     user_bets = {}
     if fixtures:
         fixture_ids = [f['id'] for f in fixtures]
@@ -595,6 +596,20 @@ def matches():
                 ORDER BY kickoff_utc
             ''', (phase_filter,)).fetchall()
 
+        # Get ALL user bets for group stage matches (for standings calculation)
+        if all_group_fixtures:
+            all_fixture_ids = [f['id'] for f in all_group_fixtures]
+            all_placeholders = ','.join('?' * len(all_fixture_ids))
+            all_bets = db_execute(conn, f'''
+                SELECT * FROM bet
+                WHERE user_id = ? AND match_id IN ({all_placeholders})
+            ''', [session['user_id']] + all_fixture_ids).fetchall()
+
+            # Create a complete bets dictionary for standings calculation
+            all_user_bets = {bet['match_id']: dict(bet) for bet in all_bets}
+        else:
+            all_user_bets = {}
+
         # Group fixtures by their specific group (e.g., "Grupo A", "Grupo B")
         groups = defaultdict(list)
         for fixture in all_group_fixtures:
@@ -602,7 +617,7 @@ def matches():
 
         # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
-            group_standings[group_name] = calculate_group_standings(group_fixtures, user_bets)
+            group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
 
         # Rank third-placed teams across all groups
         third_place_candidates = []
