@@ -696,20 +696,20 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Anfitrião que vai mais longe -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
-            {% if betting_closed %}
-                <a href="{{ url_for('extras_stats', category='anfitriao_longe') }}"
-                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
-                   title="Ver estatísticas">
-                    📊 Stats
-                </a>
-            {% endif %}
+                {% if betting_closed %}
+                    <a href="{{ url_for('extras_stats', category='anfitriao_longe') }}"
+                       class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                       title="Ver estatísticas">
+                        📊 Stats
+                    </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Anfitrião que vai mais longe</label>
                 <select name="anfitriao_longe"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                         {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="USA" {% if row.get('anfitriao_longe') == 'USA' %}selected{% endif %}>Estados Unidos</option>
-                    <option value="Canada" {% if row.get('anfitriao_longe') == 'Argentina' %}selected{% endif %}>Canadá</option>
+                    <option value="Canada" {% if row.get('anfitriao_longe') == 'Canada' %}selected{% endif %}>Canadá</option>
                     <option value="Mexico" {% if row.get('anfitriao_longe') == 'Mexico' %}selected{% endif %}>México</option>
                 </select>
             </div>
