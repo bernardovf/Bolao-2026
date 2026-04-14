@@ -83,6 +83,15 @@ def _adapt_query_for_postgres(query):
     query = query.replace('?', '%s')
     return query
 
+def get_brt_date_expression(conn):
+    """Get SQL expression for extracting date in BRT timezone (UTC-3)"""
+    if _is_postgres_connection(conn):
+        # PostgreSQL: subtract 3 hours interval
+        return "DATE(kickoff_utc - INTERVAL '3 hours')"
+    else:
+        # SQLite: use datetime function with modifier
+        return "DATE(datetime(kickoff_utc, '-3 hours'))"
+
 def db_execute(conn, query, args=()):
     """Execute query in a backend-agnostic way (SQLite/PostgreSQL)."""
     if _is_postgres_connection(conn):
@@ -497,6 +506,9 @@ def matches():
     # Get date filter
     date_filter = request.args.get('date', 'Todas')
 
+    # Get BRT date expression for this database
+    brt_date_expr = get_brt_date_expression(conn)
+
     # Build query based on filters
     if phase_filter == 'Todos':
         # Show all group matches
@@ -507,10 +519,10 @@ def matches():
                 ORDER BY phase, kickoff_utc
             ''').fetchall()
         else:
-            fixtures = db_execute(conn, '''
+            fixtures = db_execute(conn, f'''
                 SELECT * FROM fixtures
                 WHERE phase LIKE 'Grupo %'
-                  AND DATE(kickoff_utc) = ?
+                  AND {brt_date_expr} = ?
                 ORDER BY phase, kickoff_utc
             ''', (date_filter,)).fetchall()
     else:
@@ -522,24 +534,24 @@ def matches():
                 ORDER BY kickoff_utc
             ''', (phase_filter,)).fetchall()
         else:
-            fixtures = db_execute(conn, '''
+            fixtures = db_execute(conn, f'''
                 SELECT * FROM fixtures
                 WHERE phase = ?
-                  AND DATE(kickoff_utc) = ?
+                  AND {brt_date_expr} = ?
                 ORDER BY kickoff_utc
             ''', (phase_filter, date_filter)).fetchall()
 
-    # Get available dates for the current phase filter
+    # Get available dates for the current phase filter (in BRT timezone)
     if phase_filter == 'Todos':
-        dates = db_execute(conn, '''
-            SELECT DISTINCT DATE(kickoff_utc) as match_date
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
             FROM fixtures
             WHERE phase LIKE 'Grupo %'
             ORDER BY match_date
         ''').fetchall()
     else:
-        dates = db_execute(conn, '''
-            SELECT DISTINCT DATE(kickoff_utc) as match_date
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
             FROM fixtures
             WHERE phase = ?
             ORDER BY match_date
