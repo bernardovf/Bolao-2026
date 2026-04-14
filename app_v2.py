@@ -283,12 +283,18 @@ def dashboard():
                                  total_bets=total_bets,
                                  total_points=total_points,
                                  exact_matches=exact_matches,
-                                 matches_finished=matches_finished)
+                                 matches_finished=matches_finished,
+                                 betting_closed=BETTING_CLOSED)
 
 @app.route('/ranking')
 @login_required
 def ranking():
     """Rankings page"""
+    # Hide ranking when betting is open
+    if not BETTING_CLOSED:
+        flash('O ranking estará disponível após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
     conn = get_db()
 
     # Get all users
@@ -462,6 +468,7 @@ def jogador_detail(user_id):
         real_qualified=real_qualified_sorted,
         correct_qualified=correct_qualified_sorted,
         qualification_points=qualification_points,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/matches')
@@ -731,6 +738,7 @@ def match_stats(match_id):
         stats=stats,
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
@@ -856,13 +864,14 @@ def extras_stats(category):
         is_team_category=is_team_category,
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/regras')
 @login_required
 def regras():
     """Rules and scoring system"""
-    return render_template_string(REGRAS_TEMPLATE)
+    return render_template_string(REGRAS_TEMPLATE, betting_closed=BETTING_CLOSED)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

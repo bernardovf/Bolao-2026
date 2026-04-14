@@ -115,6 +115,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         {% endwith %}
 
         <!-- Stats Cards -->
+        {% if betting_closed %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <!-- Total Points -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
@@ -126,6 +127,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
         </div>
+        {% endif %}
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
@@ -138,11 +140,13 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
             </a>
 
             <!-- View Ranking Card -->
+            {% if betting_closed %}
             <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Ranking</h3>
                 </div>
             </a>
+            {% endif %}
 
             <!-- Make Predictions Card -->
             <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
@@ -183,7 +187,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -281,7 +287,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -556,7 +564,9 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -738,7 +748,9 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -895,11 +907,13 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
 
+        {% if betting_closed %}
         <div class="mt-6 text-center">
             <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
                 ← Voltar ao Ranking
             </a>
         </div>
+        {% endif %}
     </div>
 </body>
 </html>
@@ -926,7 +940,9 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1149,7 +1165,9 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1370,7 +1388,9 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
