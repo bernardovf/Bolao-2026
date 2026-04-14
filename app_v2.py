@@ -793,7 +793,7 @@ def palpites_gerais():
                 '''INSERT INTO palpites_gerais
                    (user_id, campeao, artilheiro, melhor_jogador,
                     zebra_longe, favorito_caiu, anfitriao_longe, updated_at)
-                   VALUES (?,?,?,?,?,?,?)''',
+                   VALUES (?,?,?,?,?,?,?,?)''',
                 (user_id, data['campeao'], data['artilheiro'], data['melhor_jogador'],
                  data['zebra_longe'], data['favorito_caiu'], data['anfitriao_longe'],
                  datetime.utcnow().isoformat(timespec='seconds'))

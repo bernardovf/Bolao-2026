@@ -300,7 +300,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Seus Palpites</h1>
-            <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -574,10 +573,9 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Extras</h1>
-            <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -950,10 +948,9 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Regras do Bolão</h1>
-            <p class="text-base md:text-lg text-slate-600">Sistema de pontuação e regras gerais</p>
         </div>
 
         <!-- Pontos por Fase -->
