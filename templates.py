@@ -350,7 +350,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         }
         </script>
 
-        <div class="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
+        <div class="flex flex-col-reverse md:flex-row md:items-start gap-6 md:gap-8">
             {% if group_standings %}
                 <div class="md:w-5/12 lg:w-1/3">
                     {% for group_name, standings in group_standings.items()|sort %}
@@ -488,6 +488,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
 
                                     <!-- Result & Points -->
+                                    {% if betting_closed %}
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
@@ -514,6 +515,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% endif %}
                                         </div>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
