@@ -574,13 +574,30 @@ def matches():
         user_bets = {bet['match_id']: dict(bet) for bet in bets}
 
     # Calculate group standings if viewing group stage
+    # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
     best_third_qualifiers = set()
     if phase_filter == 'Todos' or 'Grupo' in phase_filter:
-        # Group fixtures by their specific group (e.g., "Grupo A", "Grupo B")
         from collections import defaultdict
+
+        # Get ALL group matches for standings calculation (ignore date filter)
+        if phase_filter == 'Todos':
+            all_group_fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                ORDER BY phase, kickoff_utc
+            ''').fetchall()
+        else:
+            # Specific group - get all matches from that group
+            all_group_fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                ORDER BY kickoff_utc
+            ''', (phase_filter,)).fetchall()
+
+        # Group fixtures by their specific group (e.g., "Grupo A", "Grupo B")
         groups = defaultdict(list)
-        for fixture in fixtures:
+        for fixture in all_group_fixtures:
             groups[fixture['phase']].append(fixture)
 
         # Calculate standings for each group from the user's bets
