@@ -314,7 +314,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                         class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
                     {% if phases and 'Grupo' in phases[0].phase %}
                         <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
-                            📋 Todos os Grupos
+                            Todos os Grupos
                         </option>
                     {% endif %}
                     {% for phase in phases %}
@@ -331,7 +331,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <select id="dateFilter" onchange="updateFilters()"
                         class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
                     <option value="Todas" {% if current_date == 'Todas' %}selected{% endif %}>
-                        📅 Todas as Datas
+                        Todas as Datas
                     </option>
                     {% for date in dates %}
                         <option value="{{ date.value }}" {% if current_date == date.value %}selected{% endif %}>
@@ -376,7 +376,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% set qualifies_top = loop.index <= 2 %}
                                             {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
                                             {% set is_qualified = qualifies_top or qualifies_third %}
-                                            {% set row_class = 'bg-green-50' if is_qualified else '' %}
+                                            {% set row_class = 'bg-green-200' if is_qualified else '' %}
                                             <tr class="hover:bg-slate-50 transition {{ row_class }}">
                                                 <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
                                                 <td class="px-2 md:px-3 py-2">

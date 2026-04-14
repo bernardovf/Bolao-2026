@@ -109,7 +109,7 @@ translations = {
     'Democratic Republic of the Congo': 'RD Congo',
     'Turkey': 'Turquia',
     'Iraq': 'Iraque',
-    'Bosnia and Herzegovina': 'Bósnia / Herzegovina',
+    'Bosnia and Herzegovina': 'Bósnia',
     'Sweden': 'Suécia',
     'Czech Republic': 'República Checa',
 }
