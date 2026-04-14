@@ -446,6 +446,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                                     <!-- Result & Points -->
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
+                                        {% if match.final_home_goals is not none or not betting_closed %}
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
                                             {% if match.final_home_goals is not none %}
@@ -470,6 +471,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                                 <span class="text-[11px] font-semibold">Em breve</span>
                                             {% endif %}
                                         </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
