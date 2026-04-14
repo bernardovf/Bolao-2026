@@ -497,14 +497,14 @@ def matches():
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
                 WHERE phase LIKE 'Grupo %'
-                ORDER BY id
+                ORDER BY phase, kickoff_utc
             ''').fetchall()
         else:
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
                 WHERE phase LIKE 'Grupo %'
                   AND DATE(kickoff_utc) = ?
-                ORDER BY id
+                ORDER BY phase, kickoff_utc
             ''', (date_filter,)).fetchall()
     else:
         # Show specific phase
@@ -512,14 +512,14 @@ def matches():
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
                 WHERE phase = ?
-                ORDER BY id
+                ORDER BY kickoff_utc
             ''', (phase_filter,)).fetchall()
         else:
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
                 WHERE phase = ?
                   AND DATE(kickoff_utc) = ?
-                ORDER BY id
+                ORDER BY kickoff_utc
             ''', (phase_filter, date_filter)).fetchall()
 
     # Get available dates for the current phase filter
