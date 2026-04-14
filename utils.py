@@ -1,5 +1,5 @@
 from constants import flag_map, abbr_map, translations
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def get_flag_url(team_name):
     """Get flag URL for a team"""
@@ -25,14 +25,16 @@ def translate_team_name(team_name):
     return translations.get(team_name, team_name)
 
 def format_match_datetime(kickoff_utc):
-    """Format match datetime for display"""
+    """Format match datetime for display in Brazilian timezone (BRT - UTC-3)"""
     if not kickoff_utc:
         return None
     try:
         # Parse UTC datetime
         dt = datetime.fromisoformat(kickoff_utc.replace('Z', '+00:00'))
+        # Convert to Brazilian timezone (BRT - UTC-3)
+        dt_brt = dt - timedelta(hours=3)
         # Format as: "21/06 14:00"
-        return dt.strftime('%d/%m %H:%M')
+        return dt_brt.strftime('%d/%m %H:%M')
     except:
         return None
 
