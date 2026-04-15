@@ -1520,3 +1520,173 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
 </body>
 </html>
 '''
+
+POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Pontos - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-semibold text-blue-600">Histórico</a>
+                    {% endif %}
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Histórico de Pontos</h1>
+            <p class="text-base md:text-lg text-slate-600">Evolução dos pontos ao longo do torneio</p>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-8">
+            <div class="relative" style="height: 400px;">
+                <canvas id="pointsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-6 bg-white rounded-xl shadow-lg p-4 md:p-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Jogadores</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="legend">
+                <!-- Legend items will be added by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Prepare data
+        const dates = {{ dates|tojson }};
+        const users = {{ users|tojson }};
+
+        // Generate colors for each user
+        const colors = [
+            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
+            '#06b6d4', '#f43f5e', '#22c55e', '#a855f7', '#eab308'
+        ];
+
+        // Create datasets
+        const datasets = users.map((user, index) => ({
+            label: user.name,
+            data: user.points,
+            borderColor: colors[index % colors.length],
+            backgroundColor: colors[index % colors.length] + '20',
+            borderWidth: 3,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: false
+        }));
+
+        // Create chart
+        const ctx = document.getElementById('pointsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' pts';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Pontos',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create legend with click to toggle
+        const legendContainer = document.getElementById('legend');
+        datasets.forEach((dataset, index) => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer transition';
+            item.innerHTML = `
+                <div class="w-4 h-4 rounded-full" style="background-color: ${dataset.borderColor}"></div>
+                <span class="text-sm font-semibold text-slate-700">${dataset.label}</span>
+            `;
+            item.onclick = () => {
+                const meta = chart.getDatasetMeta(index);
+                meta.hidden = !meta.hidden;
+                chart.update();
+                item.style.opacity = meta.hidden ? '0.4' : '1';
+            };
+            legendContainer.appendChild(item);
+        });
+    </script>
+</body>
+</html>
+'''
