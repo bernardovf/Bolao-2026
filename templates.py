@@ -71,12 +71,6 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
                         Entrar
                     </button>
                 </form>
-
-                <div class="mt-6 pt-6 border-t border-slate-200">
-                    <p class="text-sm text-slate-600 text-center">
-                        Senha de teste: <span class="font-mono font-semibold">senha123</span>
-                    </p>
-                </div>
             </div>
         </div>
     </div>
