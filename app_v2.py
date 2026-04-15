@@ -32,7 +32,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 #   - Todos podem ver estatísticas e palpites dos outros
 #
 # IMPORTANTE: Altere para True um dia antes do início das partidas!
-BETTING_CLOSED = True
+BETTING_CLOSED = False
 
 # ============================================================================
 # DATABASE CONFIGURATION
@@ -82,6 +82,15 @@ def _adapt_query_for_postgres(query):
     # Then convert SQLite placeholders ? to PostgreSQL placeholders %s
     query = query.replace('?', '%s')
     return query
+
+def get_brt_date_expression(conn):
+    """Get SQL expression for extracting date in BRT timezone (UTC-3)"""
+    if _is_postgres_connection(conn):
+        # PostgreSQL: subtract 3 hours interval
+        return "DATE(kickoff_utc - INTERVAL '3 hours')"
+    else:
+        # SQLite: use datetime function with modifier
+        return "DATE(datetime(kickoff_utc, '-3 hours'))"
 
 def db_execute(conn, query, args=()):
     """Execute query in a backend-agnostic way (SQLite/PostgreSQL)."""
@@ -283,12 +292,18 @@ def dashboard():
                                  total_bets=total_bets,
                                  total_points=total_points,
                                  exact_matches=exact_matches,
-                                 matches_finished=matches_finished)
+                                 matches_finished=matches_finished,
+                                 betting_closed=BETTING_CLOSED)
 
 @app.route('/ranking')
 @login_required
 def ranking():
     """Rankings page"""
+    # Hide ranking when betting is open
+    if not BETTING_CLOSED:
+        flash('O ranking estará disponível após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
     conn = get_db()
 
     # Get all users
@@ -462,6 +477,7 @@ def jogador_detail(user_id):
         real_qualified=real_qualified_sorted,
         correct_qualified=correct_qualified_sorted,
         qualification_points=qualification_points,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/matches')
@@ -478,19 +494,86 @@ def matches():
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Determine active phase (default to first phase)
+    # Determine active phase (default to "Todos" for groups)
     phase_filter = request.args.get('phase')
     if not phase_filter:
-        phase_filter = phases[0]['phase'] if phases else ''
+        # Default to "Todos" if first phase is a group
+        if phases and 'Grupo' in phases[0]['phase']:
+            phase_filter = 'Todos'
+        else:
+            phase_filter = phases[0]['phase'] if phases else ''
 
-    # Get matches
-    fixtures = db_execute(conn, '''
-        SELECT * FROM fixtures
-        WHERE phase = ?
-        ORDER BY id
-    ''', (phase_filter,)).fetchall()
+    # Get date filter
+    date_filter = request.args.get('date', 'Todas')
+
+    # Get BRT date expression for this database
+    brt_date_expr = get_brt_date_expression(conn)
+
+    # Build query based on filters
+    if phase_filter == 'Todos':
+        # Show all group matches
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                ORDER BY phase, kickoff_utc
+            ''').fetchall()
+        else:
+            fixtures = db_execute(conn, f'''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                  AND {brt_date_expr} = ?
+                ORDER BY phase, kickoff_utc
+            ''', (date_filter,)).fetchall()
+    else:
+        # Show specific phase
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                ORDER BY kickoff_utc
+            ''', (phase_filter,)).fetchall()
+        else:
+            fixtures = db_execute(conn, f'''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                  AND {brt_date_expr} = ?
+                ORDER BY kickoff_utc
+            ''', (phase_filter, date_filter)).fetchall()
+
+    # Get available dates for the current phase filter (in BRT timezone)
+    if phase_filter == 'Todos':
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase LIKE 'Grupo %'
+            ORDER BY match_date
+        ''').fetchall()
+    else:
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase = ?
+            ORDER BY match_date
+        ''', (phase_filter,)).fetchall()
+
+    # Format dates with Portuguese day names and dd/mm/yyyy
+    from datetime import datetime
+    weekday_pt = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
+
+    formatted_dates = []
+    for date_row in dates:
+        date_str = date_row['match_date']
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        day_name = weekday_pt[date_obj.weekday()]
+        formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+        formatted_dates.append({
+            'value': date_str,  # ISO format for filtering
+            'label': formatted   # Pretty format for display
+        })
 
     # Get user's bets
+    # Get user's bets for filtered fixtures (for display)
     user_bets = {}
     if fixtures:
         fixture_ids = [f['id'] for f in fixtures]
@@ -504,18 +587,49 @@ def matches():
         user_bets = {bet['match_id']: dict(bet) for bet in bets}
 
     # Calculate group standings if viewing group stage
+    # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
     best_third_qualifiers = set()
-    if 'Grupo' in phase_filter:
-        # Group fixtures by their specific group (e.g., "Group A", "Group B")
+    if phase_filter == 'Todos' or 'Grupo' in phase_filter:
         from collections import defaultdict
+
+        # Get ALL group matches for standings calculation (ignore date filter)
+        if phase_filter == 'Todos':
+            all_group_fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE 'Grupo %'
+                ORDER BY phase, kickoff_utc
+            ''').fetchall()
+        else:
+            # Specific group - get all matches from that group
+            all_group_fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase = ?
+                ORDER BY kickoff_utc
+            ''', (phase_filter,)).fetchall()
+
+        # Get ALL user bets for group stage matches (for standings calculation)
+        if all_group_fixtures:
+            all_fixture_ids = [f['id'] for f in all_group_fixtures]
+            all_placeholders = ','.join('?' * len(all_fixture_ids))
+            all_bets = db_execute(conn, f'''
+                SELECT * FROM bet
+                WHERE user_id = ? AND match_id IN ({all_placeholders})
+            ''', [session['user_id']] + all_fixture_ids).fetchall()
+
+            # Create a complete bets dictionary for standings calculation
+            all_user_bets = {bet['match_id']: dict(bet) for bet in all_bets}
+        else:
+            all_user_bets = {}
+
+        # Group fixtures by their specific group (e.g., "Grupo A", "Grupo B")
         groups = defaultdict(list)
-        for fixture in fixtures:
+        for fixture in all_group_fixtures:
             groups[fixture['phase']].append(fixture)
 
         # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
-            group_standings[group_name] = calculate_group_standings(group_fixtures, user_bets)
+            group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
 
         # Rank third-placed teams across all groups
         third_place_candidates = []
@@ -535,6 +649,8 @@ def matches():
                                  user_bets=user_bets,
                                  phases=phases,
                                  current_phase=phase_filter,
+                                 dates=formatted_dates,
+                                 current_date=date_filter,
                                  get_flag_url=get_flag_url,
                                  get_team_abbr=get_team_abbr,
                                  translate_team_name=translate_team_name,
@@ -548,6 +664,11 @@ def matches():
 @login_required
 def save_bets():
     """Save user bets"""
+    # Block if betting is closed
+    if BETTING_CLOSED:
+        flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites.', 'error')
+        return redirect(url_for('matches'))
+
     user_id = session['user_id']
     conn = get_db()
 
@@ -661,6 +782,7 @@ def match_stats(match_id):
         stats=stats,
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
@@ -671,6 +793,11 @@ def palpites_gerais():
     conn = get_db()
 
     if request.method == 'POST':
+        # Block if betting is closed
+        if BETTING_CLOSED:
+            flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites gerais.', 'error')
+            return redirect(url_for('palpites_gerais'))
+
         data = {
             'campeao': (request.form.get('campeao') or '').strip(),
             'artilheiro': (request.form.get('artilheiro') or '').strip(),
@@ -693,7 +820,7 @@ def palpites_gerais():
                 '''INSERT INTO palpites_gerais
                    (user_id, campeao, artilheiro, melhor_jogador,
                     zebra_longe, favorito_caiu, anfitriao_longe, updated_at)
-                   VALUES (?,?,?,?,?,?,?)''',
+                   VALUES (?,?,?,?,?,?,?,?)''',
                 (user_id, data['campeao'], data['artilheiro'], data['melhor_jogador'],
                  data['zebra_longe'], data['favorito_caiu'], data['anfitriao_longe'],
                  datetime.utcnow().isoformat(timespec='seconds'))
@@ -781,13 +908,14 @@ def extras_stats(category):
         is_team_category=is_team_category,
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
+        betting_closed=BETTING_CLOSED,
     )
 
 @app.route('/regras')
 @login_required
 def regras():
     """Rules and scoring system"""
-    return render_template_string(REGRAS_TEMPLATE)
+    return render_template_string(REGRAS_TEMPLATE, betting_closed=BETTING_CLOSED)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
