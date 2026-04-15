@@ -115,6 +115,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         {% endwith %}
 
         <!-- Stats Cards -->
+        {% if betting_closed %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <!-- Total Points -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
@@ -126,6 +127,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
             </div>
 
         </div>
+        {% endif %}
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
@@ -138,11 +140,13 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
             </a>
 
             <!-- View Ranking Card -->
+            {% if betting_closed %}
             <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Ranking</h3>
                 </div>
             </a>
+            {% endif %}
 
             <!-- Make Predictions Card -->
             <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
@@ -183,7 +187,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -281,7 +287,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -292,7 +300,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Seus Palpites</h1>
-            <p class="text-base md:text-lg text-slate-600">Aposte nos placares dos jogos</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -305,24 +312,56 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             {% endif %}
         {% endwith %}
 
-        <!-- Phase Filter -->
-        <div class="mb-6">
-            <label class="block text-sm font-bold text-slate-700 mb-2">Filtrar por fase ou grupo:</label>
-            <select onchange="window.location.href='{{ url_for('matches') }}?phase=' + this.value"
-                    class="px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                {% for phase in phases %}
-                    <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
-                        {{ phase.phase }}
+        <!-- Filters -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4">
+            <!-- Phase Filter -->
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Fase ou Grupo:</label>
+                <select id="phaseFilter" onchange="updateFilters()"
+                        class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                    {% if phases and 'Grupo' in phases[0].phase %}
+                        <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
+                            Todos os Grupos
+                        </option>
+                    {% endif %}
+                    {% for phase in phases %}
+                        <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
+                            {{ phase.phase }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Data:</label>
+                <select id="dateFilter" onchange="updateFilters()"
+                        class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
+                    <option value="Todas" {% if current_date == 'Todas' %}selected{% endif %}>
+                        Todas as Datas
                     </option>
-                {% endfor %}
-            </select>
+                    {% for date in dates %}
+                        <option value="{{ date.value }}" {% if current_date == date.value %}selected{% endif %}>
+                            {{ date.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
+        <script>
+        function updateFilters() {
+            const phase = document.getElementById('phaseFilter').value;
+            const date = document.getElementById('dateFilter').value;
+            window.location.href = '{{ url_for("matches") }}?phase=' + phase + '&date=' + date;
+        }
+        </script>
+
+        <div class="flex flex-col-reverse md:flex-row md:items-start gap-6 md:gap-8">
             {% if group_standings %}
                 <div class="md:w-5/12 lg:w-1/3">
                     {% for group_name, standings in group_standings.items()|sort %}
-                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden mb-6 md:mb-8">
                             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
                                 <h3 class="text-base font-black text-white">{{ group_name }}</h3>
                             </div>
@@ -344,7 +383,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% set qualifies_top = loop.index <= 2 %}
                                             {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
                                             {% set is_qualified = qualifies_top or qualifies_third %}
-                                            {% set row_class = 'bg-green-50' if is_qualified else '' %}
+                                            {% set row_class = 'bg-green-200' if is_qualified else '' %}
                                             <tr class="hover:bg-slate-50 transition {{ row_class }}">
                                                 <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
                                                 <td class="px-2 md:px-3 py-2">
@@ -373,8 +412,17 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
             <!-- Matches Form -->
             <div class="md:flex-1">
                 <form method="POST" action="{{ url_for('save_bets', phase=current_phase) }}">
-                    <div class="space-y-3 md:space-y-4">
+                    <div class="space-y-2 md:space-y-2.5">
+                        {% set last_group = [None] %}
                         {% for match in fixtures %}
+                            {# Show group header when phase changes (only for "Todos" view) #}
+                            {% if current_phase == 'Todos' and match.phase != last_group[0] %}
+                                {% set _ = last_group.append(match.phase) %}
+                                {% set _ = last_group.pop(0) %}
+                                <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-4 py-3 mt-6 first:mt-0">
+                                    <h3 class="text-base md:text-lg font-black text-white">{{ match.phase }}</h3>
+                                </div>
+                            {% endif %}
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
                                 <!-- Stats Link (only visible when betting is closed) -->
                                 {% if betting_closed %}
@@ -417,8 +465,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Home input -->
                                             <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
-                                                   placeholder="0">
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   placeholder="0"
+                                                   {% if betting_closed %}disabled{% endif %}>
 
                                             <!-- Divider -->
                                             <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
@@ -426,8 +475,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Away input -->
                                             <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)]"
-                                                   placeholder="0">
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   placeholder="0"
+                                                   {% if betting_closed %}disabled{% endif %}>
 
                                             <!-- Away team (flag + name) -->
                                             <div class="flex items-center gap-2 min-w-0 justify-start">
@@ -445,6 +495,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
 
                                     <!-- Result & Points -->
+                                    {% if betting_closed %}
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
@@ -471,6 +522,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             {% endif %}
                                         </div>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -478,8 +530,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
-                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition">
-                            Salvar Palpites
+                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if betting_closed %}disabled{% endif %}>
+                            {% if betting_closed %}Apostas Encerradas{% else %}Salvar Palpites{% endif %}
                         </button>
                     </div>
                 </form>
@@ -510,7 +563,9 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -518,10 +573,9 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Extras</h1>
-            <p class="text-base md:text-lg text-slate-600">Suas apostas sobre o torneio inteiro</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -546,7 +600,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Campeão</label>
                 <select name="campeao"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     {% for code, name in translated_teams %}
                         <option value="{{ code }}" {% if row.get('campeao') == code %}selected{% endif %}>{{ name }}</option>
@@ -567,7 +622,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 <input type="text" name="artilheiro"
                        value="{{ row.get('artilheiro', '') }}"
                        placeholder="Nome do jogador"
-                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                       {% if betting_closed %}disabled{% endif %}>
             </div>
 
             <!-- Best Player -->
@@ -583,7 +639,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 <input type="text" name="melhor_jogador"
                        value="{{ row.get('melhor_jogador', '') }}"
                        placeholder="Nome do jogador"
-                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800">
+                       class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                       {% if betting_closed %}disabled{% endif %}>
             </div>
 
             <!-- Underdog That Went Furthest -->
@@ -597,7 +654,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Zebra que vai mais longe</label>
                 <select name="zebra_longe"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="Haiti" {% if row.get('zebra_longe') == 'Haiti' %}selected{% endif %}>Haiti</option>
                     <option value="Curaçao" {% if row.get('zebra_longe') == 'Curaçao' %}selected{% endif %}>Curaçao</option>
@@ -622,7 +680,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                 {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Favorito que vai cair antes</label>
                 <select name="favorito_caiu"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="Brazil" {% if row.get('favorito_caiu') == 'Brazil' %}selected{% endif %}>Brasil</option>
                     <option value="Argentina" {% if row.get('favorito_caiu') == 'Argentina' %}selected{% endif %}>Argentina</option>
@@ -637,26 +696,28 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- Anfitrião que vai mais longe -->
             <div class="bg-white rounded-xl shadow-md p-5 border border-slate-200 relative">
-            {% if betting_closed %}
-                <a href="{{ url_for('extras_stats', category='anfitriao_longe') }}"
-                   class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
-                   title="Ver estatísticas">
-                    📊 Stats
-                </a>
-            {% endif %}
+                {% if betting_closed %}
+                    <a href="{{ url_for('extras_stats', category='anfitriao_longe') }}"
+                       class="absolute top-5 right-5 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
+                       title="Ver estatísticas">
+                        📊 Stats
+                    </a>
+                {% endif %}
                 <label class="block text-sm font-bold text-slate-700 mb-2">Anfitrião que vai mais longe</label>
                 <select name="anfitriao_longe"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white">
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 bg-white {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                        {% if betting_closed %}disabled{% endif %}>
                     <option value="">-- Selecione --</option>
                     <option value="USA" {% if row.get('anfitriao_longe') == 'USA' %}selected{% endif %}>Estados Unidos</option>
-                    <option value="Canada" {% if row.get('anfitriao_longe') == 'Argentina' %}selected{% endif %}>Canadá</option>
+                    <option value="Canada" {% if row.get('anfitriao_longe') == 'Canada' %}selected{% endif %}>Canadá</option>
                     <option value="Mexico" {% if row.get('anfitriao_longe') == 'Mexico' %}selected{% endif %}>México</option>
                 </select>
             </div>
 
             <button type="submit"
-                    class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition">
-                Salvar Extras
+                    class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-blue-800 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
+                    {% if betting_closed %}disabled{% endif %}>
+                {% if betting_closed %}Apostas Encerradas{% else %}Salvar Extras{% endif %}
             </button>
         </form>
     </div>
@@ -685,7 +746,9 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -842,11 +905,13 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
             </div>
         </div>
 
+        {% if betting_closed %}
         <div class="mt-6 text-center">
             <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
                 ← Voltar ao Ranking
             </a>
         </div>
+        {% endif %}
     </div>
 </body>
 </html>
@@ -873,7 +938,9 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -881,10 +948,9 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
         </div>
     </nav>
 
-    <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Regras do Bolão</h1>
-            <p class="text-base md:text-lg text-slate-600">Sistema de pontuação e regras gerais</p>
         </div>
 
         <!-- Pontos por Fase -->
@@ -1096,7 +1162,9 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-semibold text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1317,7 +1385,9 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
                     <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
+                    {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
