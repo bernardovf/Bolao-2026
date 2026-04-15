@@ -33,7 +33,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 #   - Todos podem ver estatísticas e palpites dos outros
 #
 # IMPORTANTE: Altere para True um dia antes do início das partidas!
-BETTING_CLOSED = False
+BETTING_CLOSED = True
 
 # ============================================================================
 # DATABASE CONFIGURATION

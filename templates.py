@@ -185,7 +185,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
                     <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -285,7 +284,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -561,7 +559,6 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -744,7 +741,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -936,7 +932,6 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1160,7 +1155,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1383,7 +1377,6 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1548,7 +1541,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('points_history') }}" class="font-semibold text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1559,25 +1551,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Histórico de Pontos</h1>
             <p class="text-base md:text-lg text-slate-600">Evolução dos pontos ao longo do torneio</p>
-        </div>
-
-        <!-- Filter Buttons -->
-        <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="showTopN(5)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                Top 5
-            </button>
-            <button onclick="showTopN(10)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                Top 10
-            </button>
-            <button onclick="showTopN(20)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                Top 20
-            </button>
-            <button onclick="showAll()" class="px-4 py-2 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-700 transition">
-                Todos
-            </button>
-            <button onclick="hideAll()" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
-                Limpar
-            </button>
         </div>
 
         <!-- Chart Container -->
@@ -1667,7 +1640,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Pontos',
                             font: {
                                 size: 14,
                                 weight: 'bold'
