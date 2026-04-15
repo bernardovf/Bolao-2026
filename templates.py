@@ -183,6 +183,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
