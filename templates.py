@@ -1561,17 +1561,41 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
             <p class="text-base md:text-lg text-slate-600">Evolução dos pontos ao longo do torneio</p>
         </div>
 
+        <!-- Filter Buttons -->
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="showTopN(5)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                Top 5
+            </button>
+            <button onclick="showTopN(10)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                Top 10
+            </button>
+            <button onclick="showTopN(20)" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                Top 20
+            </button>
+            <button onclick="showAll()" class="px-4 py-2 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-700 transition">
+                Todos
+            </button>
+            <button onclick="hideAll()" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
+                Limpar
+            </button>
+        </div>
+
         <!-- Chart Container -->
         <div class="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-8">
-            <div class="relative" style="height: 400px;">
+            <div class="relative" style="height: 500px;">
                 <canvas id="pointsChart"></canvas>
             </div>
         </div>
 
-        <!-- Legend -->
+        <!-- Search and Legend -->
         <div class="mt-6 bg-white rounded-xl shadow-lg p-4 md:p-6">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Jogadores</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="legend">
+            <div class="mb-4">
+                <input type="text" id="searchPlayer" placeholder="Buscar jogador..."
+                       class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                       onkeyup="filterLegend()">
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Jogadores (clique para mostrar/ocultar)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2" id="legend">
                 <!-- Legend items will be added by JavaScript -->
             </div>
         </div>
@@ -1670,23 +1694,85 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
             }
         });
 
+        // Sort users by final points (descending) to get rankings
+        const sortedUsers = users.map((user, index) => ({
+            ...user,
+            index: index,
+            finalPoints: user.points[user.points.length - 1] || 0
+        })).sort((a, b) => b.finalPoints - a.finalPoints);
+
         // Create legend with click to toggle
         const legendContainer = document.getElementById('legend');
-        datasets.forEach((dataset, index) => {
+        sortedUsers.forEach((user, rank) => {
+            const index = user.index;
+            const dataset = datasets[index];
             const item = document.createElement('div');
-            item.className = 'flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer transition';
+            item.className = 'legend-item flex items-center gap-2 p-2 rounded hover:bg-slate-100 cursor-pointer transition border-2 border-transparent';
+            item.dataset.name = user.name.toLowerCase();
+            item.dataset.rank = rank;
             item.innerHTML = `
-                <div class="w-4 h-4 rounded-full" style="background-color: ${dataset.borderColor}"></div>
-                <span class="text-sm font-semibold text-slate-700">${dataset.label}</span>
+                <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${dataset.borderColor}"></div>
+                <span class="text-sm font-semibold text-slate-700 truncate">${rank + 1}. ${user.name}</span>
             `;
             item.onclick = () => {
                 const meta = chart.getDatasetMeta(index);
                 meta.hidden = !meta.hidden;
                 chart.update();
                 item.style.opacity = meta.hidden ? '0.4' : '1';
+                item.style.borderColor = meta.hidden ? 'transparent' : dataset.borderColor;
             };
             legendContainer.appendChild(item);
         });
+
+        // Filter functions
+        function showTopN(n) {
+            datasets.forEach((dataset, index) => {
+                const meta = chart.getDatasetMeta(index);
+                const rank = sortedUsers.findIndex(u => u.index === index);
+                meta.hidden = rank >= n;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function showAll() {
+            datasets.forEach((dataset, index) => {
+                chart.getDatasetMeta(index).hidden = false;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function hideAll() {
+            datasets.forEach((dataset, index) => {
+                chart.getDatasetMeta(index).hidden = true;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function updateLegendStyles() {
+            const items = document.querySelectorAll('.legend-item');
+            items.forEach((item, idx) => {
+                const index = sortedUsers[idx].index;
+                const meta = chart.getDatasetMeta(index);
+                const dataset = datasets[index];
+                item.style.opacity = meta.hidden ? '0.4' : '1';
+                item.style.borderColor = meta.hidden ? 'transparent' : dataset.borderColor;
+            });
+        }
+
+        function filterLegend() {
+            const search = document.getElementById('searchPlayer').value.toLowerCase();
+            const items = document.querySelectorAll('.legend-item');
+            items.forEach(item => {
+                const name = item.dataset.name;
+                item.style.display = name.includes(search) ? 'flex' : 'none';
+            });
+        }
+
+        // Start with top 10 visible
+        showTopN(10);
     </script>
 </body>
 </html>
