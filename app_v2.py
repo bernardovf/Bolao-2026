@@ -87,7 +87,7 @@ def get_brt_date_expression(conn):
     """Get SQL expression for extracting date in BRT timezone (UTC-3)"""
     if _is_postgres_connection(conn):
         # PostgreSQL: subtract 3 hours interval
-        return "DATE(kickoff_utc - INTERVAL '3 hours')"
+        return "DATE(kickoff_utc::timestamp - INTERVAL '3 hours')"
     else:
         # SQLite: use datetime function with modifier
         return "DATE(datetime(kickoff_utc, '-3 hours'))"
