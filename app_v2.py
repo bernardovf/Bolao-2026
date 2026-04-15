@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 import os
+from werkzeug.security import check_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams
 from constants import translations
 from calculate_points import calculate_match_points
@@ -226,10 +227,12 @@ def login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        user = query_db('SELECT * FROM users WHERE user_name = ? AND password = ?',
-                       (username, password), one=True)
+        # Get user by username only
+        user = query_db('SELECT * FROM users WHERE user_name = ?',
+                       (username,), one=True)
 
-        if user:
+        # Check if user exists and password is correct
+        if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['user_name'] = user['user_name']
             flash(f'Bem-vindo, {user["user_name"]}!', 'success')
