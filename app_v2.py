@@ -564,7 +564,10 @@ def matches():
     formatted_dates = []
     for date_row in dates:
         date_str = date_row['match_date']
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        if isinstance(date_str, str):
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        else:
+            date_obj = date_str  # already a datetime or date object
         day_name = weekday_pt[date_obj.weekday()]
         formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
         formatted_dates.append({
