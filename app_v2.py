@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 import os
+from werkzeug.security import check_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams
 from constants import translations
 from calculate_points import calculate_match_points
@@ -87,7 +88,7 @@ def get_brt_date_expression(conn):
     """Get SQL expression for extracting date in BRT timezone (UTC-3)"""
     if _is_postgres_connection(conn):
         # PostgreSQL: subtract 3 hours interval
-        return "DATE(kickoff_utc - INTERVAL '3 hours')"
+        return "DATE(kickoff_utc::timestamp - INTERVAL '3 hours')"
     else:
         # SQLite: use datetime function with modifier
         return "DATE(datetime(kickoff_utc, '-3 hours'))"
@@ -226,10 +227,12 @@ def login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        user = query_db('SELECT * FROM users WHERE user_name = ? AND password = ?',
-                       (username, password), one=True)
+        # Get user by username only
+        user = query_db('SELECT * FROM users WHERE user_name = ?',
+                       (username,), one=True)
 
-        if user:
+        # Check if user exists and password is correct
+        if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['user_name'] = user['user_name']
             flash(f'Bem-vindo, {user["user_name"]}!', 'success')
@@ -342,8 +345,6 @@ def ranking():
         qualification_points = len(correct_qualified) * 2
         user_points[user_id] = user_points.get(user_id, 0) + qualification_points
 
-    conn.close()
-
     # Build rankings list
     rankings = []
     for user in users:
@@ -356,10 +357,83 @@ def ranking():
     # Sort by points descending, then by name
     rankings.sort(key=lambda x: (-x['total_points'], x['user_name']))
 
+    # Calculate points history data for chart
+    from datetime import datetime, timedelta
+
+    # Get all matches with results, ordered by date
+    matches = db_execute(conn, '''
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        FROM fixtures
+        WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
+        ORDER BY kickoff_utc
+    ''').fetchall()
+
+    # Get all bets
+    all_bets = db_execute(conn, '''
+        SELECT user_id, match_id, home_goals, away_goals
+        FROM bet
+    ''').fetchall()
+
+    conn.close()
+
+    # Organize bets by user
+    user_bets_dict = {}
+    for bet in all_bets:
+        if bet['user_id'] not in user_bets_dict:
+            user_bets_dict[bet['user_id']] = {}
+        user_bets_dict[bet['user_id']][bet['match_id']] = {
+            'home_goals': bet['home_goals'],
+            'away_goals': bet['away_goals']
+        }
+
+    # Get BRT dates
+    dates_set = set()
+    for match in matches:
+        dt = datetime.fromisoformat(match['kickoff_utc'].replace('Z', '+00:00'))
+        dt_brt = dt - timedelta(hours=3)
+        dates_set.add(dt_brt.date())
+
+    dates = sorted(dates_set)
+    dates_str = [d.strftime('%d/%m') for d in dates]
+
+    # Calculate points for each user by date
+    history_data = []
+    for user in users:
+        user_id = user['id']
+        cumulative_points = []
+        total = 0
+
+        for date in dates:
+            # Find all matches on this date
+            for match in matches:
+                dt = datetime.fromisoformat(match['kickoff_utc'].replace('Z', '+00:00'))
+                dt_brt = dt - timedelta(hours=3)
+
+                if dt_brt.date() == date:
+                    # Check if user has a bet for this match
+                    if user_id in user_bets_dict and match['id'] in user_bets_dict[user_id]:
+                        bet = user_bets_dict[user_id][match['id']]
+                        points, _ = calculate_match_points(
+                            bet['home_goals'],
+                            bet['away_goals'],
+                            match['final_home_goals'],
+                            match['final_away_goals']
+                        )
+                        total += points
+
+            cumulative_points.append(total)
+
+        history_data.append({
+            'name': user['user_name'],
+            'points': cumulative_points
+        })
+
     return render_template_string(RANKING_TEMPLATE,
                                  rankings=rankings,
                                  current_user_id=session['user_id'],
-                                 betting_closed=BETTING_CLOSED)
+                                 betting_closed=BETTING_CLOSED,
+                                 history_dates=dates_str,
+                                 history_users=history_data)
 
 @app.route('/jogador/<int:user_id>')
 @login_required
@@ -564,7 +638,10 @@ def matches():
     formatted_dates = []
     for date_row in dates:
         date_str = date_row['match_date']
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        if isinstance(date_str, str):
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        else:
+            date_obj = date_str  # already a datetime or date object
         day_name = weekday_pt[date_obj.weekday()]
         formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
         formatted_dates.append({
@@ -916,6 +993,99 @@ def extras_stats(category):
 def regras():
     """Rules and scoring system"""
     return render_template_string(REGRAS_TEMPLATE, betting_closed=BETTING_CLOSED)
+
+@app.route('/points-history')
+@login_required
+def points_history():
+    """Points progression chart over time"""
+    # Only show when betting is closed
+    if not BETTING_CLOSED:
+        flash('O histórico de pontos estará disponível após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
+    conn = get_db()
+
+    # Get all users
+    users = db_execute(conn, 'SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+
+    # Get all matches with results, ordered by date
+    matches = db_execute(conn, '''
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        FROM fixtures
+        WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
+        ORDER BY kickoff_utc
+    ''').fetchall()
+
+    # Get all bets
+    all_bets = db_execute(conn, '''
+        SELECT user_id, match_id, home_goals, away_goals
+        FROM bet
+    ''').fetchall()
+
+    # Organize bets by user
+    user_bets = {}
+    for bet in all_bets:
+        if bet['user_id'] not in user_bets:
+            user_bets[bet['user_id']] = {}
+        user_bets[bet['user_id']][bet['match_id']] = {
+            'home_goals': bet['home_goals'],
+            'away_goals': bet['away_goals']
+        }
+
+    conn.close()
+
+    # Calculate cumulative points by date for each user
+    from collections import defaultdict
+    from datetime import datetime, timedelta
+
+    # Get BRT dates (convert UTC to BRT)
+    dates_set = set()
+    for match in matches:
+        dt = datetime.fromisoformat(match['kickoff_utc'].replace('Z', '+00:00'))
+        dt_brt = dt - timedelta(hours=3)
+        dates_set.add(dt_brt.date())
+
+    dates = sorted(dates_set)
+    dates_str = [d.strftime('%d/%m') for d in dates]
+
+    # Calculate points for each user by date
+    user_data = []
+    for user in users:
+        user_id = user['id']
+        cumulative_points = []
+        total = 0
+
+        for date in dates:
+            # Find all matches on this date
+            for match in matches:
+                dt = datetime.fromisoformat(match['kickoff_utc'].replace('Z', '+00:00'))
+                dt_brt = dt - timedelta(hours=3)
+
+                if dt_brt.date() == date:
+                    # Check if user has a bet for this match
+                    if user_id in user_bets and match['id'] in user_bets[user_id]:
+                        bet = user_bets[user_id][match['id']]
+                        points, _ = calculate_match_points(
+                            bet['home_goals'],
+                            bet['away_goals'],
+                            match['final_home_goals'],
+                            match['final_away_goals']
+                        )
+                        total += points
+
+            cumulative_points.append(total)
+
+        user_data.append({
+            'name': user['user_name'],
+            'points': cumulative_points
+        })
+
+    return render_template_string(
+        POINTS_HISTORY_TEMPLATE,
+        dates=dates_str,
+        users=user_data,
+        betting_closed=BETTING_CLOSED
+    )
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

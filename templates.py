@@ -71,12 +71,6 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
                         Entrar
                     </button>
                 </form>
-
-                <div class="mt-6 pt-6 border-t border-slate-200">
-                    <p class="text-sm text-slate-600 text-center">
-                        Senha de teste: <span class="font-mono font-semibold">senha123</span>
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -189,8 +183,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -290,7 +284,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -566,7 +559,6 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -749,7 +741,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -941,7 +932,6 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-semibold text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1165,7 +1155,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1388,7 +1377,6 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     {% endif %}
-                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
@@ -1522,6 +1510,239 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                 }
             });
         }
+    </script>
+</body>
+</html>
+'''
+
+POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Pontos - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-semibold text-blue-600">Histórico</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Histórico de Pontos</h1>
+            <p class="text-base md:text-lg text-slate-600">Evolução dos pontos ao longo do torneio</p>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="bg-white rounded-xl md:rounded-2xl shadow-xl p-4 md:p-8">
+            <div class="relative" style="height: 500px;">
+                <canvas id="pointsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Search and Legend -->
+        <div class="mt-6 bg-white rounded-xl shadow-lg p-4 md:p-6">
+            <div class="mb-4">
+                <input type="text" id="searchPlayer" placeholder="Buscar jogador..."
+                       class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                       onkeyup="filterLegend()">
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Jogadores (clique para mostrar/ocultar)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2" id="legend">
+                <!-- Legend items will be added by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Prepare data
+        const dates = {{ dates|tojson }};
+        const users = {{ users|tojson }};
+
+        // Generate colors for each user
+        const colors = [
+            '#3b82f6'
+        ];
+
+        // Create datasets
+        const datasets = users.map((user, index) => ({
+            label: user.name,
+            data: user.points,
+            borderColor: colors[index % colors.length],
+            backgroundColor: colors[index % colors.length] + '20',
+            borderWidth: 3,
+            tension: 0.4,
+            pointRadius: 0,  // Remove point markers
+            pointHoverRadius: 6,
+            fill: false
+        }));
+
+        // Create chart
+        const ctx = document.getElementById('pointsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' pts';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sort users by final points (descending) to get rankings
+        const sortedUsers = users.map((user, index) => ({
+            ...user,
+            index: index,
+            finalPoints: user.points[user.points.length - 1] || 0
+        })).sort((a, b) => b.finalPoints - a.finalPoints);
+
+        // Create legend with click to toggle
+        const legendContainer = document.getElementById('legend');
+        sortedUsers.forEach((user, rank) => {
+            const index = user.index;
+            const dataset = datasets[index];
+            const item = document.createElement('div');
+            item.className = 'legend-item flex items-center gap-2 p-2 rounded hover:bg-slate-100 cursor-pointer transition border-2 border-transparent';
+            item.dataset.name = user.name.toLowerCase();
+            item.dataset.rank = rank;
+            item.innerHTML = `
+                <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${dataset.borderColor}"></div>
+                <span class="text-sm font-semibold text-slate-700 truncate">${rank + 1}. ${user.name}</span>
+            `;
+            item.onclick = () => {
+                const meta = chart.getDatasetMeta(index);
+                meta.hidden = !meta.hidden;
+                chart.update();
+                item.style.opacity = meta.hidden ? '0.4' : '1';
+                item.style.borderColor = meta.hidden ? 'transparent' : dataset.borderColor;
+            };
+            legendContainer.appendChild(item);
+        });
+
+        // Filter functions
+        function showTopN(n) {
+            datasets.forEach((dataset, index) => {
+                const meta = chart.getDatasetMeta(index);
+                const rank = sortedUsers.findIndex(u => u.index === index);
+                meta.hidden = rank >= n;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function showAll() {
+            datasets.forEach((dataset, index) => {
+                chart.getDatasetMeta(index).hidden = false;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function hideAll() {
+            datasets.forEach((dataset, index) => {
+                chart.getDatasetMeta(index).hidden = true;
+            });
+            chart.update();
+            updateLegendStyles();
+        }
+
+        function updateLegendStyles() {
+            const items = document.querySelectorAll('.legend-item');
+            items.forEach((item, idx) => {
+                const index = sortedUsers[idx].index;
+                const meta = chart.getDatasetMeta(index);
+                const dataset = datasets[index];
+                item.style.opacity = meta.hidden ? '0.4' : '1';
+                item.style.borderColor = meta.hidden ? 'transparent' : dataset.borderColor;
+            });
+        }
+
+        function filterLegend() {
+            const search = document.getElementById('searchPlayer').value.toLowerCase();
+            const items = document.querySelectorAll('.legend-item');
+            items.forEach(item => {
+                const name = item.dataset.name;
+                item.style.display = name.includes(search) ? 'flex' : 'none';
+            });
+        }
+
+        // Start with top 10 visible
+        showTopN(10);
     </script>
 </body>
 </html>
