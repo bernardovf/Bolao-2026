@@ -1594,7 +1594,7 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
             backgroundColor: colors[index % colors.length] + '20',
             borderWidth: 3,
             tension: 0.4,
-            pointRadius: 4,
+            pointRadius: 0,  // Remove point markers
             pointHoverRadius: 6,
             fill: false
         }));
