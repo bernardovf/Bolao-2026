@@ -11,6 +11,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
+
 # Connect to appropriate database
 if DATABASE_URL:
     # PostgreSQL (production)
@@ -64,6 +65,10 @@ else:
 
     for user in users:
         old_password = user['password']
+
+        if isinstance(old_password, bytes):
+            old_password = old_password.decode("utf-8")
+
         hashed = generate_password_hash(old_password)
 
         conn.execute("UPDATE users SET password = ? WHERE id = ?", (hashed, user['id']))
