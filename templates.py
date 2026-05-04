@@ -1581,9 +1581,7 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
 
         // Generate colors for each user
         const colors = [
-            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
-            '#06b6d4', '#f43f5e', '#22c55e', '#a855f7', '#eab308'
+            '#3b82f6'
         ];
 
         // Create datasets
