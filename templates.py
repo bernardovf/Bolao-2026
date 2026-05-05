@@ -943,6 +943,85 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Regras do Bolão</h1>
         </div>
 
+        <!-- Premiação -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Premiação</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm md:text-base">
+                    <thead class="bg-slate-100 border-b-2 border-slate-300">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-slate-700">Posição</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Percentual</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">🥇 1º Lugar</td>
+                            <td class="px-4 py-3 text-center font-bold">70%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">🥈 2º Lugar</td>
+                            <td class="px-4 py-3 text-center font-bold">20%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">🥉 3º Lugar</td>
+                            <td class="px-4 py-3 text-center font-bold">10%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Prazo -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Prazo</h2>
+        
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm md:text-base">
+                    <thead class="bg-slate-100 border-b-2 border-slate-300">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-slate-700">Fase</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Prazo para palpites</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Fase de Grupos & Extras</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 10/06</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">16 avos de final</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 27/06</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Oitavas de final</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 03/07</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Quartas de final</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 08/07</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Semifinais</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 13/07</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Terceiro Lugar</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 17/07</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 font-semibold">Final</td>
+                            <td class="px-4 py-3 text-center font-bold">Até 18/07</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        
+            <p class="text-sm text-slate-500 mt-4 text-center">
+                O prazo para cada fase é sempre até um dia antes do início da respectiva fase.
+            </p>
+        </div>
+
         <!-- Pontos por Fase -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
             <h2 class="text-xl font-bold text-slate-800 mb-4">Pontos por Fase</h2>
