@@ -33,7 +33,6 @@ fixture_ids = [row[0] for row in cur.fetchall()]
 updated = 0
 
 for match_id in fixture_ids:
-    print(match_id)
     if match_id not in matches_by_id:
         continue
     m = matches_by_id[match_id]
