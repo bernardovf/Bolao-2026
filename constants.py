@@ -16,7 +16,9 @@ flag_map = {
     'Algeria': 'dz', 'Nigeria': 'ng', 'Egypt': 'eg', 'Burkina Faso': 'bf',
     'New Zealand': 'nz', 'Cabo Verde': 'cv', 'Norway': 'no', 'Austria': 'at',
     'Jordan': 'jo', 'Uzbekistan': 'uz',
-    'Democratic Republic of the Congo': 'cd', 'Turkey': 'tr', 'Iraq': 'iq', 'Bosnia and Herzegovina': 'ba',
+    'Democratic Republic of the Congo': 'cd',
+    'DR Congo': 'cd',
+    'Turkey': 'tr', 'Iraq': 'iq', 'Bosnia and Herzegovina': 'ba',
     'Sweden': 'se', 'Czech Republic': 'cz',
 }
 
@@ -37,7 +39,7 @@ abbr_map = {
     'Trinidad and Tobago': 'TRI', 'El Salvador': 'SLV', 'Guatemala': 'GUA',
     'Algeria': 'ALG', 'Nigeria': 'NGA', 'Egypt': 'EGY', 'Burkina Faso': 'BFA',
     'New Zealand': 'NZL', 'Cabo Verde': 'CPV', 'Norway': 'NOR', 'Austria': 'AUT',
-    'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'Democratic Republic of the Congo': 'COD',
+    'Jordan': 'JOR', 'Uzbekistan': 'UZB', 'DR Congo': 'COD',
     'Turkey': 'TUR', 'Iraq': 'IRQ', 'Bosnia and Herzegovina': 'BIH',
     'Sweden': 'SWE', 'Czech Republic': 'CZE',
 }
@@ -107,9 +109,26 @@ translations = {
     'Jordan': 'Jordânia',
     'Uzbekistan': 'Uzbequistão',
     'Democratic Republic of the Congo': 'RD Congo',
+    'DR Congo': 'RD Congo',
     'Turkey': 'Turquia',
     'Iraq': 'Iraque',
     'Bosnia and Herzegovina': 'Bósnia',
     'Sweden': 'Suécia',
     'Czech Republic': 'República Checa',
+}
+
+PLAYER_ALIASES = {
+    # Mbappé
+    "kylian mbappe": "Mbappé",
+    "kylian mbappé": "Mbappé",
+    "mbappe": "Mbappé",
+    "mbappé": "Mbappé",
+
+    # Vinicius
+    "vinicius junior": "Vini Jr.",
+    "vinícius junior": "Vini Jr.",
+    "vinicius jr": "Vini Jr.",
+    "vinícius jr": "Vini Jr.",
+    "vini jr": "Vini Jr.",
+    "vini jr.": "Vini Jr.",
 }

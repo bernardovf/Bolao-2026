@@ -1,5 +1,25 @@
-from constants import flag_map, abbr_map, translations
+from constants import flag_map, abbr_map, translations, PLAYER_ALIASES
 from datetime import datetime, timedelta
+import unicodedata
+
+def normalize_player_name(name):
+    if not name:
+        return name
+
+    # remove leading/trailing spaces
+    name = name.strip()
+
+    # remove accents for matching
+    key = unicodedata.normalize("NFKD", name)
+    key = "".join(c for c in key if not unicodedata.combining(c))
+
+    # lowercase
+    key = key.lower()
+
+    # collapse multiple spaces
+    key = " ".join(key.split())
+
+    return PLAYER_ALIASES.get(key, name)
 
 def get_flag_url(team_name):
     """Get flag URL for a team"""
