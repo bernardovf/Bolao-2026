@@ -1,85 +1,174 @@
-#!/usr/bin/env python3
-"""
-Popular fixtures (jogos) da Copa 2026
-Uso: python populate_fixtures.py
-"""
-
+import requests
 import psycopg2
 import os
 
-# DATABASE_URL do Render ou local
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get("DATABASE_URL")
+API_KEY = os.environ.get("API_KEY")
+
+# API-Football / API-Sports
+headers = {"x-apisports-key": API_KEY}
+
+# API-Football fixture_id -> your old football-data.org fixture id
+FIXTURE_ID_MAP = {
+    1489369: 537327,
+    1538999: 537328,
+    1539004: 537329,
+    1489388: 537330,
+    1539010: 537331,
+    1489407: 537332,
+    1539000: 537333,
+    1489373: 537334,
+    1539005: 537335,
+    1489387: 537336,
+    1489408: 537337,
+    1539009: 537338,
+    1489371: 537339,
+    1489372: 537340,
+    1489389: 537341,
+    1489390: 537342,
+    1489405: 537343,
+    1489406: 537344,
+    1489370: 537345,
+    1539001: 537346,
+    1539006: 537347,
+    1489391: 537348,
+    1539012: 537349,
+    1489411: 537350,
+    1489374: 537351,
+    1489375: 537352,
+    1489393: 537353,
+    1489392: 537354,
+    1489410: 537355,
+    1489409: 537356,
+    1489376: 537357,
+    1539002: 537358,
+    1539007: 537359,
+    1489394: 537360,
+    1489412: 537361,
+    1539011: 537362,
+    1489377: 537363,
+    1489378: 537364,
+    1489395: 537365,
+    1489396: 537366,
+    1489415: 537367,
+    1489414: 537368,
+    1489380: 537369,
+    1489379: 537370,
+    1489397: 537371,
+    1489398: 537372,
+    1489417: 537373,
+    1489413: 537374,
+    1489383: 537391,
+    1539016: 537392,
+    1539017: 537393,
+    1489401: 537394,
+    1489416: 537395,
+    1539074: 537396,
+    1489381: 537397,
+    1489382: 537398,
+    1489399: 537399,
+    1489400: 537400,
+    1489418: 537401,
+    1489421: 537402,
+    1539003: 537403,
+    1489386: 537404,
+    1489404: 537405,
+    1539008: 537406,
+    1489419: 537407,
+    1539013: 537408,
+    1489384: 537409,
+    1489385: 537410,
+    1489402: 537411,
+    1489403: 537412,
+    1489422: 537413,
+    1489420: 537414,
+}
 
 if not DATABASE_URL:
-    # Fallback para SQLite local
-    import sqlite3
-    conn = sqlite3.connect('bolao_2026_dev.db')
-    cursor = conn.cursor()
-    print("📍 Usando SQLite local")
-else:
-    # PostgreSQL
-    if DATABASE_URL.startswith('postgres://'):
-        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-    conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
-    print("📍 Usando PostgreSQL")
+    raise ValueError("DATABASE_URL environment variable is missing")
 
-# Limpar fixtures existentes (opcional)
-cursor.execute("DELETE FROM fixtures")
-print("🗑️  Fixtures antigas removidas")
+if not API_KEY:
+    raise ValueError("API_KEY environment variable is missing")
 
-# Fixtures da Copa 2026 - EXEMPLO
-# Você precisa preencher com os jogos reais!
-fixtures = [
-    # Grupo A
-    ('Grupo A', 'Mexico', 'Jamaica', '2026-06-11T19:00:00Z'),
-    ('Grupo A', 'USA', 'Canada', '2026-06-12T19:00:00Z'),
-    ('Grupo A', 'Canada', 'Jamaica', '2026-06-15T19:00:00Z'),
-    ('Grupo A', 'USA', 'Mexico', '2026-06-16T19:00:00Z'),
-    ('Grupo A', 'Jamaica', 'USA', '2026-06-19T19:00:00Z'),
-    ('Grupo A', 'Canada', 'Mexico', '2026-06-19T19:00:00Z'),
+print("Connecting to PostgreSQL...")
+conn = psycopg2.connect(DATABASE_URL)
+cur = conn.cursor()
 
-    # Grupo B
-    ('Grupo B', 'England', 'Iran', '2026-06-12T16:00:00Z'),
-    ('Grupo B', 'USA', 'Wales', '2026-06-12T19:00:00Z'),
-    # ... adicione mais grupos aqui
+# Get unfinished fixtures from your DB, using old 537xxx ids
+cur.execute("""
+    SELECT id
+    FROM fixtures
+""")
 
-    # Oitavas de Final (placeholders)
-    ('Oitavas', 'TBD', 'TBD', '2026-07-01T19:00:00Z'),
-    ('Oitavas', 'TBD', 'TBD', '2026-07-02T19:00:00Z'),
-    # ... adicione todas as fases
+unfinished_old_ids = {row[0] for row in cur.fetchall()}
+
+# Only request API-Football fixtures that map to unfinished DB fixtures
+api_fixture_ids = [
+    api_id
+    for api_id, old_id in FIXTURE_ID_MAP.items()
+    if old_id in unfinished_old_ids
 ]
+updated = 0
 
-# Inserir fixtures
-if DATABASE_URL:
-    # PostgreSQL
-    cursor.executemany(
-        "INSERT INTO fixtures (phase, home, away, kickoff_utc) VALUES (%s, %s, %s, %s)",
-        fixtures
+params = {
+    "league": 1,      # you need to confirm World Cup league id in API-Football
+    "season": 2026
+}
+
+if api_fixture_ids:
+    url = "https://v3.football.api-sports.io/fixtures"
+
+    # API-Football supports ids as a joined string
+    # If this ever fails due to too many ids, split into chunks of 20.
+    ids_param = "-".join(str(x) for x in api_fixture_ids)
+
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params
     )
-else:
-    # SQLite
-    cursor.executemany(
-        "INSERT INTO fixtures (phase, home, away, kickoff_utc) VALUES (?, ?, ?, ?)",
-        fixtures
-    )
+    response.raise_for_status()
+
+    data = response.json()
+    fixtures = data.get("response", [])
+
+    for item in fixtures:
+        api_fixture_id = item["fixture"]["id"]
+        old_match_id = FIXTURE_ID_MAP.get(api_fixture_id)
+
+        if old_match_id is None:
+            continue
+
+        status = item["fixture"]["status"]["short"]
+
+        # API-Football finished status is usually FT
+        # AET/PEN can happen in knockout phase, but group stage should be FT.
+        if status == "NS":
+            continue
+
+        home_goals = item["goals"]["home"]
+        away_goals = item["goals"]["away"]
+
+        if home_goals is None or away_goals is None:
+            continue
+
+        home = item["teams"]["home"]["name"]
+        away = item["teams"]["away"]["name"]
+
+        print(f"Updating {old_match_id}: {home} {home_goals} - {away_goals} {away}")
+
+        cur.execute("""
+            UPDATE fixtures
+            SET
+                final_home_goals = %s,
+                final_away_goals = %s
+            WHERE id = %s
+        """, (home_goals, away_goals, old_match_id))
+
+        updated += 1
 
 conn.commit()
-print(f"✅ {len(fixtures)} jogos inseridos!")
-
-# Verificar
-cursor.execute("SELECT COUNT(*) FROM fixtures")
-count = cursor.fetchone()[0]
-print(f"📊 Total de jogos no banco: {count}")
-
-# Mostrar alguns jogos
-cursor.execute("SELECT phase, home, away FROM fixtures LIMIT 5")
-print("\n🎮 Primeiros jogos:")
-for row in cursor.fetchall():
-    if DATABASE_URL:
-        print(f"   {row[0]}: {row[1]} × {row[2]}")
-    else:
-        print(f"   {row['phase']}: {row['home']} × {row['away']}")
-
+cur.close()
 conn.close()
-print("\n✅ Pronto!")
+
+print(f"Checked {len(unfinished_old_ids)} unfinished fixtures. Updated {updated}.")
