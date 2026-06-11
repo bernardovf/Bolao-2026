@@ -123,6 +123,8 @@ PLAYER_ALIASES = {
     "kylian mbappé": "Mbappé",
     "mbappe": "Mbappé",
     "mbappé": "Mbappé",
+    "Mbape": "Mbappé",
+    "mbape": "Mbappé",
 
     # Vinicius
     "vinicius junior": "Vini Jr.",
@@ -131,4 +133,20 @@ PLAYER_ALIASES = {
     "vinícius jr": "Vini Jr.",
     "vini jr": "Vini Jr.",
     "vini jr.": "Vini Jr.",
+
+    # Igor Thiago
+    "igor thiago pirulito": "Igor Thiago",
+    "igor thiago": "Igor Thiago",
+
+    # Lamine Yamal
+    "lamina yamal": "Lamine Yamal",
+    "yamal": "Lamine Yamal",
+
+    # Harry Kane
+    "kane": "Harry Kane",
+    "harry kane": "Harry Kane",
+
+    # Neymar
+    "baleno": "Neymar"
+
 }
