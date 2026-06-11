@@ -42,7 +42,6 @@ GRUPOS_CLOSED = False
 
 # Database URL - usa PostgreSQL em produção, SQLite local para desenvolvimento
 DATABASE_URL = os.environ.get('DATABASE_URL')
-DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026"
 
 # Se DATABASE_URL existe (Render), usa PostgreSQL
 # Se não existe (desenvolvimento local), usa SQLite
