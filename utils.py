@@ -91,8 +91,14 @@ def calculate_group_standings(fixtures, user_bets):
             # No bet for this match: don't count stats yet
             continue
 
-        home_goals = bet['home_goals']
-        away_goals = bet['away_goals']
+        # Skip if goals are None or 'NULL'
+        if (bet['home_goals'] is None or bet['away_goals'] is None or
+            bet['home_goals'] == 'NULL' or bet['away_goals'] == 'NULL'):
+            continue
+
+        # Convert to int in case SQLite returns strings
+        home_goals = int(bet['home_goals'])
+        away_goals = int(bet['away_goals'])
 
         standings[home]['played'] += 1
         standings[away]['played'] += 1

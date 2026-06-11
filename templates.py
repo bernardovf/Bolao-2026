@@ -203,18 +203,18 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                <td class="px-3 md:px-6 py-1 text-center">
                                     <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
                                 </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4">
+                                <td class="px-3 md:px-6 py-1">
                                     {% if betting_closed %}
                                     <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
                                         {{ rank.user_name }}
@@ -231,7 +231,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                <td class="px-3 md:px-6 py-1 text-center">
                                     <span class="text-2xl md:text-3xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                             </tr>
@@ -952,20 +952,24 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                         <tr>
                             <th class="px-4 py-3 text-left font-bold text-slate-700">Posição</th>
                             <th class="px-4 py-3 text-center font-bold text-slate-700">Percentual</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Prêmio</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥇 1º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">70%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$5,180</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥈 2º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">20%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$1,480</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥉 3º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">10%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$740</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1823,6 +1827,124 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
         // Start with top 10 visible
         showTopN(10);
     </script>
+</body>
+</html>
+'''
+
+BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padrões de Apostas - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+        .matrix-table { font-size: 11px; }
+        @media (min-width: 768px) {
+            .matrix-table { font-size: 13px; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
+                    {% endif %}
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Padrões de Apostas</h1>
+            <p class="text-base md:text-lg text-slate-600">Contagem de placares apostados por jogador</p>
+            <p class="text-sm text-slate-500 mt-1">* Placares normalizados: 1-0 e 0-1 são contados juntos</p>
+            <p class="text-sm text-slate-500 mt-1">* Placares ordenados por frequência (mais comum primeiro)</p>
+
+            <!-- Heat Map Legend -->
+            <div class="mt-4 flex flex-wrap gap-3 text-xs md:text-sm">
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-blue-50 border border-blue-200"></span>
+                    <span class="text-slate-600">1-2 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-blue-200 border border-blue-300"></span>
+                    <span class="text-slate-600">3-5 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-blue-400 border border-blue-500"></span>
+                    <span class="text-slate-600">6-9 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-blue-700 border border-blue-800"></span>
+                    <span class="text-slate-600">10+ apostas</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Matrix Table -->
+        <div class="bg-white rounded-xl shadow-xl overflow-x-auto">
+            <table class="matrix-table w-full border-collapse">
+                <thead>
+                    <tr class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                        <th class="sticky left-0 bg-blue-600 px-2 md:px-4 py-2 md:py-3 text-left font-bold border-r-2 border-blue-500 z-10">
+                            Jogador
+                        </th>
+                        {% for score in scores %}
+                        <th class="px-2 md:px-3 py-2 md:py-3 text-center font-bold whitespace-nowrap">
+                            {{ score }}
+                        </th>
+                        {% endfor %}
+                        <th class="px-2 md:px-4 py-2 md:py-3 text-center font-bold bg-blue-700 border-l-2 border-blue-500">
+                            Total
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="{% if loop.index % 2 == 0 %}bg-slate-50{% else %}bg-white{% endif %} hover:bg-blue-50 transition">
+                        <td class="sticky left-0 {% if loop.index % 2 == 0 %}bg-slate-50{% else %}bg-white{% endif %} hover:bg-blue-50 px-2 md:px-4 py-2 md:py-3 font-semibold text-slate-800 border-r-2 border-slate-200 whitespace-nowrap">
+                            {{ user.name }}
+                        </td>
+                        {% for count in user.counts %}
+                        <td class="px-2 md:px-3 py-2 md:py-3 text-center font-semibold
+                            {% if count == 0 %}text-slate-300
+                            {% elif count <= 2 %}bg-blue-50 text-blue-800
+                            {% elif count <= 5 %}bg-blue-200 text-blue-900
+                            {% elif count <= 9 %}bg-blue-400 text-white
+                            {% else %}bg-blue-700 text-white
+                            {% endif %}">
+                            {{ count if count > 0 else '-' }}
+                        </td>
+                        {% endfor %}
+                        <td class="px-2 md:px-4 py-2 md:py-3 text-center font-bold text-blue-600 bg-slate-100 border-l-2 border-slate-200">
+                            {{ user.total }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar ao Ranking
+            </a>
+        </div>
+    </div>
 </body>
 </html>
 '''
