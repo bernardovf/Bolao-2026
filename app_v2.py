@@ -816,7 +816,7 @@ def match_stats(match_id):
         SELECT u.id as user_id, u.user_name, b.home_goals, b.away_goals
         FROM users u
         LEFT JOIN bet b ON u.id = b.user_id AND b.match_id = ?
-        ORDER BY u.user_name
+        ORDER BY b.home_goals DESC, b.away_goals DESC, u.user_name
     ''', (match_id,)).fetchall()
 
     # Calculate statistics and organize scores by result type
