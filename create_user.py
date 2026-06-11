@@ -5,7 +5,7 @@ import os
 
 # Your generated passwords dictionary
 passwords = {
-    "test": "senha123"
+    "test": "test123"
 }
 
 # DB config

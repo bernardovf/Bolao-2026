@@ -11,6 +11,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
+
 # Connect to appropriate database
 if DATABASE_URL:
     # PostgreSQL (production)
@@ -22,6 +23,7 @@ if DATABASE_URL:
     cur.execute(
         "SELECT id, user_name, password FROM users WHERE password NOT LIKE 'pbkdf2:%' AND password NOT LIKE 'scrypt:%'"
     )
+
     users = cur.fetchall()
 
     if not users:

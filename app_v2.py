@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.security import check_password_hash
-from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams
+from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
 from constants import translations
 from calculate_points import calculate_match_points
 from templates import *
@@ -33,7 +33,8 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 #   - Todos podem ver estatísticas e palpites dos outros
 #
 # IMPORTANTE: Altere para True um dia antes do início das partidas!
-BETTING_CLOSED = False
+BETTING_CLOSED = True
+GRUPOS_CLOSED = False
 
 # ============================================================================
 # DATABASE CONFIGURATION
@@ -41,6 +42,7 @@ BETTING_CLOSED = False
 
 # Database URL - usa PostgreSQL em produção, SQLite local para desenvolvimento
 DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026"
 
 # Se DATABASE_URL existe (Render), usa PostgreSQL
 # Se não existe (desenvolvimento local), usa SQLite
@@ -260,7 +262,7 @@ def dashboard():
     conn = get_db()
 
     # Total bets
-    total_bets = db_execute(conn, 
+    total_bets = db_execute(conn,
         'SELECT COUNT(*) as count FROM bet WHERE user_id = ?',
         (user_id,)
     ).fetchone()['count']
@@ -342,8 +344,9 @@ def ranking():
         # Calculate correct predictions
         correct_qualified = user_qualified & real_qualified
         # Add qualification points (2 points per correct qualified team)
-        qualification_points = len(correct_qualified) * 2
-        user_points[user_id] = user_points.get(user_id, 0) + qualification_points
+        if GRUPOS_CLOSED:
+            qualification_points = len(correct_qualified) * 2
+            user_points[user_id] = user_points.get(user_id, 0) + qualification_points
 
     # Build rankings list
     rankings = []
@@ -883,7 +886,7 @@ def palpites_gerais():
             'favorito_caiu': (request.form.get('favorito_caiu') or '').strip(),
             'anfitriao_longe': (request.form.get('anfitriao_longe') or '').strip(),
         }
-        cur = db_execute(conn, 
+        cur = db_execute(conn,
             '''UPDATE palpites_gerais
                SET campeao=?, artilheiro=?, melhor_jogador=?,
                    zebra_longe=?, favorito_caiu=?, anfitriao_longe=?, updated_at=?
@@ -893,7 +896,7 @@ def palpites_gerais():
              datetime.utcnow().isoformat(timespec='seconds'), user_id)
         )
         if cur.rowcount == 0:
-            db_execute(conn, 
+            db_execute(conn,
                 '''INSERT INTO palpites_gerais
                    (user_id, campeao, artilheiro, melhor_jogador,
                     zebra_longe, favorito_caiu, anfitriao_longe, updated_at)
@@ -956,9 +959,18 @@ def extras_stats(category):
         return redirect(url_for('palpites_gerais'))
 
     # Get all predictions for this category
-    all_predictions = db_execute(conn, 
+    all_predictions = db_execute(conn,
         f'SELECT u.id as user_id, u.user_name, p.{category} FROM users u LEFT JOIN palpites_gerais p ON u.id = p.user_id ORDER BY u.user_name'
     ).fetchall()
+
+    if category in ["artilheiro", "melhor_jogador"]:
+        all_predictions = [
+            {
+                **dict(row),
+                category: normalize_player_name(dict(row).get(category))
+            }
+            for row in all_predictions
+        ]
 
     # Calculate statistics
     option_counts = {}
