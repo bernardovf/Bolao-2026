@@ -1877,19 +1877,19 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Heat Map Legend -->
             <div class="mt-4 flex flex-wrap gap-3 text-xs md:text-sm">
                 <span class="flex items-center gap-1">
-                    <span class="inline-block w-4 h-4 bg-blue-100 border border-blue-200"></span>
+                    <span class="inline-block w-4 h-4 bg-blue-50 border border-blue-200"></span>
                     <span class="text-slate-600">1-2 apostas</span>
                 </span>
                 <span class="flex items-center gap-1">
-                    <span class="inline-block w-4 h-4 bg-yellow-100 border border-yellow-200"></span>
+                    <span class="inline-block w-4 h-4 bg-blue-200 border border-blue-300"></span>
                     <span class="text-slate-600">3-5 apostas</span>
                 </span>
                 <span class="flex items-center gap-1">
-                    <span class="inline-block w-4 h-4 bg-orange-200 border border-orange-300"></span>
+                    <span class="inline-block w-4 h-4 bg-blue-400 border border-blue-500"></span>
                     <span class="text-slate-600">6-9 apostas</span>
                 </span>
                 <span class="flex items-center gap-1">
-                    <span class="inline-block w-4 h-4 bg-red-300 border border-red-400"></span>
+                    <span class="inline-block w-4 h-4 bg-blue-700 border border-blue-800"></span>
                     <span class="text-slate-600">10+ apostas</span>
                 </span>
             </div>
@@ -1922,10 +1922,10 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                         {% for count in user.counts %}
                         <td class="px-2 md:px-3 py-2 md:py-3 text-center font-semibold
                             {% if count == 0 %}text-slate-300
-                            {% elif count <= 2 %}bg-blue-100 text-blue-900
-                            {% elif count <= 5 %}bg-yellow-100 text-yellow-900
-                            {% elif count <= 9 %}bg-orange-200 text-orange-900
-                            {% else %}bg-red-300 text-red-900
+                            {% elif count <= 2 %}bg-blue-50 text-blue-800
+                            {% elif count <= 5 %}bg-blue-200 text-blue-900
+                            {% elif count <= 9 %}bg-blue-400 text-white
+                            {% else %}bg-blue-700 text-white
                             {% endif %}">
                             {{ count if count > 0 else '-' }}
                         </td>
