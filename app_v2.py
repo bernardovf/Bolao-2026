@@ -1098,5 +1098,69 @@ def points_history():
         betting_closed=BETTING_CLOSED
     )
 
+@app.route('/bet-patterns')
+@login_required
+def bet_patterns():
+    """Matrix showing bet patterns by user"""
+    # Only show when betting is closed
+    if not BETTING_CLOSED:
+        flash('Os padrões de apostas estarão disponíveis após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
+    conn = get_db()
+
+    # Get all users
+    users = db_execute(conn, 'SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+
+    # Get all bets
+    all_bets = db_execute(conn, '''
+        SELECT user_id, home_goals, away_goals
+        FROM bet
+        WHERE home_goals IS NOT NULL AND away_goals IS NOT NULL
+    ''').fetchall()
+
+    conn.close()
+
+    # Normalize scores (1-0 and 0-1 become the same)
+    def normalize_score(home, away):
+        # Always put smaller number first
+        return f"{min(home, away)}-{max(home, away)}"
+
+    # Count patterns for each user
+    from collections import defaultdict
+    user_patterns = defaultdict(lambda: defaultdict(int))
+    all_scores = set()
+
+    for bet in all_bets:
+        score = normalize_score(bet['home_goals'], bet['away_goals'])
+        user_patterns[bet['user_id']][score] += 1
+        all_scores.add(score)
+
+    # Sort scores (0-0, 0-1, 0-2, ..., 1-1, 1-2, ...)
+    sorted_scores = sorted(all_scores, key=lambda s: tuple(map(int, s.split('-'))))
+
+    # Build user data
+    user_data = []
+    for user in users:
+        user_id = user['id']
+        counts = [user_patterns[user_id].get(score, 0) for score in sorted_scores]
+        total = sum(counts)
+        user_data.append({
+            'id': user_id,
+            'name': user['user_name'],
+            'counts': counts,
+            'total': total
+        })
+
+    # Sort users by name
+    user_data.sort(key=lambda x: x['name'])
+
+    return render_template_string(
+        BET_PATTERNS_TEMPLATE,
+        users=user_data,
+        scores=sorted_scores,
+        betting_closed=BETTING_CLOSED
+    )
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

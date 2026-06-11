@@ -1826,3 +1826,95 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
 </body>
 </html>
 '''
+
+BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padrões de Apostas - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+        .matrix-table { font-size: 11px; }
+        @media (min-width: 768px) {
+            .matrix-table { font-size: 13px; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
+                    <a href="{{ url_for('bet_patterns') }}" class="font-semibold text-blue-600">Padrões</a>
+                    {% endif %}
+                    <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
+                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Padrões de Apostas</h1>
+            <p class="text-base md:text-lg text-slate-600">Contagem de placares apostados por jogador</p>
+            <p class="text-sm text-slate-500 mt-1">* Placares normalizados: 1-0 e 0-1 são contados juntos</p>
+        </div>
+
+        <!-- Matrix Table -->
+        <div class="bg-white rounded-xl shadow-xl overflow-x-auto">
+            <table class="matrix-table w-full border-collapse">
+                <thead>
+                    <tr class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                        <th class="sticky left-0 bg-blue-600 px-2 md:px-4 py-2 md:py-3 text-left font-bold border-r-2 border-blue-500 z-10">
+                            Jogador
+                        </th>
+                        {% for score in scores %}
+                        <th class="px-2 md:px-3 py-2 md:py-3 text-center font-bold whitespace-nowrap">
+                            {{ score }}
+                        </th>
+                        {% endfor %}
+                        <th class="px-2 md:px-4 py-2 md:py-3 text-center font-bold bg-blue-700 border-l-2 border-blue-500">
+                            Total
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="{% if loop.index % 2 == 0 %}bg-slate-50{% else %}bg-white{% endif %} hover:bg-blue-50 transition">
+                        <td class="sticky left-0 {% if loop.index % 2 == 0 %}bg-slate-50{% else %}bg-white{% endif %} hover:bg-blue-50 px-2 md:px-4 py-2 md:py-3 font-semibold text-slate-800 border-r-2 border-slate-200 whitespace-nowrap">
+                            {{ user.name }}
+                        </td>
+                        {% for count in user.counts %}
+                        <td class="px-2 md:px-3 py-2 md:py-3 text-center {% if count > 0 %}text-slate-800 font-semibold{% else %}text-slate-300{% endif %}">
+                            {{ count if count > 0 else '-' }}
+                        </td>
+                        {% endfor %}
+                        <td class="px-2 md:px-4 py-2 md:py-3 text-center font-bold text-blue-600 bg-slate-100 border-l-2 border-slate-200">
+                            {{ user.total }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                ← Voltar ao Ranking
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+'''
