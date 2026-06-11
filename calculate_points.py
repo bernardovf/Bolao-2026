@@ -4,8 +4,16 @@ Points calculation for Bolão 2026
 
 def calculate_match_points(bet_home, bet_away, final_home, final_away):
 
-    if bet_home is None or bet_away is None or final_home is None or final_away is None:
+    # Check for None or string 'NULL'
+    if (bet_home is None or bet_away is None or final_home is None or final_away is None or
+        bet_home == 'NULL' or bet_away == 'NULL' or final_home == 'NULL' or final_away == 'NULL'):
         return 0, 'none'
+
+    # Convert to int in case SQLite returns strings
+    bet_home = int(bet_home)
+    bet_away = int(bet_away)
+    final_home = int(final_home)
+    final_away = int(final_away)
 
     if bet_home == final_home and bet_away == final_away:
         return 6, 'exact'

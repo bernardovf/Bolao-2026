@@ -531,14 +531,22 @@ def jogador_detail(user_id):
         if bet_dict['points'] is not None:
             total_points += bet_dict['points']
 
-    # Calculate qualification stats
-    correct_qualified = user_qualified & real_qualified
-    qualification_points = len(correct_qualified) * 2
+    if GRUPOS_CLOSED:
+        # Calculate qualification stats
+        correct_qualified = user_qualified & real_qualified
+        qualification_points = len(correct_qualified) * 2
 
-    # Sort for display
-    user_qualified_sorted = sorted(user_qualified)
-    real_qualified_sorted = sorted(real_qualified)
-    correct_qualified_sorted = sorted(correct_qualified)
+        # Sort for display
+        user_qualified_sorted = sorted(user_qualified)
+        real_qualified_sorted = sorted(real_qualified)
+        correct_qualified_sorted = sorted(correct_qualified)
+    else:
+        correct_qualified = set()
+        qualification_points = 0
+
+        user_qualified_sorted = set()
+        real_qualified_sorted = set()
+        correct_qualified_sorted = set()
 
     return render_template_string(
         JOGADOR_DETAIL_TEMPLATE,
@@ -816,7 +824,7 @@ def match_stats(match_id):
         SELECT u.id as user_id, u.user_name, b.home_goals, b.away_goals
         FROM users u
         LEFT JOIN bet b ON u.id = b.user_id AND b.match_id = ?
-        ORDER BY u.user_name
+        ORDER BY b.home_goals DESC, b.away_goals DESC, u.user_name
     ''', (match_id,)).fetchall()
 
     # Calculate statistics and organize scores by result type
@@ -1095,6 +1103,70 @@ def points_history():
         POINTS_HISTORY_TEMPLATE,
         dates=dates_str,
         users=user_data,
+        betting_closed=BETTING_CLOSED
+    )
+
+@app.route('/bet-patterns')
+@login_required
+def bet_patterns():
+    """Matrix showing bet patterns by user"""
+    # Only show when betting is closed
+    if not BETTING_CLOSED:
+        flash('Os padrões de apostas estarão disponíveis após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
+    conn = get_db()
+
+    # Get all users
+    users = db_execute(conn, 'SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+
+    # Get all bets
+    all_bets = db_execute(conn, '''
+        SELECT user_id, home_goals, away_goals
+        FROM bet
+        WHERE home_goals IS NOT NULL AND away_goals IS NOT NULL
+    ''').fetchall()
+
+    conn.close()
+
+    # Normalize scores (1-0 and 0-1 become the same)
+    def normalize_score(home, away):
+        # Always put smaller number first
+        return f"{min(home, away)}-{max(home, away)}"
+
+    # Count patterns for each user and calculate total frequency
+    from collections import defaultdict
+    user_patterns = defaultdict(lambda: defaultdict(int))
+    score_frequency = defaultdict(int)
+
+    for bet in all_bets:
+        score = normalize_score(bet['home_goals'], bet['away_goals'])
+        user_patterns[bet['user_id']][score] += 1
+        score_frequency[score] += 1
+
+    # Sort scores by frequency (most common first)
+    sorted_scores = sorted(score_frequency.keys(), key=lambda s: score_frequency[s], reverse=True)
+
+    # Build user data
+    user_data = []
+    for user in users:
+        user_id = user['id']
+        counts = [user_patterns[user_id].get(score, 0) for score in sorted_scores]
+        total = sum(counts)
+        user_data.append({
+            'id': user_id,
+            'name': user['user_name'],
+            'counts': counts,
+            'total': total
+        })
+
+    # Sort users by name
+    user_data.sort(key=lambda x: x['name'])
+
+    return render_template_string(
+        BET_PATTERNS_TEMPLATE,
+        users=user_data,
+        scores=sorted_scores,
         betting_closed=BETTING_CLOSED
     )
 
