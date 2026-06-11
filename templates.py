@@ -1872,6 +1872,27 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Padrões de Apostas</h1>
             <p class="text-base md:text-lg text-slate-600">Contagem de placares apostados por jogador</p>
             <p class="text-sm text-slate-500 mt-1">* Placares normalizados: 1-0 e 0-1 são contados juntos</p>
+            <p class="text-sm text-slate-500 mt-1">* Placares ordenados por frequência (mais comum primeiro)</p>
+
+            <!-- Heat Map Legend -->
+            <div class="mt-4 flex flex-wrap gap-3 text-xs md:text-sm">
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-blue-100 border border-blue-200"></span>
+                    <span class="text-slate-600">1-2 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-yellow-100 border border-yellow-200"></span>
+                    <span class="text-slate-600">3-5 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-orange-200 border border-orange-300"></span>
+                    <span class="text-slate-600">6-9 apostas</span>
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-4 h-4 bg-red-300 border border-red-400"></span>
+                    <span class="text-slate-600">10+ apostas</span>
+                </span>
+            </div>
         </div>
 
         <!-- Matrix Table -->
@@ -1899,7 +1920,13 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                             {{ user.name }}
                         </td>
                         {% for count in user.counts %}
-                        <td class="px-2 md:px-3 py-2 md:py-3 text-center {% if count > 0 %}text-slate-800 font-semibold{% else %}text-slate-300{% endif %}">
+                        <td class="px-2 md:px-3 py-2 md:py-3 text-center font-semibold
+                            {% if count == 0 %}text-slate-300
+                            {% elif count <= 2 %}bg-blue-100 text-blue-900
+                            {% elif count <= 5 %}bg-yellow-100 text-yellow-900
+                            {% elif count <= 9 %}bg-orange-200 text-orange-900
+                            {% else %}bg-red-300 text-red-900
+                            {% endif %}">
                             {{ count if count > 0 else '-' }}
                         </td>
                         {% endfor %}

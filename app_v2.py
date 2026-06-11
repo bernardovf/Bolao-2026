@@ -1126,18 +1126,18 @@ def bet_patterns():
         # Always put smaller number first
         return f"{min(home, away)}-{max(home, away)}"
 
-    # Count patterns for each user
+    # Count patterns for each user and calculate total frequency
     from collections import defaultdict
     user_patterns = defaultdict(lambda: defaultdict(int))
-    all_scores = set()
+    score_frequency = defaultdict(int)
 
     for bet in all_bets:
         score = normalize_score(bet['home_goals'], bet['away_goals'])
         user_patterns[bet['user_id']][score] += 1
-        all_scores.add(score)
+        score_frequency[score] += 1
 
-    # Sort scores (0-0, 0-1, 0-2, ..., 1-1, 1-2, ...)
-    sorted_scores = sorted(all_scores, key=lambda s: tuple(map(int, s.split('-'))))
+    # Sort scores by frequency (most common first)
+    sorted_scores = sorted(score_frequency.keys(), key=lambda s: score_frequency[s], reverse=True)
 
     # Build user data
     user_data = []
