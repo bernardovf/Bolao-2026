@@ -204,18 +204,18 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
+                            <th class="px-3 md:px-6 py-2 md:py-3 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
+                            <th class="px-3 md:px-6 py-2 md:py-3 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
+                            <th class="px-3 md:px-6 py-2 md:py-3 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                <td class="px-3 md:px-6 py-2 md:py-3 text-center">
                                     <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
                                 </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4">
+                                <td class="px-3 md:px-6 py-2 md:py-3">
                                     {% if betting_closed %}
                                     <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
                                         {{ rank.user_name }}
@@ -232,7 +232,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 md:px-6 py-3 md:py-4 text-center">
+                                <td class="px-3 md:px-6 py-2 md:py-3 text-center">
                                     <span class="text-2xl md:text-3xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                             </tr>
