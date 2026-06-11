@@ -184,7 +184,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
                     <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
-                    <a href="{{ url_for('bet_patterns') }}" class="font-medium text-slate-600 hover:text-blue-600">Padrões</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -204,9 +203,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-3 md:px-6 py-1 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
-                            <th class="px-3 md:px-6 py-1 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-3 md:px-6 py-1 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -953,20 +952,24 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                         <tr>
                             <th class="px-4 py-3 text-left font-bold text-slate-700">Posição</th>
                             <th class="px-4 py-3 text-center font-bold text-slate-700">Percentual</th>
+                            <th class="px-4 py-3 text-center font-bold text-slate-700">Prêmio</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥇 1º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">70%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$5,180</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥈 2º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">20%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$1,480</td>
                         </tr>
                         <tr class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold">🥉 3º Lugar</td>
                             <td class="px-4 py-3 text-center font-bold">10%</td>
+                            <td class="px-4 py-3 text-center font-bold">R$740</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1620,7 +1623,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('points_history') }}" class="font-semibold text-blue-600">Histórico</a>
-                    <a href="{{ url_for('bet_patterns') }}" class="font-medium text-slate-600 hover:text-blue-600">Padrões</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1857,8 +1859,6 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
-                    <a href="{{ url_for('bet_patterns') }}" class="font-medium text-slate-600 hover:text-blue-600">Padrões</a>
-                    <a href="{{ url_for('bet_patterns') }}" class="font-semibold text-blue-600">Padrões</a>
                     {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>

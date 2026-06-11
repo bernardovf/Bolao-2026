@@ -531,14 +531,22 @@ def jogador_detail(user_id):
         if bet_dict['points'] is not None:
             total_points += bet_dict['points']
 
-    # Calculate qualification stats
-    correct_qualified = user_qualified & real_qualified
-    qualification_points = len(correct_qualified) * 2
+    if GRUPOS_CLOSED:
+        # Calculate qualification stats
+        correct_qualified = user_qualified & real_qualified
+        qualification_points = len(correct_qualified) * 2
 
-    # Sort for display
-    user_qualified_sorted = sorted(user_qualified)
-    real_qualified_sorted = sorted(real_qualified)
-    correct_qualified_sorted = sorted(correct_qualified)
+        # Sort for display
+        user_qualified_sorted = sorted(user_qualified)
+        real_qualified_sorted = sorted(real_qualified)
+        correct_qualified_sorted = sorted(correct_qualified)
+    else:
+        correct_qualified = set()
+        qualification_points = 0
+
+        user_qualified_sorted = set()
+        real_qualified_sorted = set()
+        correct_qualified_sorted = set()
 
     return render_template_string(
         JOGADOR_DETAIL_TEMPLATE,
