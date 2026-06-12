@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 import os
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
 from constants import translations
 from calculate_points import calculate_match_points
@@ -249,6 +249,49 @@ def logout():
     session.clear()
     flash('Você saiu com sucesso', 'info')
     return redirect(url_for('login'))
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Change password page"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '').strip()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        # Validate inputs
+        if not current_password or not new_password or not confirm_password:
+            flash('Todos os campos são obrigatórios', 'error')
+            return redirect(url_for('change_password'))
+
+        # Get current user
+        user = query_db('SELECT * FROM users WHERE id = ?',
+                       (session['user_id'],), one=True)
+
+        # Verify current password
+        if not check_password_hash(user['password'], current_password):
+            flash('Senha atual incorreta', 'error')
+            return redirect(url_for('change_password'))
+
+        # Verify new passwords match
+        if new_password != confirm_password:
+            flash('As novas senhas não coincidem', 'error')
+            return redirect(url_for('change_password'))
+
+        # Verify new password is different
+        if current_password == new_password:
+            flash('A nova senha deve ser diferente da senha atual', 'error')
+            return redirect(url_for('change_password'))
+
+        # Update password
+        hashed_password = generate_password_hash(new_password)
+        execute_db('UPDATE users SET password = ? WHERE id = ?',
+                  (hashed_password, session['user_id']))
+
+        flash('Senha alterada com sucesso!', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template_string(CHANGE_PASSWORD_TEMPLATE)
 
 @app.route('/dashboard')
 @login_required

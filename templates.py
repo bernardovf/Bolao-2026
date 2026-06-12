@@ -126,6 +126,13 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
 
+            <!-- Change Password Card -->
+            <a href="{{ url_for('change_password') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-green-500">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">🔒 Alterar Senha</h3>
+                </div>
+            </a>
+
             <!-- View Regras Card -->
             <a href="{{ url_for('regras') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
@@ -1943,6 +1950,85 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
             <a href="{{ url_for('ranking') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
                 ← Voltar ao Ranking
             </a>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+CHANGE_PASSWORD_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alterar Senha - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full">
+            <!-- Title -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-black text-blue-600 mb-2">Alterar Senha</h1>
+                <p class="text-lg text-slate-600">Digite sua senha atual e a nova senha</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Senha Atual</label>
+                        <input type="password" name="current_password" required
+                               class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                               placeholder="Digite sua senha atual">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nova Senha</label>
+                        <input type="password" name="new_password" required
+                               class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                               placeholder="Digite sua nova senha">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Confirmar Nova Senha</label>
+                        <input type="password" name="confirm_password" required
+                               class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                               placeholder="Confirme sua nova senha">
+                    </div>
+
+                    <div class="flex gap-3">
+                        <a href="{{ url_for('dashboard') }}"
+                           class="flex-1 text-center bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 transition">
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition transform hover:scale-[1.02] active:scale-[0.98]">
+                            Alterar Senha
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold">
+                    ← Voltar ao Início
+                </a>
+            </div>
         </div>
     </div>
 </body>
