@@ -236,7 +236,6 @@ def login():
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['user_name'] = user['user_name']
-            flash(f'Bem-vindo, {user["user_name"]}!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Usuário ou senha incorretos', 'error')
