@@ -127,14 +127,14 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
 
             <!-- Change Password Card -->
-            <a href="{{ url_for('change_password') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-green-500">
+            <a href="{{ url_for('change_password') }}" class="block bg-white rounded-2xl shadow-lg p-4 md:p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-green-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">🔒 Alterar Senha</h3>
                 </div>
             </a>
 
             <!-- View Regras Card -->
-            <a href="{{ url_for('regras') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
+            <a href="{{ url_for('regras') }}" class="block bg-white rounded-2xl shadow-lg p-4 md:p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Regras</h3>
                 </div>
@@ -142,7 +142,7 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
 
             <!-- View Ranking Card -->
             {% if betting_closed %}
-            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
+            <a href="{{ url_for('ranking') }}" class="block bg-white rounded-2xl shadow-lg p-4 md:p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Ranking</h3>
                 </div>
@@ -150,14 +150,14 @@ DASHBOARD_TEMPLATE = '''<!DOCTYPE html>
             {% endif %}
 
             <!-- Make Predictions Card -->
-            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
+            <a href="{{ url_for('matches') }}" class="block bg-white rounded-2xl shadow-lg p-4 md:p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Fazer Palpites</h3>
                 </div>
             </a>
 
             <!-- Extras Card -->
-            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
+            <a href="{{ url_for('palpites_gerais') }}" class="block bg-white rounded-2xl shadow-lg p-4 md:p-8 hover:shadow-xl transition transform hover:scale-[1.02] md:col-span-2 border-l-4 border-blue-500">
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 mb-1">Extras</h3>
                 </div>
@@ -190,7 +190,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
-                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -201,7 +200,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Ranking Geral</h1>
-            <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
         </div>
 
         <!-- Ranking Table -->
@@ -239,7 +237,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     {% endif %}
                                 </td>
                                 <td class="px-3 md:px-6 py-1 text-center">
-                                    <span class="text-2xl md:text-3xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                    <span class="text-xl md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -1629,7 +1627,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
-                    <a href="{{ url_for('points_history') }}" class="font-semibold text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
@@ -1865,7 +1862,6 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
-                    <a href="{{ url_for('points_history') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
                     <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
