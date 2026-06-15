@@ -1669,9 +1669,45 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
         const dates = {{ dates|tojson }};
         const users = {{ users|tojson }};
 
-        // Generate colors for each user
+        // Generate diverse colors for each user
         const colors = [
-            '#3b82f6'
+            '#3b82f6', // Blue
+            '#ef4444', // Red
+            '#10b981', // Green
+            '#f59e0b', // Amber
+            '#8b5cf6', // Purple
+            '#ec4899', // Pink
+            '#14b8a6', // Teal
+            '#f97316', // Orange
+            '#06b6d4', // Cyan
+            '#84cc16', // Lime
+            '#6366f1', // Indigo
+            '#f43f5e', // Rose
+            '#22c55e', // Green-500
+            '#eab308', // Yellow
+            '#a855f7', // Purple-500
+            '#0ea5e9', // Sky
+            '#d946ef', // Fuchsia
+            '#059669', // Emerald
+            '#dc2626', // Red-600
+            '#2563eb', // Blue-600
+            '#7c3aed', // Violet
+            '#db2777', // Pink-600
+            '#ca8a04', // Yellow-600
+            '#16a34a', // Green-600
+            '#0891b2', // Cyan-600
+            '#9333ea', // Purple-600
+            '#ea580c', // Orange-600
+            '#0284c7', // Sky-600
+            '#65a30d', // Lime-600
+            '#4f46e5', // Indigo-600
+            '#c026d3', // Fuchsia-600
+            '#be123c', // Rose-700
+            '#047857', // Emerald-600
+            '#4338ca', // Indigo-700
+            '#15803d', // Green-700
+            '#b91c1c', // Red-700
+            '#1d4ed8'  // Blue-700
         ];
 
         // Create datasets
