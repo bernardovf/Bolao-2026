@@ -216,15 +216,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                        {% set current_position = [1] %}
                         {% for rank in rankings %}
-                            {% if loop.index > 1 and rankings[loop.index0 - 1].total_points != rank.total_points %}
-                                {% set _ = current_position.append(loop.index) %}
-                                {% set _ = current_position.pop(0) %}
-                            {% endif %}
+                            {% set show_position = loop.first or rankings[loop.index0 - 1].total_points != rank.total_points %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
                                 <td class="px-3 md:px-6 py-1 text-center">
-                                    <span class="text-lg md:text-xl font-black {% if current_position[0] <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ current_position[0] }}</span>
+                                    {% if show_position %}
+                                    <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
+                                    {% endif %}
                                 </td>
                                 <td class="px-3 md:px-6 py-1">
                                     {% if betting_closed %}
