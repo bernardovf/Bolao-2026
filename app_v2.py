@@ -439,7 +439,7 @@ def ranking():
             'id': user_id,
             'user_name': user['user_name'],
             'total_points': total_points,
-            'percentage': round(percentage, 1),
+            'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
             'saldo': stats['saldo'],
             'empates': stats['empates'],
