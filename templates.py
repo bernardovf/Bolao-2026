@@ -177,6 +177,39 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         body { font-family: 'IBM Plex Mono', monospace; }
+
+        /* Sticky columns */
+        .ranking-table th:nth-child(1),
+        .ranking-table td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+
+        .ranking-table th:nth-child(2),
+        .ranking-table td:nth-child(2) {
+            position: sticky;
+            left: 60px;
+            z-index: 10;
+        }
+
+        @media (min-width: 768px) {
+            .ranking-table th:nth-child(2),
+            .ranking-table td:nth-child(2) {
+                left: 80px;
+            }
+        }
+
+        /* Ensure sticky cells have proper background */
+        .ranking-table thead th:nth-child(1),
+        .ranking-table thead th:nth-child(2) {
+            background: linear-gradient(to right, rgb(37, 99, 235), rgb(29, 78, 216));
+        }
+
+        .ranking-table tbody td:nth-child(1),
+        .ranking-table tbody td:nth-child(2) {
+            background: inherit;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
@@ -200,17 +233,26 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <div class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Ranking Geral</h1>
+            <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
+            <p class="text-xs md:text-sm text-slate-500 mt-2">
+                <strong>%</strong> = Porcentagem de pontos obtidos |
+                <strong>Cravadas</strong> = Placares exatos (6 pts) |
+                <strong>Saldo</strong> = Saldo correto (4 pts)
+            </p>
         </div>
 
         <!-- Ranking Table -->
         <div class="bg-white rounded-xl md:rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full ranking-table">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <tr>
-                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Pos</th>
-                            <th class="px-3 md:px-6 py-1 md:py-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider">Jogador</th>
-                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-32">Pontos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
+                            <th class="px-3 md:px-6 py-1 md:py-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
+                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
+                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">%</th>
+                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Cravadas</th>
+                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Saldo</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -236,8 +278,17 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 md:px-6 py-1 text-center">
+                                <td class="px-3 md:px-4 py-1 text-center">
                                     <span class="text-xl md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                </td>
+                                <td class="px-3 md:px-4 py-1 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-700">{{ rank.percentage }}%</span>
+                                </td>
+                                <td class="px-3 md:px-4 py-1 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-green-600">{{ rank.cravadas }}</span>
+                                </td>
+                                <td class="px-3 md:px-4 py-1 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-orange-600">{{ rank.saldo }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
