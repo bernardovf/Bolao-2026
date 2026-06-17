@@ -386,8 +386,10 @@ def ranking():
         if user_id not in user_stats:
             user_stats[user_id] = {
                 'total_points': 0,
-                'cravadas': 0,  # exact matches (6 points)
-                'saldo': 0       # goal difference matches (4 points)
+                'cravadas': 0,      # exact matches (6 points)
+                'saldo': 0,         # goal difference matches (4 points)
+                'empates': 0,       # correct draws (3 points)
+                'colunas': 0        # partial/correct result (2 points)
             }
 
         user_stats[user_id]['total_points'] += points
@@ -395,6 +397,10 @@ def ranking():
             user_stats[user_id]['cravadas'] += 1
         elif match_type == 'saldo':
             user_stats[user_id]['saldo'] += 1
+        elif match_type == 'draw':
+            user_stats[user_id]['empates'] += 1
+        elif match_type == 'partial':
+            user_stats[user_id]['colunas'] += 1
 
     # Calculate qualification points for each user
     for user in users:
@@ -404,7 +410,9 @@ def ranking():
             user_stats[user_id] = {
                 'total_points': 0,
                 'cravadas': 0,
-                'saldo': 0
+                'saldo': 0,
+                'empates': 0,
+                'colunas': 0
             }
 
         # Calculate user's qualified teams
@@ -421,7 +429,7 @@ def ranking():
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'total_points': 0, 'cravadas': 0, 'saldo': 0})
+        stats = user_stats.get(user_id, {'total_points': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
         total_points = stats['total_points']
 
         # Calculate percentage
@@ -433,7 +441,9 @@ def ranking():
             'total_points': total_points,
             'percentage': round(percentage, 1),
             'cravadas': stats['cravadas'],
-            'saldo': stats['saldo']
+            'saldo': stats['saldo'],
+            'empates': stats['empates'],
+            'colunas': stats['colunas']
         })
 
     # Sort by points descending, then by name
