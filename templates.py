@@ -178,45 +178,57 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         body { font-family: 'IBM Plex Mono', monospace; }
 
+        /* Mobile-first: smaller text and compact spacing */
+        .ranking-table {
+            font-size: 11px;
+        }
+
+        @media (min-width: 768px) {
+            .ranking-table {
+                font-size: 14px;
+            }
+        }
+
         /* Sticky columns - Pos, Jogador, and Pontos */
-        .ranking-table tr:not(:first-child) th:nth-child(1),
-        .ranking-table td:nth-child(1) {
+        .ranking-table tr th:nth-child(1),
+        .ranking-table tr td:nth-child(1) {
             position: sticky;
             left: 0;
             z-index: 20;
         }
 
-        .ranking-table tr:not(:first-child) th:nth-child(2),
-        .ranking-table td:nth-child(2) {
+        .ranking-table tr th:nth-child(2),
+        .ranking-table tr td:nth-child(2) {
             position: sticky;
-            left: 50px;
+            left: 45px;
             z-index: 20;
         }
 
-        .ranking-table tr:not(:first-child) th:nth-child(3),
-        .ranking-table td:nth-child(3) {
+        .ranking-table tr th:nth-child(3),
+        .ranking-table tr td:nth-child(3) {
             position: sticky;
-            left: 200px;
+            left: 160px;
             z-index: 20;
-            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            box-shadow: 3px 0 5px rgba(0,0,0,0.15);
         }
 
         @media (min-width: 768px) {
-            .ranking-table tr:not(:first-child) th:nth-child(2),
-            .ranking-table td:nth-child(2) {
+            .ranking-table tr th:nth-child(2),
+            .ranking-table tr td:nth-child(2) {
                 left: 80px;
             }
 
-            .ranking-table tr:not(:first-child) th:nth-child(3),
-            .ranking-table td:nth-child(3) {
+            .ranking-table tr th:nth-child(3),
+            .ranking-table tr td:nth-child(3) {
                 left: 280px;
+                box-shadow: 2px 0 4px rgba(0,0,0,0.1);
             }
         }
 
         /* Ensure sticky cells have proper solid background */
-        .ranking-table thead tr:not(:first-child) th:nth-child(1),
-        .ranking-table thead tr:not(:first-child) th:nth-child(2),
-        .ranking-table thead tr:not(:first-child) th:nth-child(3) {
+        .ranking-table thead tr th:nth-child(1),
+        .ranking-table thead tr th:nth-child(2),
+        .ranking-table thead tr th:nth-child(3) {
             background: rgb(37, 99, 235);
         }
 
@@ -273,56 +285,59 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-2 md:px-6 py-0 md:py-2 text-center text-sm md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
-                            <th class="px-2 md:px-6 py-0 md:py-2 text-left   text-sm md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm uppercase tracking-wider w-20">%</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Cravadas</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-20">Saldo</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Empates</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Colunas</th>
+                            <th class="px-1.5 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
+                            <th class="px-2 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Crav</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Sal</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Emp</th>
+                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Col</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
+                            {% set show_position = loop.first or rankings[loop.index0 - 1].total_points != rank.total_points %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
-                                <td class="px-1 md:px-6 py-0 text-center">
-                                    <span class="text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">{{ loop.index }}</span>
+                                <td class="px-1.5 md:px-6 py-1.5 md:py-1 text-center">
+                                    {% if show_position %}
+                                    <span class="font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
+                                    {% endif %}
                                 </td>
-                                <td class="px-1 md:px-6 py-0">
+                                <td class="px-2 md:px-6 py-1.5 md:py-1">
                                     {% if betting_closed %}
-                                    <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
+                                    <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-slate-800 hover:text-blue-600 transition whitespace-nowrap">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1 py-0 rounded-full">Você</span>
+                                            <span class="ml-1 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full">Você</span>
                                         {% endif %}
                                     </a>
                                     {% else %}
-                                    <span class="font-bold text-sm md:text-lg text-slate-800">
+                                    <span class="font-bold text-slate-800 whitespace-nowrap">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1 py-0 rounded-full">Você</span>
+                                            <span class="ml-1 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full">Você</span>
                                         {% endif %}
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.percentage }}%</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.percentage }}%</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.cravadas }}</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.saldo }}</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.saldo }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.empates }}</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.empates }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.colunas }}</span>
+                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.colunas }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
