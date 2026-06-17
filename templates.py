@@ -178,7 +178,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         body { font-family: 'IBM Plex Mono', monospace; }
 
-        /* Sticky columns - only for data rows (second header row and body) */
+        /* Sticky columns - Pos, Jogador, and Pontos */
         .ranking-table tr:not(:first-child) th:nth-child(1),
         .ranking-table td:nth-child(1) {
             position: sticky;
@@ -191,6 +191,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             position: sticky;
             left: 50px;
             z-index: 20;
+        }
+
+        .ranking-table tr:not(:first-child) th:nth-child(3),
+        .ranking-table td:nth-child(3) {
+            position: sticky;
+            left: 200px;
+            z-index: 20;
             box-shadow: 2px 0 4px rgba(0,0,0,0.1);
         }
 
@@ -199,33 +206,43 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             .ranking-table td:nth-child(2) {
                 left: 80px;
             }
+
+            .ranking-table tr:not(:first-child) th:nth-child(3),
+            .ranking-table td:nth-child(3) {
+                left: 280px;
+            }
         }
 
         /* Ensure sticky cells have proper solid background */
         .ranking-table thead tr:not(:first-child) th:nth-child(1),
-        .ranking-table thead tr:not(:first-child) th:nth-child(2) {
+        .ranking-table thead tr:not(:first-child) th:nth-child(2),
+        .ranking-table thead tr:not(:first-child) th:nth-child(3) {
             background: rgb(37, 99, 235);
         }
 
         /* Different background for even/odd rows in sticky columns */
         .ranking-table tbody tr td:nth-child(1),
-        .ranking-table tbody tr td:nth-child(2) {
+        .ranking-table tbody tr td:nth-child(2),
+        .ranking-table tbody tr td:nth-child(3) {
             background: white;
         }
 
         .ranking-table tbody tr:nth-child(even) td:nth-child(1),
-        .ranking-table tbody tr:nth-child(even) td:nth-child(2) {
+        .ranking-table tbody tr:nth-child(even) td:nth-child(2),
+        .ranking-table tbody tr:nth-child(even) td:nth-child(3) {
             background: rgb(248, 250, 252);
         }
 
         .ranking-table tbody tr:hover td:nth-child(1),
-        .ranking-table tbody tr:hover td:nth-child(2) {
+        .ranking-table tbody tr:hover td:nth-child(2),
+        .ranking-table tbody tr:hover td:nth-child(3) {
             background: rgb(239, 246, 255);
         }
 
         /* Yellow background for current user */
         .ranking-table tbody tr.bg-yellow-50 td:nth-child(1),
-        .ranking-table tbody tr.bg-yellow-50 td:nth-child(2) {
+        .ranking-table tbody tr.bg-yellow-50 td:nth-child(2),
+        .ranking-table tbody tr.bg-yellow-50 td:nth-child(3) {
             background: rgb(254, 252, 232);
         }
     </style>
