@@ -266,84 +266,63 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     </nav>
 
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
-        <div class="mb-6 md:mb-8">
-            <h1 class="text-2xl md:text-4xl font-black text-slate-800 mb-2">Ranking Geral</h1>
-            <p class="text-base md:text-lg text-slate-600">Classificação de todos os participantes</p>
-            <p class="text-xs md:text-sm text-slate-500 mt-2">
-                <strong>%</strong> = Porcentagem de pontos |
-                <strong>Cravadas</strong> = Placares exatos (6 pts) |
-                <strong>Saldo</strong> = Saldo correto (4 pts) |
-                <strong>Empates</strong> = Empates certos (3 pts) |
-                <strong>Colunas</strong> = Resultado certo (2 pts)
-            </p>
-        </div>
-
         <!-- Ranking Table -->
         <div class="bg-white rounded-xl md:rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full ranking-table">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                        <!-- Group Stage Header -->
-                        <tr class="border-b border-blue-500">
-                            <th colspan="2" class="px-3 md:px-6 py-2 text-left text-sm md:text-base font-black uppercase tracking-wider bg-blue-800">
-                                Classificação Geral
-                            </th>
-                            <th colspan="6" class="px-3 md:px-4 py-2 text-center text-sm md:text-base font-black uppercase tracking-wider bg-blue-800">
-                                Estatísticas - Fase de Grupos
-                            </th>
-                        </tr>
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-3 md:px-6 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
-                            <th class="px-3 md:px-6 py-1 md:py-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">%</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Cravadas</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-20">Saldo</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Empates</th>
-                            <th class="px-3 md:px-4 py-1 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Colunas</th>
+                            <th class="px-2 md:px-6 py-0 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
+                            <th class="px-2 md:px-6 py-0 md:py-2 text-left   text-xs md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm uppercase tracking-wider w-20">%</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Cravadas</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-20">Saldo</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Empates</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Colunas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
-                                <td class="px-3 md:px-6 py-1 text-center">
-                                    <span class="text-lg md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">#{{ loop.index }}</span>
+                                <td class="px-1 md:px-6 py-0 text-center">
+                                    <span class="text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-400{% endif %}">{{ loop.index }}</span>
                                 </td>
-                                <td class="px-3 md:px-6 py-1">
+                                <td class="px-1 md:px-6 py-0">
                                     {% if betting_closed %}
                                     <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-base md:text-lg text-slate-800 hover:text-blue-600 transition">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
+                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1 py-0 rounded-full">Você</span>
                                         {% endif %}
                                     </a>
                                     {% else %}
-                                    <span class="font-bold text-base md:text-lg text-slate-800">
+                                    <span class="font-bold text-sm md:text-lg text-slate-800">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
-                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Você</span>
+                                            <span class="ml-2 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1 py-0 rounded-full">Você</span>
                                         {% endif %}
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-xl md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-slate-700">{{ rank.percentage }}%</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.percentage }}%</span>
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-green-600">{{ rank.cravadas }}</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.cravadas }}</span>
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-orange-600">{{ rank.saldo }}</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.saldo }}</span>
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-purple-600">{{ rank.empates }}</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.empates }}</span>
                                 </td>
-                                <td class="px-3 md:px-4 py-1 text-center">
-                                    <span class="text-sm md:text-base font-semibold text-blue-600">{{ rank.colunas }}</span>
+                                <td class="px-2 md:px-4 py-0 text-center">
+                                    <span class="text-sm md:text-base font-semibold text-slate-600">{{ rank.colunas }}</span>
                                 </td>
                             </tr>
                         {% endfor %}

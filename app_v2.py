@@ -53,7 +53,7 @@ if DATABASE_URL:
     DB_PATH = None
 else:
     # Local/SQLite
-    DB_PATH = 'bolao_2026_dev.db'
+    DB_PATH = r"G:\My Drive\Bolao-2026\bolao_2026_dev_2.db"
     DATABASE_URL = None
 
 # ============================================================================
