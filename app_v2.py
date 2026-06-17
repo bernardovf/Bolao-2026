@@ -53,7 +53,7 @@ if DATABASE_URL:
     DB_PATH = None
 else:
     # Local/SQLite
-    DB_PATH = 'bolao_2026_dev.db'
+    DB_PATH = r"G:\My Drive\Bolao-2026\bolao_2026_dev_2.db"
     DATABASE_URL = None
 
 # ============================================================================
@@ -367,19 +367,54 @@ def ranking():
     # Calculate qualified teams based on real results (once for all users)
     real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
 
-    # Calculate points for each user using calculate_match_points
-    user_points = {}
+    # Count total finished matches for percentage calculation
+    total_finished_matches = db_execute(conn, '''
+        SELECT COUNT(*) as count
+        FROM fixtures
+        WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
+    ''').fetchone()['count']
+
+    # Calculate points and statistics for each user
+    user_stats = {}
     for bet in bets_data:
-        points, _ = calculate_match_points(
+        points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
             bet['final_home_goals'], bet['final_away_goals']
         )
         user_id = bet['user_id']
-        user_points[user_id] = user_points.get(user_id, 0) + points
+
+        if user_id not in user_stats:
+            user_stats[user_id] = {
+                'total_points': 0,
+                'cravadas': 0,      # exact matches (6 points)
+                'saldo': 0,         # goal difference matches (4 points)
+                'empates': 0,       # correct draws (3 points)
+                'colunas': 0        # partial/correct result (2 points)
+            }
+
+        user_stats[user_id]['total_points'] += points
+        if match_type == 'exact':
+            user_stats[user_id]['cravadas'] += 1
+        elif match_type == 'saldo':
+            user_stats[user_id]['saldo'] += 1
+        elif match_type == 'draw':
+            user_stats[user_id]['empates'] += 1
+        elif match_type == 'partial':
+            user_stats[user_id]['colunas'] += 1
 
     # Calculate qualification points for each user
     for user in users:
         user_id = user['id']
+        # Initialize stats if user hasn't bet yet
+        if user_id not in user_stats:
+            user_stats[user_id] = {
+                'total_points': 0,
+                'cravadas': 0,
+                'saldo': 0,
+                'empates': 0,
+                'colunas': 0
+            }
+
         # Calculate user's qualified teams
         user_qualified = calculate_qualified_teams(db_execute, conn, user_id=user_id, use_real_results=False)
         # Calculate correct predictions
@@ -387,15 +422,28 @@ def ranking():
         # Add qualification points (2 points per correct qualified team)
         if GRUPOS_CLOSED:
             qualification_points = len(correct_qualified) * 2
-            user_points[user_id] = user_points.get(user_id, 0) + qualification_points
+            user_stats[user_id]['total_points'] += qualification_points
 
-    # Build rankings list
+    # Build rankings list with all statistics
     rankings = []
+    max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
+        user_id = user['id']
+        stats = user_stats.get(user_id, {'total_points': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        total_points = stats['total_points']
+
+        # Calculate percentage
+        percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
+
         rankings.append({
-            'id': user['id'],
+            'id': user_id,
             'user_name': user['user_name'],
-            'total_points': user_points.get(user['id'], 0)
+            'total_points': total_points,
+            'percentage': int(round(percentage)),
+            'cravadas': stats['cravadas'],
+            'saldo': stats['saldo'],
+            'empates': stats['empates'],
+            'colunas': stats['colunas']
         })
 
     # Sort by points descending, then by name
