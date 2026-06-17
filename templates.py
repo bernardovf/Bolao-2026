@@ -273,14 +273,14 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-2 md:px-6 py-0 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
-                            <th class="px-2 md:px-6 py-0 md:py-2 text-left   text-xs md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm uppercase tracking-wider w-20">%</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Cravadas</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-20">Saldo</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Empates</th>
-                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-xs md:text-sm tracking-wider w-24">Colunas</th>
+                            <th class="px-2 md:px-6 py-0 md:py-2 text-center text-sm md:text-sm font-bold uppercase tracking-wider w-16">Pos</th>
+                            <th class="px-2 md:px-6 py-0 md:py-2 text-left   text-sm md:text-sm font-bold uppercase tracking-wider min-w-[150px]">Jogador</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm font-bold uppercase tracking-wider w-24">Pontos</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm uppercase tracking-wider w-20">%</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Cravadas</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-20">Saldo</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Empates</th>
+                            <th class="px-2 md:px-4 py-0 md:py-2 text-center text-sm md:text-sm tracking-wider w-24">Colunas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
