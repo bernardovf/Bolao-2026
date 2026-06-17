@@ -297,23 +297,20 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
-                            {% set show_position = loop.first or rankings[loop.index0 - 1].total_points != rank.total_points %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
                                 <td class="px-1.5 md:px-6 py-1.5 md:py-1 text-center">
-                                    {% if show_position %}
-                                    <span class="font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
-                                    {% endif %}
+                                    <span class="text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
                                 </td>
                                 <td class="px-2 md:px-6 py-1.5 md:py-1">
                                     {% if betting_closed %}
-                                    <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="font-bold text-slate-800 hover:text-blue-600 transition whitespace-nowrap">
+                                    <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="text-sm md:text-lg font-bold text-slate-800 hover:text-blue-600 transition whitespace-nowrap">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
                                             <span class="ml-1 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full">Você</span>
                                         {% endif %}
                                     </a>
                                     {% else %}
-                                    <span class="font-bold text-slate-800 whitespace-nowrap">
+                                    <span class="text-sm md:text-lg font-bold text-slate-800 whitespace-nowrap">
                                         {{ rank.user_name }}
                                         {% if rank.id == current_user_id %}
                                             <span class="ml-1 text-xs font-semibold bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full">Você</span>
@@ -322,7 +319,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     {% endif %}
                                 </td>
                                 <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
-                                    <span class="font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                    <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                                 <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.percentage }}%</span>
