@@ -286,22 +286,22 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                         <!-- Column Headers -->
                         <tr>
                             <th class="px-1.5 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
-                            <th class="px-2 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Crav</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Sal</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Emp</th>
-                            <th class="px-1.5 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Col</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
+                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
+                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Colunas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         {% for rank in rankings %}
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
-                                <td class="px-1.5 md:px-6 py-1.5 md:py-1 text-center">
+                                <td class="px-1.5 md:px-6 py-0.5 md:py-1 text-center">
                                     <span class="text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
                                 </td>
-                                <td class="px-2 md:px-6 py-1.5 md:py-1">
+                                <td class="px-1 md:px-6 py-0.5 md:py-1">
                                     {% if betting_closed %}
                                     <a href="{{ url_for('jogador_detail', user_id=rank.id) }}" class="text-sm md:text-lg font-bold text-slate-800 hover:text-blue-600 transition whitespace-nowrap">
                                         {{ rank.user_name }}
@@ -318,22 +318,22 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                <td class="px-2.0 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
-                                    <span class="font-semibold text-slate-600">{{ rank.percentage }}%</span>
+                                <td class="px-2 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="italic text-slate-600">{{ rank.percentage }}%</span>
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.saldo }}</span>
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.empates }}</span>
                                 </td>
-                                <td class="px-1.5 md:px-4 py-1.5 md:py-1 text-center">
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.colunas }}</span>
                                 </td>
                             </tr>
