@@ -629,13 +629,58 @@ def matches():
         else:
             phase_filter = phases[0]['phase'] if phases else ''
 
-    # Get date filter
-    date_filter = request.args.get('date', 'Todas')
-
     # Get BRT date expression for this database
     brt_date_expr = get_brt_date_expression(conn)
 
-    # Build query based on filters
+    # Get today's date in BRT timezone (UTC-3) for default filter
+    from datetime import datetime, timedelta
+    today_brt = (datetime.utcnow() - timedelta(hours=3)).strftime('%Y-%m-%d')
+
+    # Get available dates for the current phase filter (in BRT timezone) - FIRST
+    if phase_filter == 'Todos':
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase LIKE 'Grupo %'
+            ORDER BY match_date
+        ''').fetchall()
+    else:
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase = ?
+            ORDER BY match_date
+        ''', (phase_filter,)).fetchall()
+
+    # Format dates with Portuguese day names and dd/mm/yyyy
+    weekday_pt = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
+
+    formatted_dates = []
+    available_dates = []
+    for date_row in dates:
+        date_str = date_row['match_date']
+        if isinstance(date_str, str):
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        else:
+            date_obj = date_str  # already a datetime or date object
+        day_name = weekday_pt[date_obj.weekday()]
+        formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+        formatted_dates.append({
+            'value': str(date_str) if not isinstance(date_str, str) else date_str,  # ISO format for filtering
+            'label': formatted   # Pretty format for display
+        })
+        available_dates.append(str(date_str) if not isinstance(date_str, str) else date_str)
+
+    # Get date filter from request or set default
+    date_filter = request.args.get('date')
+    if not date_filter:
+        # Default to today if it exists in available dates, otherwise 'Todas'
+        if today_brt in available_dates:
+            date_filter = today_brt
+        else:
+            date_filter = 'Todas'
+
+    # Now build query based on filters
     if phase_filter == 'Todos':
         # Show all group matches
         if date_filter == 'Todas':
@@ -666,40 +711,6 @@ def matches():
                   AND {brt_date_expr} = ?
                 ORDER BY kickoff_utc
             ''', (phase_filter, date_filter)).fetchall()
-
-    # Get available dates for the current phase filter (in BRT timezone)
-    if phase_filter == 'Todos':
-        dates = db_execute(conn, f'''
-            SELECT DISTINCT {brt_date_expr} as match_date
-            FROM fixtures
-            WHERE phase LIKE 'Grupo %'
-            ORDER BY match_date
-        ''').fetchall()
-    else:
-        dates = db_execute(conn, f'''
-            SELECT DISTINCT {brt_date_expr} as match_date
-            FROM fixtures
-            WHERE phase = ?
-            ORDER BY match_date
-        ''', (phase_filter,)).fetchall()
-
-    # Format dates with Portuguese day names and dd/mm/yyyy
-    from datetime import datetime
-    weekday_pt = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
-
-    formatted_dates = []
-    for date_row in dates:
-        date_str = date_row['match_date']
-        if isinstance(date_str, str):
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        else:
-            date_obj = date_str  # already a datetime or date object
-        day_name = weekday_pt[date_obj.weekday()]
-        formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
-        formatted_dates.append({
-            'value': date_str,  # ISO format for filtering
-            'label': formatted   # Pretty format for display
-        })
 
     # Get user's bets
     # Get user's bets for filtered fixtures (for display)
