@@ -183,14 +183,15 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         .ranking-table td:nth-child(1) {
             position: sticky;
             left: 0;
-            z-index: 10;
+            z-index: 20;
         }
 
         .ranking-table tr:not(:first-child) th:nth-child(2),
         .ranking-table td:nth-child(2) {
             position: sticky;
-            left: 60px;
-            z-index: 10;
+            left: 50px;
+            z-index: 20;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
         }
 
         @media (min-width: 768px) {
@@ -200,15 +201,32 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             }
         }
 
-        /* Ensure sticky cells have proper background */
+        /* Ensure sticky cells have proper solid background */
         .ranking-table thead tr:not(:first-child) th:nth-child(1),
         .ranking-table thead tr:not(:first-child) th:nth-child(2) {
-            background: linear-gradient(to right, rgb(37, 99, 235), rgb(29, 78, 216));
+            background: rgb(37, 99, 235);
         }
 
-        .ranking-table tbody td:nth-child(1),
-        .ranking-table tbody td:nth-child(2) {
-            background: inherit;
+        /* Different background for even/odd rows in sticky columns */
+        .ranking-table tbody tr td:nth-child(1),
+        .ranking-table tbody tr td:nth-child(2) {
+            background: white;
+        }
+
+        .ranking-table tbody tr:nth-child(even) td:nth-child(1),
+        .ranking-table tbody tr:nth-child(even) td:nth-child(2) {
+            background: rgb(248, 250, 252);
+        }
+
+        .ranking-table tbody tr:hover td:nth-child(1),
+        .ranking-table tbody tr:hover td:nth-child(2) {
+            background: rgb(239, 246, 255);
+        }
+
+        /* Yellow background for current user */
+        .ranking-table tbody tr.bg-yellow-50 td:nth-child(1),
+        .ranking-table tbody tr.bg-yellow-50 td:nth-child(2) {
+            background: rgb(254, 252, 232);
         }
     </style>
 </head>
