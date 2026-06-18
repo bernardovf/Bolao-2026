@@ -84,6 +84,57 @@ FIXTURE_ID_MAP = {
     1489420: 537414,
 }
 
+TEAM_MAP = {
+    "Mexico": "Mexico",
+    "South Korea": "Korea Republic",
+    "Czechia": "Czech Republic",
+    "South Africa": "South Africa",
+    "Canada": "Canada",
+    "Qatar": "Qatar",
+    "Switzerland": "Switzerland",
+    "Bosnia & Herzegovina": "Bosnia and Herzegovina",
+    "Brazil": "Brazil",
+    "Haiti": "Haiti",
+    "Scotland": "Scotland",
+    "Morocco": "Morocco",
+    "USA": "USA",
+    "Australia": "Australia",
+    "Türkiye": "Turkey",
+    "Paraguay": "Paraguay",
+    "Germany": "Germany",
+    "Ivory Coast": "Côte d'Ivoire",
+    "Ecuador": "Ecuador",
+    "Curaçao": "Curaçao",
+    "Netherlands": "Netherlands",
+    "Sweden": "Sweden",
+    "Tunisia": "Tunisia",
+    "Japan": "Japan",
+    "Belgium": "Belgium",
+    "Iran": "Iran",
+    "New Zealand": "New Zealand",
+    "Egypt": "Egypt",
+    "Spain": "Spain",
+    "Saudi Arabia": "Saudi Arabia",
+    "Uruguay": "Uruguay",
+    "Cape Verde Islands": "Cabo Verde",
+    "France": "France",
+    "Iraq": "Iraq",
+    "Norway": "Norway",
+    "Senegal": "Senegal",
+    "Argentina": "Argentina",
+    "Austria": "Austria",
+    "Jordan": "Jordan",
+    "Algeria": "Algeria",
+    "Portugal": "Portugal",
+    "Uzbekistan": "Uzbekistan",
+    "Colombia": "Colombia",
+    "Congo DR": "Democratic Republic of the Congo",
+    "England": "England",
+    "Ghana": "Ghana",
+    "Panama": "Panama",
+    "Croatia": "Croatia",
+}
+
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is missing")
 
@@ -155,7 +206,39 @@ if api_fixture_ids:
         home = item["teams"]["home"]["name"]
         away = item["teams"]["away"]["name"]
 
-        print(f"Updating {old_match_id}: {home} {home_goals} - {away_goals} {away}")
+        cur.execute("""
+            SELECT home, away
+            FROM fixtures
+            WHERE id = %s
+        """, (old_match_id,))
+
+        db_home, db_away = cur.fetchone()
+
+        db_home_norm = TEAM_MAP.get(db_home, db_home)
+        home_norm = TEAM_MAP.get(home, home)
+
+        db_away_norm = TEAM_MAP.get(db_away, db_away)
+        away_norm = TEAM_MAP.get(away, away)
+
+        same_order = (db_home_norm == home_norm and db_away_norm == away_norm)
+
+        reversed_order = (db_home_norm == away_norm and db_away_norm == home_norm)
+
+        if same_order:
+            print(f"OK       {old_match_id}: {db_home} vs {db_away}")
+
+        elif reversed_order:
+            print(f"REVERSED {old_match_id}: {db_home} vs {db_away}")
+
+        if same_order:
+            db_home_goals = home_goals
+            db_away_goals = away_goals
+
+        elif reversed_order:
+            db_home_goals = away_goals
+            db_away_goals = home_goals
+
+        print(f"Updating {old_match_id}: {db_home_norm} {db_home_goals} - {db_away_norm} {db_away_goals}")
 
         cur.execute("""
             UPDATE fixtures
@@ -163,9 +246,10 @@ if api_fixture_ids:
                 final_home_goals = %s,
                 final_away_goals = %s
             WHERE id = %s
-        """, (home_goals, away_goals, old_match_id))
+        """, (db_home_goals, db_away_goals, old_match_id))
 
         updated += 1
+        print("")
 
 conn.commit()
 cur.close()
