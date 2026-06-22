@@ -10,7 +10,7 @@ print("Hashing all plain text passwords...\n")
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-
+DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026"
 
 # Connect to appropriate database
 if DATABASE_URL:

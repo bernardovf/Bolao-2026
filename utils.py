@@ -58,6 +58,54 @@ def format_match_datetime(kickoff_utc):
     except:
         return None
 
+def get_match_result(match, user_bets):
+    bet = user_bets.get(match['id'])
+    if not bet:
+        return None
+
+    if (bet['home_goals'] is None or bet['away_goals'] is None or
+        bet['home_goals'] == 'NULL' or bet['away_goals'] == 'NULL'):
+        return None
+
+    return int(bet['home_goals']), int(bet['away_goals'])
+
+def head_to_head_stats(teams, fixtures, user_bets):
+    h2h = {
+        team: {'points': 0, 'gd': 0, 'gf': 0}
+        for team in teams
+    }
+
+    teams_set = set(teams)
+
+    for match in fixtures:
+        home = match['home']
+        away = match['away']
+
+        if home not in teams_set or away not in teams_set:
+            continue
+
+        result = get_match_result(match, user_bets)
+        if result is None:
+            continue
+
+        home_goals, away_goals = result
+
+        h2h[home]['gf'] += home_goals
+        h2h[home]['gd'] += home_goals - away_goals
+
+        h2h[away]['gf'] += away_goals
+        h2h[away]['gd'] += away_goals - home_goals
+
+        if home_goals > away_goals:
+            h2h[home]['points'] += 3
+        elif home_goals < away_goals:
+            h2h[away]['points'] += 3
+        else:
+            h2h[home]['points'] += 1
+            h2h[away]['points'] += 1
+
+    return h2h
+
 def calculate_group_standings(fixtures, user_bets):
     """
     Calculate standings for teams in fixtures based on the user's bets.
@@ -124,14 +172,49 @@ def calculate_group_standings(fixtures, user_bets):
         standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
         standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
 
-    sorted_standings = sorted(
-        standings.values(),
-        key=lambda x: (x['points'], x['gd'], x['gf']),
-        reverse=True
+    sorted_standings = sort_group_standings(
+        list(standings.values()),
+        fixtures,
+        user_bets
     )
 
     return sorted_standings
 
+def sort_group_standings(standings_list, fixtures, user_bets):
+    # First group teams by total points
+    points_groups = {}
+
+    for team in standings_list:
+        points_groups.setdefault(team['points'], []).append(team)
+
+    sorted_points = sorted(points_groups.keys(), reverse=True)
+    final_order = []
+
+    for points in sorted_points:
+        group = points_groups[points]
+
+        if len(group) == 1:
+            final_order.extend(group)
+            continue
+
+        tied_team_names = [x['team'] for x in group]
+        h2h = head_to_head_stats(tied_team_names, fixtures, user_bets)
+
+        group_sorted = sorted(
+            group,
+            key=lambda x: (
+                h2h[x['team']]['points'],
+                h2h[x['team']]['gd'],
+                h2h[x['team']]['gf'],
+                x['gd'],
+                x['gf']
+            ),
+            reverse=True
+        )
+
+        final_order.extend(group_sorted)
+
+    return final_order
 
 def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
     """
