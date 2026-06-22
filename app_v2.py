@@ -385,14 +385,15 @@ def ranking():
 
         if user_id not in user_stats:
             user_stats[user_id] = {
-                'total_points': 0,
+                'pts_grupos': 0,    # group stage points
+                'pts_extras': 0,    # qualification points
                 'cravadas': 0,      # exact matches (6 points)
                 'saldo': 0,         # goal difference matches (4 points)
                 'empates': 0,       # correct draws (3 points)
                 'colunas': 0        # partial/correct result (2 points)
             }
 
-        user_stats[user_id]['total_points'] += points
+        user_stats[user_id]['pts_grupos'] += points
         if match_type == 'exact':
             user_stats[user_id]['cravadas'] += 1
         elif match_type == 'saldo':
@@ -408,7 +409,8 @@ def ranking():
         # Initialize stats if user hasn't bet yet
         if user_id not in user_stats:
             user_stats[user_id] = {
-                'total_points': 0,
+                'pts_grupos': 0,
+                'pts_extras': 0,
                 'cravadas': 0,
                 'saldo': 0,
                 'empates': 0,
@@ -422,15 +424,17 @@ def ranking():
         # Add qualification points (2 points per correct qualified team)
         if GRUPOS_CLOSED:
             qualification_points = len(correct_qualified) * 2
-            user_stats[user_id]['total_points'] += qualification_points
+            user_stats[user_id]['pts_extras'] = qualification_points
 
     # Build rankings list with all statistics
     rankings = []
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'total_points': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
-        total_points = stats['total_points']
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        pts_grupos = stats['pts_grupos']
+        pts_extras = stats['pts_extras']
+        total_points = pts_grupos + pts_extras
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -439,6 +443,8 @@ def ranking():
             'id': user_id,
             'user_name': user['user_name'],
             'total_points': total_points,
+            'pts_grupos': pts_grupos,
+            'pts_extras': pts_extras,
             'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
             'saldo': stats['saldo'],

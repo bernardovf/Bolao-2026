@@ -288,6 +288,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th class="px-1.5 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
                             <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Grupo</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Extras</th>
                             <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
@@ -320,6 +322,12 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 </td>
                                 <td class="px-2.0 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.pts_grupos or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-slate-600">{{ rank.pts_extras or 0 }}</span>
                                 </td>
                                 <td class="px-2 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="italic text-slate-600">{{ rank.percentage }}%</span>
