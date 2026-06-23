@@ -150,3 +150,15 @@ PLAYER_ALIASES = {
     "baleno": "Neymar"
 
 }
+
+CAMPEAO = ""
+
+ARTILHEIRO = ""
+
+MELHOR_JOGADOR = ""
+
+ZEBRA = ""
+
+FAVORITO = ""
+
+ANFITRIAO = ""

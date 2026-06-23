@@ -200,14 +200,14 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         .ranking-table tr th:nth-child(2),
         .ranking-table tr td:nth-child(2) {
             position: sticky;
-            left: 45px;
+            left: 30px;
             z-index: 20;
         }
 
         .ranking-table tr th:nth-child(3),
         .ranking-table tr td:nth-child(3) {
             position: sticky;
-            left: 160px;
+            left: 140px;
             z-index: 20;
             box-shadow: 3px 0 5px rgba(0,0,0,0.15);
         }
@@ -285,12 +285,17 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-1.5 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
-                            <th class="px-1 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
-                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12          md:w-16">Pos</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
+                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Total</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Grupo</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Extras</th>
-                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Campeao</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Artilheiro</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Melhor Jogador</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Zebra</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Favorito</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Anfitriao</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
@@ -324,13 +329,28 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-slate-600">{{ rank.pts_grupos or 0 }}</span>
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_grupos or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-slate-600">{{ rank.pts_extras or 0 }}</span>
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_extras or 0 }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="italic text-slate-600">{{ rank.percentage }}%</span>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_campeao or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_artilheiro or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_melhor_jogador or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_zebra or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_favorito or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_anfitriao or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>

@@ -5,7 +5,7 @@ from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
-from constants import translations
+from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
 from calculate_points import calculate_match_points
 from templates import *
 import psycopg2
@@ -375,6 +375,15 @@ def ranking():
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
     ''').fetchone()['count']
 
+    palpites_gerais = {
+        row['user_id']: dict(row)
+        for row in db_execute(conn, '''
+            SELECT user_id, campeao, artilheiro, melhor_jogador,
+                   zebra_longe, favorito_caiu, anfitriao_longe
+            FROM palpites_gerais
+        ''').fetchall()
+    }
+
     # Calculate points and statistics for each user
     user_stats = {}
     for bet in bets_data:
@@ -388,6 +397,12 @@ def ranking():
             user_stats[user_id] = {
                 'pts_grupos': 0,    # group stage points
                 'pts_extras': 0,    # qualification points
+                'pts_campeao': 0,  # campeao
+                'pts_artilheiro': 0,  # artilheiro
+                'pts_melhor_jogador': 0,  # melhor jogador
+                'pts_zebra': 0,  # zebra
+                'pts_favorito': 0,  # favorito
+                'pts_anfitriao': 0,  # anfritrião
                 'cravadas': 0,      # exact matches (6 points)
                 'saldo': 0,         # goal difference matches (4 points)
                 'empates': 0,       # correct draws (3 points)
@@ -412,6 +427,12 @@ def ranking():
             user_stats[user_id] = {
                 'pts_grupos': 0,
                 'pts_extras': 0,
+                'pts_campeao': 0,  # campeao
+                'pts_artilheiro': 0,  # artilheiro
+                'pts_melhor_jogador': 0,  # melhor jogador
+                'pts_zebra': 0,  # zebra
+                'pts_favorito': 0,  # favorito
+                'pts_anfitriao': 0,  # anfritrião
                 'cravadas': 0,
                 'saldo': 0,
                 'empates': 0,
@@ -432,10 +453,56 @@ def ranking():
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
+                                         'pts_melhor_jogador': 0, 'pts_zebra': 0, 'pts_favorito': 0, 'pts_anfitriao': 0,
+                                         'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        if CAMPEAO == "":
+            stats['pts_campeao'] = 0
+        else:
+            if palpites_gerais[user_id]['campeao'] == CAMPEAO:
+                stats['pts_campeao'] = 30
+
+        if ARTILHEIRO == "":
+            stats['pts_artilheiro'] = 0
+        else:
+            if normalize_player_name(palpites_gerais[user_id]['artilheiro']) == ARTILHEIRO:
+                stats['pts_artilheiro'] = 30
+
+        if MELHOR_JOGADOR == "":
+            stats['pts_melhor_jogador'] = 0
+        else:
+            if normalize_player_name(palpites_gerais[user_id]['melhor_jogador']) == MELHOR_JOGADOR:
+                stats['pts_melhor_jogador'] = 30
+
+        if ZEBRA == "":
+            stats['pts_zebra'] = 0
+        else:
+            if palpites_gerais[user_id]['zebra_longe'] == ZEBRA:
+                stats['pts_zebra'] = 30
+
+        if FAVORITO == "":
+            stats['pts_favorito'] = 0
+        else:
+            if palpites_gerais[user_id]['favorito_caiu'] == FAVORITO:
+                stats['pts_favorito'] = 30
+
+        if ANFITRIAO == "":
+            stats['pts_anfitriao'] = 0
+        else:
+            if pts_anfitriao[user_id]['anfitriao_longe'] == ANFITRIAO:
+                stats['pts_favorito'] = 15
+
         pts_grupos = stats['pts_grupos']
         pts_extras = stats['pts_extras']
-        total_points = pts_grupos + pts_extras
+
+        pts_campeao = stats['pts_campeao']
+        pts_artilheiro = stats['pts_artilheiro']
+        pts_melhor_jogador = stats['pts_melhor_jogador']
+        pts_zebra = stats['pts_zebra']
+        pts_favorito = stats['pts_favorito']
+        pts_anfitriao = stats['pts_anfitriao']
+
+        total_points = pts_grupos + pts_extras + pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -446,6 +513,12 @@ def ranking():
             'total_points': total_points,
             'pts_grupos': pts_grupos,
             'pts_extras': pts_extras,
+            'pts_campeao': pts_campeao,
+            'pts_artilheiro': pts_artilheiro,
+            'pts_melhor_jogador': pts_melhor_jogador,
+            'pts_zebra': pts_zebra,
+            'pts_favorito': pts_favorito,
+            'pts_anfitriao': pts_anfitriao,
             'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
             'saldo': stats['saldo'],
