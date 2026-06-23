@@ -659,17 +659,24 @@ def jogador_detail(user_id):
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Consolidate all "Grupo X" phases into "Fase de Grupos"
+    # Consolidate all "Grupo X" phases into "Fase de Grupos" and ensure proper order
     phases = []
+    other_phases = []
     has_grupos = False
+
     for phase_row in phases_raw:
         phase = phase_row['phase']
         if 'Grupo' in phase:
-            if not has_grupos:
-                phases.append({'phase': 'Fase de Grupos'})
-                has_grupos = True
+            has_grupos = True
         else:
-            phases.append({'phase': phase})
+            other_phases.append({'phase': phase})
+
+    # Add "Fase de Grupos" first if there are any group phases
+    if has_grupos:
+        phases.append({'phase': 'Fase de Grupos'})
+
+    # Then add all other phases in order
+    phases.extend(other_phases)
 
     # Determine active phase filter
     phase_filter = request.args.get('phase')
@@ -809,17 +816,24 @@ def matches():
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Consolidate all "Grupo X" phases into "Fase de Grupos"
+    # Consolidate all "Grupo X" phases into "Fase de Grupos" and ensure proper order
     phases = []
+    other_phases = []
     has_grupos = False
+
     for phase_row in phases_raw:
         phase = phase_row['phase']
         if 'Grupo' in phase:
-            if not has_grupos:
-                phases.append({'phase': 'Fase de Grupos'})
-                has_grupos = True
+            has_grupos = True
         else:
-            phases.append({'phase': phase})
+            other_phases.append({'phase': phase})
+
+    # Add "Fase de Grupos" first if there are any group phases
+    if has_grupos:
+        phases.append({'phase': 'Fase de Grupos'})
+
+    # Then add all other phases in order
+    phases.extend(other_phases)
 
     # Determine active phase (default to "Todos" to show all phases)
     phase_filter = request.args.get('phase')
