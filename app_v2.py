@@ -652,12 +652,24 @@ def jogador_detail(user_id):
         return redirect(url_for('ranking'))
 
     # Get all phases
-    phases = db_execute(conn, '''
+    phases_raw = db_execute(conn, '''
         SELECT phase
         FROM fixtures
         GROUP BY phase
         ORDER BY MIN(id)
     ''').fetchall()
+
+    # Consolidate all "Grupo X" phases into "Fase de Grupos"
+    phases = []
+    has_grupos = False
+    for phase_row in phases_raw:
+        phase = phase_row['phase']
+        if 'Grupo' in phase:
+            if not has_grupos:
+                phases.append({'phase': 'Fase de Grupos'})
+                has_grupos = True
+        else:
+            phases.append({'phase': phase})
 
     # Determine active phase filter
     phase_filter = request.args.get('phase')
@@ -665,7 +677,24 @@ def jogador_detail(user_id):
         phase_filter = phases[0]['phase']
 
     # Get all player bets with match info (no points in SQL), filtered by phase
-    if phase_filter:
+    if phase_filter == 'Fase de Grupos':
+        bets_raw = db_execute(conn, '''
+            SELECT
+                f.id as match_id,
+                f.phase,
+                f.home,
+                f.away,
+                f.kickoff_utc,
+                f.final_home_goals,
+                f.final_away_goals,
+                b.home_goals as bet_home,
+                b.away_goals as bet_away
+            FROM fixtures f
+            LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
+            WHERE f.phase LIKE ?
+            ORDER BY f.id
+        ''', (user_id, '%Grupo%')).fetchall()
+    elif phase_filter:
         bets_raw = db_execute(conn, '''
             SELECT
                 f.id as match_id,
@@ -773,12 +802,24 @@ def matches():
     conn = get_db()
 
     # Get all phases
-    phases = db_execute(conn, '''
+    phases_raw = db_execute(conn, '''
         SELECT phase
         FROM fixtures
         GROUP BY phase
         ORDER BY MIN(id)
     ''').fetchall()
+
+    # Consolidate all "Grupo X" phases into "Fase de Grupos"
+    phases = []
+    has_grupos = False
+    for phase_row in phases_raw:
+        phase = phase_row['phase']
+        if 'Grupo' in phase:
+            if not has_grupos:
+                phases.append({'phase': 'Fase de Grupos'})
+                has_grupos = True
+        else:
+            phases.append({'phase': phase})
 
     # Determine active phase (default to "Todos" to show all phases)
     phase_filter = request.args.get('phase')
@@ -800,6 +841,13 @@ def matches():
             FROM fixtures
             ORDER BY match_date
         ''').fetchall()
+    elif phase_filter == 'Fase de Grupos':
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase LIKE ?
+            ORDER BY match_date
+        ''', ('%Grupo%',)).fetchall()
     else:
         dates = db_execute(conn, f'''
             SELECT DISTINCT {brt_date_expr} as match_date
@@ -838,7 +886,7 @@ def matches():
 
     # Now build query based on filters
     if phase_filter == 'Todos':
-        # Show all group matches
+        # Show all matches
         if date_filter == 'Todas':
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
@@ -850,6 +898,21 @@ def matches():
                 WHERE {brt_date_expr} = ?
                 ORDER BY phase, kickoff_utc
             ''', (date_filter,)).fetchall()
+    elif phase_filter == 'Fase de Grupos':
+        # Show all group matches
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE ?
+                ORDER BY phase, kickoff_utc
+            ''', ('%Grupo%',)).fetchall()
+        else:
+            fixtures = db_execute(conn, f'''
+                SELECT * FROM fixtures
+                WHERE phase LIKE ?
+                  AND {brt_date_expr} = ?
+                ORDER BY phase, kickoff_utc
+            ''', ('%Grupo%', date_filter)).fetchall()
     else:
         # Show specific phase
         if date_filter == 'Todas':
@@ -892,15 +955,16 @@ def matches():
     # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
     best_third_qualifiers = set()
-    if phase_filter == 'Todos' or 'Grupo' or '16 Avos Final' in phase_filter:
+    if phase_filter == 'Todos' or phase_filter == 'Fase de Grupos' or 'Grupo' in phase_filter:
         from collections import defaultdict
 
         # Get ALL group matches for standings calculation (ignore date filter)
-        if phase_filter == 'Todos':
+        if phase_filter == 'Todos' or phase_filter == 'Fase de Grupos':
             all_group_fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
+                WHERE phase LIKE ?
                 ORDER BY phase, kickoff_utc
-            ''').fetchall()
+            ''', ('%Grupo%',)).fetchall()
         else:
             # Specific group - get all matches from that group
             all_group_fixtures = db_execute(conn, '''
