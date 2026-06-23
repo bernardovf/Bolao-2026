@@ -442,11 +442,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Fase ou Grupo:</label>
                 <select id="phaseFilter" onchange="updateFilters()"
                         class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                    {% if phases and 'Grupo' in phases[0].phase %}
-                        <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
-                            Todos os Grupos
-                        </option>
-                    {% endif %}
+                    <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
+                        Todas as Fases
+                    </option>
                     {% for phase in phases %}
                         <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
                             {{ phase.phase }}
@@ -547,8 +545,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 </div>
                             {% endif %}
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
-                                <!-- Stats Link (only visible when betting is closed) -->
-                                {% if betting_closed %}
+                                <!-- Stats Link (only visible when betting is closed for this phase) -->
+                                {% if match.betting_closed %}
                                 <a href="{{ url_for('match_stats', match_id=match.id) }}"
                                    class="absolute top-3 right-3 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                                    title="Ver estatísticas">
