@@ -752,7 +752,7 @@ def matches():
     phase_filter = request.args.get('phase')
     if not phase_filter:
         # Default to "Todos" if first phase is a group
-        if phases and 'Grupo' in phases[0]['phase']:
+        if phases and 'Grupo' and '16 Avos Final' in phases[0]['phase']:
             phase_filter = 'Todos'
         else:
             phase_filter = phases[0]['phase'] if phases else ''
@@ -769,7 +769,6 @@ def matches():
         dates = db_execute(conn, f'''
             SELECT DISTINCT {brt_date_expr} as match_date
             FROM fixtures
-            WHERE phase LIKE 'Grupo %'
             ORDER BY match_date
         ''').fetchall()
     else:
@@ -814,14 +813,12 @@ def matches():
         if date_filter == 'Todas':
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
                 ORDER BY phase, kickoff_utc
             ''').fetchall()
         else:
             fixtures = db_execute(conn, f'''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
-                  AND {brt_date_expr} = ?
+                WHERE {brt_date_expr} = ?
                 ORDER BY phase, kickoff_utc
             ''', (date_filter,)).fetchall()
     else:
@@ -858,14 +855,13 @@ def matches():
     # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
     best_third_qualifiers = set()
-    if phase_filter == 'Todos' or 'Grupo' in phase_filter:
+    if phase_filter == 'Todos' or 'Grupo' or '16 Avos Final' in phase_filter:
         from collections import defaultdict
 
         # Get ALL group matches for standings calculation (ignore date filter)
         if phase_filter == 'Todos':
             all_group_fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
                 ORDER BY phase, kickoff_utc
             ''').fetchall()
         else:
@@ -897,7 +893,8 @@ def matches():
 
         # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
-            group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
+            if "Grupo" in group_name:
+                group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
 
         # Rank third-placed teams across all groups
         third_place_candidates = []
