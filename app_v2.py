@@ -340,7 +340,7 @@ def dashboard():
     # Get all user bets with results
     user_bets = db_execute(conn, '''
         SELECT b.home_goals as bet_home, b.away_goals as bet_away,
-               f.final_home_goals, f.final_away_goals
+               f.final_home_goals, f.final_away_goals, f.phase
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE b.user_id = ? AND f.final_home_goals IS NOT NULL
@@ -356,7 +356,8 @@ def dashboard():
     for bet in user_bets:
         points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
         total_points += points
         if match_type == 'exact':
@@ -387,7 +388,7 @@ def ranking():
     # Get all bets with fixture results
     bets_data = db_execute(conn, '''
         SELECT b.user_id, b.home_goals as bet_home, b.away_goals as bet_away,
-               f.final_home_goals, f.final_away_goals
+               f.final_home_goals, f.final_away_goals, f.phase
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
@@ -417,7 +418,8 @@ def ranking():
     for bet in bets_data:
         points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
         user_id = bet['user_id']
 
@@ -562,7 +564,7 @@ def ranking():
 
     # Get all matches with results, ordered by date
     matches = db_execute(conn, '''
-        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals, phase
         FROM fixtures
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
         ORDER BY kickoff_utc
@@ -617,7 +619,8 @@ def ranking():
                             bet['home_goals'],
                             bet['away_goals'],
                             match['final_home_goals'],
-                            match['final_away_goals']
+                            match['final_away_goals'],
+                            match['phase']
                         )
                         total += points
 
@@ -718,7 +721,8 @@ def jogador_detail(user_id):
     for bet in bets_raw:
         points, _ = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
 
         # Convert Row to dict and add points
@@ -776,14 +780,11 @@ def matches():
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Determine active phase (default to "Todos" for groups)
+    # Determine active phase (default to "Todos" to show all phases)
     phase_filter = request.args.get('phase')
     if not phase_filter:
-        # Default to "Todos" if first phase is a group
-        if phases and 'Grupo' and '16 Avos Final' in phases[0]['phase']:
-            phase_filter = 'Todos'
-        else:
-            phase_filter = phases[0]['phase'] if phases else ''
+        # Default to "Todos" to show all matches
+        phase_filter = 'Todos'
 
     # Get BRT date expression for this database
     brt_date_expr = get_brt_date_expression(conn)
@@ -1255,7 +1256,7 @@ def points_history():
 
     # Get all matches with results, ordered by date
     matches = db_execute(conn, '''
-        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals, phase
         FROM fixtures
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
         ORDER BY kickoff_utc
@@ -1314,7 +1315,8 @@ def points_history():
                             bet['home_goals'],
                             bet['away_goals'],
                             match['final_home_goals'],
-                            match['final_away_goals']
+                            match['final_away_goals'],
+                            match['phase']
                         )
                         total += points
 

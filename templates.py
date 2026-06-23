@@ -566,7 +566,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 {% set bet = user_bets.get(match.id) %}
                                 {% set points, match_type = calculate_match_points(bet.get('home_goals') if bet else None,
                                                                                   bet.get('away_goals') if bet else None,
-                                                                                  match.final_home_goals, match.final_away_goals) %}
+                                                                                  match.final_home_goals, match.final_away_goals,
+                                                                                  match.phase) %}
 
                                 <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
                                     <!-- Teams + Inputs -->
