@@ -288,14 +288,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12          md:w-16">Pos</th>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
                             <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Total</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Grupo</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Pts Extras</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Campeao</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Artilheiro</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Melhor Jogador</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Zebra</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Favorito</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Anfitriao</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Grupos</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Classificados</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
@@ -333,24 +327,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-blue-600">{{ rank.pts_extras or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_campeao or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_artilheiro or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_melhor_jogador or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_zebra or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_favorito or 0 }}</span>
-                                </td>
-                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_anfitriao or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>

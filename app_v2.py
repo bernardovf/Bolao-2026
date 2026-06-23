@@ -381,17 +381,17 @@ def dashboard():
     # Calculate extras points
     extras_points = 0
     if palpites_gerais:
-        if CAMPEAO and palpites_gerais.get('campeao') == CAMPEAO:
+        if CAMPEAO and palpites_gerais['campeao'] == CAMPEAO:
             extras_points += 30
-        if ARTILHEIRO and palpites_gerais.get('artilheiro') and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
+        if ARTILHEIRO and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
             extras_points += 30
-        if MELHOR_JOGADOR and palpites_gerais.get('melhor_jogador') and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
+        if MELHOR_JOGADOR and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
             extras_points += 30
-        if ZEBRA and palpites_gerais.get('zebra_longe') == ZEBRA:
+        if ZEBRA and palpites_gerais['zebra_longe'] == ZEBRA:
             extras_points += 30
-        if FAVORITO and palpites_gerais.get('favorito_caiu') == FAVORITO:
+        if FAVORITO and palpites_gerais['favorito_caiu'] == FAVORITO:
             extras_points += 30
-        if ANFITRIAO and palpites_gerais.get('anfitriao_longe') == ANFITRIAO:
+        if ANFITRIAO and palpites_gerais['anfitriao_longe'] == ANFITRIAO:
             extras_points += 15
 
     # Calculate total points (matching ranking calculation)
