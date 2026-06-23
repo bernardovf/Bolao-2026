@@ -346,10 +346,8 @@ def dashboard():
         WHERE b.user_id = ? AND f.final_home_goals IS NOT NULL
     ''', (user_id,)).fetchall()
 
-    conn.close()
-
-    # Calculate points and stats using calculate_match_points
-    total_points = 0
+    # Calculate match points and stats using calculate_match_points
+    total_match_points = 0
     exact_matches = 0
     matches_finished = len(user_bets)
 
@@ -359,9 +357,45 @@ def dashboard():
             bet['final_home_goals'], bet['final_away_goals'],
             bet['phase']
         )
-        total_points += points
+        total_match_points += points
         if match_type == 'exact':
             exact_matches += 1
+
+    # Calculate qualification points
+    qualification_points = 0
+    if GRUPOS_CLOSED:
+        real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
+        user_qualified = calculate_qualified_teams(db_execute, conn, user_id=user_id, use_real_results=False)
+        correct_qualified = user_qualified & real_qualified
+        qualification_points = len(correct_qualified) * 2
+
+    # Get user's palpites gerais
+    palpites_gerais = db_execute(conn, '''
+        SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu, anfitriao_longe
+        FROM palpites_gerais
+        WHERE user_id = ?
+    ''', (user_id,)).fetchone()
+
+    conn.close()
+
+    # Calculate extras points
+    extras_points = 0
+    if palpites_gerais:
+        if CAMPEAO and palpites_gerais['campeao'] == CAMPEAO:
+            extras_points += 30
+        if ARTILHEIRO and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
+            extras_points += 30
+        if MELHOR_JOGADOR and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
+            extras_points += 30
+        if ZEBRA and palpites_gerais['zebra_longe'] == ZEBRA:
+            extras_points += 30
+        if FAVORITO and palpites_gerais['favorito_caiu'] == FAVORITO:
+            extras_points += 30
+        if ANFITRIAO and palpites_gerais['anfitriao_longe'] == ANFITRIAO:
+            extras_points += 15
+
+    # Calculate total points (matching ranking calculation)
+    total_points = total_match_points + qualification_points + extras_points
 
     return render_template_string(DASHBOARD_TEMPLATE,
                                  user_name=user_name,
