@@ -588,9 +588,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Home input -->
                                             <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if match.betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                                                    placeholder="0"
-                                                   {% if betting_closed %}disabled{% endif %}>
+                                                   {% if match.betting_closed %}disabled{% endif %}>
 
                                             <!-- Divider -->
                                             <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
@@ -598,9 +598,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Away input -->
                                             <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if match.betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                                                    placeholder="0"
-                                                   {% if betting_closed %}disabled{% endif %}>
+                                                   {% if match.betting_closed %}disabled{% endif %}>
 
                                             <!-- Away team (flag + name) -->
                                             <div class="flex items-center gap-2 min-w-0 justify-start">
@@ -618,7 +618,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
 
                                     <!-- Result & Points -->
-                                    {% if betting_closed %}
+                                    {% if match.betting_closed %}
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
@@ -653,9 +653,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
-                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
-                                {% if betting_closed %}disabled{% endif %}>
-                            {% if betting_closed %}Apostas Encerradas{% else %}Salvar Palpites{% endif %}
+                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if not any_betting_open %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if not any_betting_open %}disabled{% endif %}>
+                            {% if any_betting_open %}Salvar Palpites{% else %}Apostas Encerradas{% endif %}
                         </button>
                     </div>
                 </form>

@@ -20,21 +20,49 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 # CONFIGURAÇÕES DO BOLÃO
 # ============================================================================
 
-# Flag para controlar se os palpites estão fechados
+# Configuração de fechamento de apostas por fase
 #
-# BETTING_CLOSED = False (Palpites ABERTOS)
-#   - Botões "📊 Stats" ficam ESCONDIDOS em todas as páginas
-#   - Nomes no Ranking NÃO são clicáveis
-#   - Jogadores não podem ver palpites dos outros
+# Para cada fase, defina True (FECHADO) ou False (ABERTO)
 #
-# BETTING_CLOSED = True (Palpites FECHADOS)
+# Quando FECHADO:
 #   - Botões "📊 Stats" ficam VISÍVEIS
 #   - Nomes no Ranking são clicáveis
 #   - Todos podem ver estatísticas e palpites dos outros
+#   - Apostas não podem mais ser feitas/editadas
 #
-# IMPORTANTE: Altere para True um dia antes do início das partidas!
-BETTING_CLOSED = True
-GRUPOS_CLOSED = True
+# Quando ABERTO:
+#   - Botões "📊 Stats" ficam ESCONDIDOS
+#   - Nomes no Ranking NÃO são clicáveis
+#   - Jogadores não podem ver palpites dos outros
+#   - Apostas podem ser feitas/editadas
+#
+# IMPORTANTE: Altere para True um dia antes do início de cada fase!
+
+BETTING_CLOSED_PHASES = {
+    'Grupo': True,           # Grupo A, Grupo B, etc.
+    '16 Avos Final': False,  # Round of 16 / Oitavas de Final
+    'Quartas de Final': False,
+    'Semifinal': False,
+    'Final': False,
+}
+
+# Fallback: se a fase não estiver na lista acima, usa este valor
+BETTING_CLOSED_DEFAULT = True
+
+# Backward compatibility
+BETTING_CLOSED = True  # Used for general UI elements not tied to specific phases
+GRUPOS_CLOSED = BETTING_CLOSED_PHASES.get('Grupo', True)
+
+def is_betting_closed_for_phase(phase):
+    """Check if betting is closed for a specific phase"""
+    if not phase:
+        return BETTING_CLOSED_DEFAULT
+
+    for phase_key, is_closed in BETTING_CLOSED_PHASES.items():
+        if phase_key in phase:
+            return is_closed
+
+    return BETTING_CLOSED_DEFAULT
 
 # ============================================================================
 # DATABASE CONFIGURATION
@@ -851,6 +879,14 @@ def matches():
         # Convert rows to plain dictionaries so Jinja can safely call .get()
         user_bets = {bet['match_id']: dict(bet) for bet in bets}
 
+    # Add phase-specific betting_closed flag to each fixture
+    fixtures_with_betting_status = []
+    for fixture in fixtures:
+        fixture_dict = dict(fixture)
+        fixture_dict['betting_closed'] = is_betting_closed_for_phase(fixture['phase'])
+        fixtures_with_betting_status.append(fixture_dict)
+    fixtures = fixtures_with_betting_status
+
     # Calculate group standings if viewing group stage
     # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
@@ -909,6 +945,9 @@ def matches():
 
     conn.close()
 
+    # Check if any fixture has betting open
+    any_betting_open = any(not f['betting_closed'] for f in fixtures)
+
     return render_template_string(MATCHES_TEMPLATE,
                                  fixtures=fixtures,
                                  user_bets=user_bets,
@@ -923,21 +962,18 @@ def matches():
                                  format_match_datetime=format_match_datetime,
                                  group_standings=group_standings,
                                  best_third_qualifiers=best_third_qualifiers,
-                                 betting_closed=BETTING_CLOSED)
+                                 betting_closed=BETTING_CLOSED,
+                                 any_betting_open=any_betting_open)
 
 @app.route('/save-bets', methods=['POST'])
 @login_required
 def save_bets():
     """Save user bets"""
-    # Block if betting is closed
-    if BETTING_CLOSED:
-        flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites.', 'error')
-        return redirect(url_for('matches'))
-
     user_id = session['user_id']
     conn = get_db()
 
     saved_count = 0
+    blocked_count = 0
     for key, value in request.form.items():
         if key.startswith('h_'):
             match_id = int(key[2:])
@@ -951,6 +987,15 @@ def save_bets():
                     try:
                         home_goals = int(home_goals)
                         away_goals = int(away_goals)
+
+                        # Get match phase to check if betting is closed for this phase
+                        match = db_execute(conn, '''
+                            SELECT phase FROM fixtures WHERE id = ?
+                        ''', (match_id,)).fetchone()
+
+                        if match and is_betting_closed_for_phase(match['phase']):
+                            blocked_count += 1
+                            continue
 
                         # Check if bet exists
                         existing_bet = db_execute(conn, '''
@@ -977,7 +1022,10 @@ def save_bets():
     conn.commit()
     conn.close()
 
-    flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
+    if saved_count > 0:
+        flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
+    if blocked_count > 0:
+        flash(f'⚠ {blocked_count} palpites não foram salvos (apostas encerradas para esta fase)', 'warning')
 
     phase = request.args.get('phase')
     if phase:
