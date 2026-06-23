@@ -897,6 +897,21 @@ def matches():
             date_filter = today_brt
         else:
             date_filter = 'Todas'
+    elif date_filter != 'Todas' and date_filter not in available_dates:
+        # Date doesn't exist in this phase - add it to the list so it stays selected
+        # but it will show 0 matches (which is fine)
+        try:
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d')
+            day_name = weekday_pt[date_obj.weekday()]
+            formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+            formatted_dates.append({
+                'value': date_filter,
+                'label': formatted
+            })
+            available_dates.append(date_filter)
+        except:
+            # Invalid date format, reset to 'Todas'
+            date_filter = 'Todas'
 
     # Now build query based on filters
     if phase_filter == 'Todos':
