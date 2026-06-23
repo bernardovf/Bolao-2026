@@ -381,17 +381,17 @@ def dashboard():
     # Calculate extras points
     extras_points = 0
     if palpites_gerais:
-        if CAMPEAO and palpites_gerais['campeao'] == CAMPEAO:
+        if CAMPEAO and palpites_gerais.get('campeao') == CAMPEAO:
             extras_points += 30
-        if ARTILHEIRO and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
+        if ARTILHEIRO and palpites_gerais.get('artilheiro') and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
             extras_points += 30
-        if MELHOR_JOGADOR and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
+        if MELHOR_JOGADOR and palpites_gerais.get('melhor_jogador') and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
             extras_points += 30
-        if ZEBRA and palpites_gerais['zebra_longe'] == ZEBRA:
+        if ZEBRA and palpites_gerais.get('zebra_longe') == ZEBRA:
             extras_points += 30
-        if FAVORITO and palpites_gerais['favorito_caiu'] == FAVORITO:
+        if FAVORITO and palpites_gerais.get('favorito_caiu') == FAVORITO:
             extras_points += 30
-        if ANFITRIAO and palpites_gerais['anfitriao_longe'] == ANFITRIAO:
+        if ANFITRIAO and palpites_gerais.get('anfitriao_longe') == ANFITRIAO:
             extras_points += 15
 
     # Calculate total points (matching ranking calculation)
@@ -523,38 +523,38 @@ def ranking():
         if CAMPEAO == "":
             stats['pts_campeao'] = 0
         else:
-            if palpites_gerais[user_id]['campeao'] == CAMPEAO:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('campeao') == CAMPEAO:
                 stats['pts_campeao'] = 30
 
         if ARTILHEIRO == "":
             stats['pts_artilheiro'] = 0
         else:
-            if normalize_player_name(palpites_gerais[user_id]['artilheiro']) == ARTILHEIRO:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('artilheiro') and normalize_player_name(palpites_gerais[user_id]['artilheiro']) == ARTILHEIRO:
                 stats['pts_artilheiro'] = 30
 
         if MELHOR_JOGADOR == "":
             stats['pts_melhor_jogador'] = 0
         else:
-            if normalize_player_name(palpites_gerais[user_id]['melhor_jogador']) == MELHOR_JOGADOR:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('melhor_jogador') and normalize_player_name(palpites_gerais[user_id]['melhor_jogador']) == MELHOR_JOGADOR:
                 stats['pts_melhor_jogador'] = 30
 
         if ZEBRA == "":
             stats['pts_zebra'] = 0
         else:
-            if palpites_gerais[user_id]['zebra_longe'] == ZEBRA:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('zebra_longe') == ZEBRA:
                 stats['pts_zebra'] = 30
 
         if FAVORITO == "":
             stats['pts_favorito'] = 0
         else:
-            if palpites_gerais[user_id]['favorito_caiu'] == FAVORITO:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('favorito_caiu') == FAVORITO:
                 stats['pts_favorito'] = 30
 
         if ANFITRIAO == "":
             stats['pts_anfitriao'] = 0
         else:
-            if pts_anfitriao[user_id]['anfitriao_longe'] == ANFITRIAO:
-                stats['pts_favorito'] = 15
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('anfitriao_longe') == ANFITRIAO:
+                stats['pts_anfitriao'] = 15
 
         pts_grupos = stats['pts_grupos']
         pts_extras = stats['pts_extras']
