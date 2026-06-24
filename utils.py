@@ -181,40 +181,73 @@ def calculate_group_standings(fixtures, user_bets):
     return sorted_standings
 
 def sort_group_standings(standings_list, fixtures, user_bets):
-    # First group teams by total points
+    standings_by_team = {x['team']: x for x in standings_list}
+
+    def resolve_tie(team_names):
+        """
+        FIFA-style recursive tie resolution:
+        - apply H2H criteria among the currently tied teams
+        - if some teams are separated but others remain tied,
+          re-apply the same process only to the still-tied subset
+        """
+
+        if len(team_names) <= 1:
+            return team_names
+
+        h2h = head_to_head_stats(team_names, fixtures, user_bets)
+
+        criteria = [
+            lambda t: h2h[t]['points'],
+            lambda t: h2h[t]['gd'],
+            lambda t: h2h[t]['gf'],
+            lambda t: standings_by_team[t]['gd'],
+            lambda t: standings_by_team[t]['gf'],
+        ]
+
+        for criterion in criteria:
+            groups = {}
+
+            for team in team_names:
+                value = criterion(team)
+                groups.setdefault(value, []).append(team)
+
+            # If this criterion separates at least something
+            if len(groups) > 1:
+                ordered_values = sorted(groups.keys(), reverse=True)
+                resolved_order = []
+
+                for value in ordered_values:
+                    subgroup = groups[value]
+
+                    if len(subgroup) == 1:
+                        resolved_order.extend(subgroup)
+                    else:
+                        # Re-apply FIFA criteria only to the still-tied teams
+                        resolved_order.extend(resolve_tie(subgroup))
+
+                return resolved_order
+
+        # If still completely tied after all available criteria
+        # You can replace this later with fair play / drawing lots
+        return sorted(team_names)
+
+    # First group by total points
     points_groups = {}
 
     for team in standings_list:
-        points_groups.setdefault(team['points'], []).append(team)
+        points_groups.setdefault(team['points'], []).append(team['team'])
 
-    sorted_points = sorted(points_groups.keys(), reverse=True)
-    final_order = []
+    final_order_names = []
 
-    for points in sorted_points:
-        group = points_groups[points]
+    for points in sorted(points_groups.keys(), reverse=True):
+        tied_team_names = points_groups[points]
 
-        if len(group) == 1:
-            final_order.extend(group)
-            continue
+        if len(tied_team_names) == 1:
+            final_order_names.extend(tied_team_names)
+        else:
+            final_order_names.extend(resolve_tie(tied_team_names))
 
-        tied_team_names = [x['team'] for x in group]
-        h2h = head_to_head_stats(tied_team_names, fixtures, user_bets)
-
-        group_sorted = sorted(
-            group,
-            key=lambda x: (
-                h2h[x['team']]['points'],
-                h2h[x['team']]['gd'],
-                h2h[x['team']]['gf'],
-                x['gd'],
-                x['gf']
-            ),
-            reverse=True
-        )
-
-        final_order.extend(group_sorted)
-
-    return final_order
+    return [standings_by_team[team] for team in final_order_names]
 
 def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
     """
