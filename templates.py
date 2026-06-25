@@ -860,8 +860,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
         <!-- Palpites Gerais -->
         {% if palpites_gerais %}
         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
-            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Palpites Gerais</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Campeão</p>
                     <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.campeao) if palpites_gerais.campeao else '-' }}</p>
@@ -875,15 +874,15 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <p class="font-semibold text-slate-800">{{ palpites_gerais.melhor_jogador or '-' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 mb-1">Zebra que foi mais longe</p>
+                    <p class="text-xs text-slate-500 mb-1">Melhor Zebra</p>
                     <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.zebra_longe) if palpites_gerais.zebra_longe else '-' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 mb-1">Favorito que caiu antes</p>
+                    <p class="text-xs text-slate-500 mb-1">Pior Favorito</p>
                     <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.favorito_caiu) if palpites_gerais.favorito_caiu else '-' }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 mb-1">Anfitrião que vai mais longe</p>
+                    <p class="text-xs text-slate-500 mb-1">Melhor Anfitrião</p>
                     <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.anfitriao_longe) if palpites_gerais.anfitriao_longe else '-' }}</p>
                 </div>
             </div>
@@ -892,35 +891,35 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Classificados da Fase de Grupos -->
         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
-            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Classificados da Fase de Grupos</h2>
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Classificados Fase Grupos</h2>
 
             <!-- Summary Card -->
             <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4 mb-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-green-700 mb-1">Acertos de Classificação</p>
-                        <p class="text-2xl md:text-3xl font-black text-green-800">{{ correct_qualified|length }} / 32</p>
+                        <p class="text-xl md:text-2xl font-black text-green-800">{{ correct_qualified|length }} / 32</p>
                     </div>
                     <div class="text-right">
                         <p class="text-sm text-green-700 mb-1">Pontos</p>
-                        <p class="text-2xl md:text-3xl font-black text-green-800">{{ qualification_points }}</p>
+                        <p class="text-xl md:text-2xl font-black text-green-800">{{ qualification_points }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Qualified Teams Comparison -->
-            <div class="grid grid-cols-1 lg:grid-cols-1 gap-4 md:gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-1 gap-1 md:gap-4">
 
                 <!-- User's Predictions -->
-                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                    <div class="space-y-0.25 max-h-80 overflow-y-auto">
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-2">
+                    <div class="space-y-0.15 max-h-60 overflow-y-auto">
                         {% for team in user_qualified %}
-                        <div class="flex items-center gap-2 px-2 py-1 rounded border
+                        <div class="flex items-center gap-1 px-2 py-0 rounded border
                                     {% if team in correct_qualified %}border-green-500 bg-green-200{% else %}bg-white border-slate-200{% endif %}">
                             {% if team in correct_qualified %}
                             <span class="text-green-900 font-bold">✓</span>
                             {% endif %}
-                            <span class="{% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
+                            <span class="text-sm {% if team in correct_qualified %}text-green-900 font-semibold{% else %}text-slate-700{% endif %}">
                                 {{ translate_team_name(team) }}
                             </span>
                         </div>
@@ -994,12 +993,12 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                     {% if bet.betting_closed %}
                                         {% if bet.points is not none %}
                                             <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
-                                                {% if bet.match_type == 'exact' %}bg-green-100 text-green-800
-                                                {% elif bet.match_type == 'saldo' %}bg-emerald-100 text-emerald-800
-                                                {% elif bet.match_type == 'draw' %}bg-amber-100 text-amber-800
-                                                {% elif bet.match_type == 'partial' %}bg-yellow-100 text-yellow-800
-                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
-                                                +{{ bet.points }}
+                                                {% if bet.match_type == 'exact' %}bg-green-400 text-green-800
+                                                {% elif bet.match_type == 'saldo' %}bg-green-100 text-emerald-800
+                                                {% elif bet.match_type == 'draw' %}bg-amber-400 text-amber-800
+                                                {% elif bet.match_type == 'partial' %}bg-amber-100 text-yellow-800
+                                                {% else %}bg-white text-slate-200{% endif %}">
+                                                {{ bet.points }}
                                             </span>
                                         {% else %}
                                             <span class="text-slate-400 text-xs">-</span>
