@@ -798,18 +798,20 @@ def jogador_detail(user_id):
 
         # Only calculate points if betting is closed for this phase
         if bet_dict['betting_closed']:
-            points, _ = calculate_match_points(
+            points, match_type = calculate_match_points(
                 bet['bet_home'], bet['bet_away'],
                 bet['final_home_goals'], bet['final_away_goals'],
                 bet['phase']
             )
             bet_dict['points'] = points if bet['final_home_goals'] is not None else None
+            bet_dict['match_type'] = match_type if bet['final_home_goals'] is not None else None
 
             if bet_dict['points'] is not None:
                 total_points += bet_dict['points']
         else:
             # Phase is still open, don't show points
             bet_dict['points'] = None
+            bet_dict['match_type'] = None
 
         bets.append(bet_dict)
 

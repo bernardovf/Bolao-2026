@@ -990,8 +990,10 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                     {% if bet.betting_closed %}
                                         {% if bet.points is not none %}
                                             <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
-                                                {% if bet.points == 10 %}bg-green-100 text-green-800
-                                                {% elif bet.points == 5 %}bg-blue-100 text-blue-800
+                                                {% if bet.match_type == 'exact' %}bg-green-100 text-green-800
+                                                {% elif bet.match_type == 'saldo' %}bg-emerald-100 text-emerald-800
+                                                {% elif bet.match_type == 'draw' %}bg-amber-100 text-amber-800
+                                                {% elif bet.match_type == 'partial' %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-slate-100 text-slate-600{% endif %}">
                                                 +{{ bet.points }}
                                             </span>
