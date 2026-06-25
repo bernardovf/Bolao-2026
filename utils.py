@@ -1,4 +1,4 @@
-from constants import flag_map, abbr_map, translations, PLAYER_ALIASES
+from constants import flag_map, abbr_map, translations, translations_reduced, PLAYER_ALIASES
 from datetime import datetime, timedelta
 import unicodedata
 
@@ -43,6 +43,10 @@ def get_team_abbr(team_name):
 def translate_team_name(team_name):
     """Return Portuguese display name for a given team."""
     return translations.get(team_name, team_name)
+
+def translate_team_name_reduced(team_name):
+    """Return Portuguese display name for a given team."""
+    return translations_reduced.get(team_name, team_name)
 
 def format_match_datetime(kickoff_utc):
     """Format match datetime for display in Brazilian timezone (BRT - UTC-3)"""

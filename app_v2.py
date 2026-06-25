@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
-from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
+from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name, translate_team_name_reduced
 from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
 from calculate_points import calculate_match_points
 from templates import *
@@ -790,19 +790,30 @@ def jogador_detail(user_id):
     total_points = 0
 
     for bet in bets_raw:
-        points, _ = calculate_match_points(
-            bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals'],
-            bet['phase']
-        )
-
-        # Convert Row to dict and add points
+        # Convert Row to dict first
         bet_dict = dict(bet)
-        bet_dict['points'] = points if bet['final_home_goals'] is not None else None
-        bets.append(bet_dict)
 
-        if bet_dict['points'] is not None:
-            total_points += bet_dict['points']
+        # Check if betting is closed for this match's phase
+        bet_dict['betting_closed'] = is_betting_closed_for_phase(bet['phase'])
+
+        # Only calculate points if betting is closed for this phase
+        if bet_dict['betting_closed']:
+            points, match_type = calculate_match_points(
+                bet['bet_home'], bet['bet_away'],
+                bet['final_home_goals'], bet['final_away_goals'],
+                bet['phase']
+            )
+            bet_dict['points'] = points if bet['final_home_goals'] is not None else None
+            bet_dict['match_type'] = match_type if bet['final_home_goals'] is not None else None
+
+            if bet_dict['points'] is not None:
+                total_points += bet_dict['points']
+        else:
+            # Phase is still open, don't show points
+            bet_dict['points'] = None
+            bet_dict['match_type'] = None
+
+        bets.append(bet_dict)
 
     if GRUPOS_CLOSED:
         # Calculate qualification stats
@@ -835,6 +846,7 @@ def jogador_detail(user_id):
         correct_qualified=correct_qualified_sorted,
         qualification_points=qualification_points,
         betting_closed=BETTING_CLOSED,
+        translate_team_name_reduced=translate_team_name_reduced
     )
 
 @app.route('/matches')
