@@ -861,7 +861,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
         {% if palpites_gerais %}
         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6 border border-slate-200">
             <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-4">Palpites Gerais</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 <div>
                     <p class="text-xs text-slate-500 mb-1">Campeão</p>
                     <p class="font-semibold text-slate-800">{{ translate_team_name(palpites_gerais.campeao) if palpites_gerais.campeao else '-' }}</p>
@@ -952,7 +952,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full text-sm">
                     <thead class="bg-slate-100 border-b-2 border-slate-300">
                         <tr>
-                            <th class="px-3 py-3 text-left font-bold text-slate-700">Jogo</th>
+                            <th class="px-3 py-3 text-left   font-bold text-slate-700">Jogo</th>
                             <th class="px-3 py-3 text-center font-bold text-slate-700">Palpite</th>
                             <th class="px-3 py-3 text-center font-bold text-slate-700">Resultado</th>
                             <th class="px-3 py-3 text-center font-bold text-slate-700">Pontos</th>
@@ -961,28 +961,28 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <tbody class="divide-y divide-slate-200">
                         {% for bet in bets %}
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="px-3 py-3">
+                                <td class="px-2 py-1">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-semibold truncate">{{ translate_team_name(bet.home) }}</span>
+                                        <span class="font-semibold truncate">{{ translate_team_name_reduced(bet.home) }}</span>
                                         <span class="text-slate-400">×</span>
-                                        <span class="font-semibold truncate">{{ translate_team_name(bet.away) }}</span>
+                                        <span class="font-semibold truncate">{{ translate_team_name_reduced(bet.away) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-2 py-1 text-center">
                                     {% if bet.bet_home is not none and bet.bet_away is not none %}
                                         <span class="font-bold text-blue-600">{{ bet.bet_home }} - {{ bet.bet_away }}</span>
                                     {% else %}
-                                        <span class="text-slate-400 text-xs">Sem palpite</span>
+                                        <span class="text-slate-400 text-xs"> </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-2 py-1 text-center">
                                     {% if bet.final_home_goals is not none and bet.final_away_goals is not none %}
                                         <span class="font-bold text-slate-700">{{ bet.final_home_goals }} - {{ bet.final_away_goals }}</span>
                                     {% else %}
-                                        <span class="text-slate-400 text-xs">Aguardando</span>
+                                        <span class="text-slate-400 text-xs"> </span>
                                     {% endif %}
                                 </td>
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-2 py-1 text-center">
                                     {% if bet.points is not none %}
                                         <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
                                             {% if bet.points == 10 %}bg-green-100 text-green-800

@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
-from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
+from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name, translate_team_name_reduced
 from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
 from calculate_points import calculate_match_points
 from templates import *
@@ -835,6 +835,7 @@ def jogador_detail(user_id):
         correct_qualified=correct_qualified_sorted,
         qualification_points=qualification_points,
         betting_closed=BETTING_CLOSED,
+        translate_team_name_reduced=translate_team_name_reduced
     )
 
 @app.route('/matches')
