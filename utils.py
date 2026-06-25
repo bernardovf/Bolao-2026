@@ -58,6 +58,54 @@ def format_match_datetime(kickoff_utc):
     except:
         return None
 
+def get_match_result(match, user_bets):
+    bet = user_bets.get(match['id'])
+    if not bet:
+        return None
+
+    if (bet['home_goals'] is None or bet['away_goals'] is None or
+        bet['home_goals'] == 'NULL' or bet['away_goals'] == 'NULL'):
+        return None
+
+    return int(bet['home_goals']), int(bet['away_goals'])
+
+def head_to_head_stats(teams, fixtures, user_bets):
+    h2h = {
+        team: {'points': 0, 'gd': 0, 'gf': 0}
+        for team in teams
+    }
+
+    teams_set = set(teams)
+
+    for match in fixtures:
+        home = match['home']
+        away = match['away']
+
+        if home not in teams_set or away not in teams_set:
+            continue
+
+        result = get_match_result(match, user_bets)
+        if result is None:
+            continue
+
+        home_goals, away_goals = result
+
+        h2h[home]['gf'] += home_goals
+        h2h[home]['gd'] += home_goals - away_goals
+
+        h2h[away]['gf'] += away_goals
+        h2h[away]['gd'] += away_goals - home_goals
+
+        if home_goals > away_goals:
+            h2h[home]['points'] += 3
+        elif home_goals < away_goals:
+            h2h[away]['points'] += 3
+        else:
+            h2h[home]['points'] += 1
+            h2h[away]['points'] += 1
+
+    return h2h
+
 def calculate_group_standings(fixtures, user_bets):
     """
     Calculate standings for teams in fixtures based on the user's bets.
@@ -124,14 +172,82 @@ def calculate_group_standings(fixtures, user_bets):
         standings[home]['gd'] = standings[home]['gf'] - standings[home]['ga']
         standings[away]['gd'] = standings[away]['gf'] - standings[away]['ga']
 
-    sorted_standings = sorted(
-        standings.values(),
-        key=lambda x: (x['points'], x['gd'], x['gf']),
-        reverse=True
+    sorted_standings = sort_group_standings(
+        list(standings.values()),
+        fixtures,
+        user_bets
     )
 
     return sorted_standings
 
+def sort_group_standings(standings_list, fixtures, user_bets):
+    standings_by_team = {x['team']: x for x in standings_list}
+
+    def resolve_tie(team_names):
+        """
+        FIFA-style recursive tie resolution:
+        - apply H2H criteria among the currently tied teams
+        - if some teams are separated but others remain tied,
+          re-apply the same process only to the still-tied subset
+        """
+
+        if len(team_names) <= 1:
+            return team_names
+
+        h2h = head_to_head_stats(team_names, fixtures, user_bets)
+
+        criteria = [
+            lambda t: h2h[t]['points'],
+            lambda t: h2h[t]['gd'],
+            lambda t: h2h[t]['gf'],
+            lambda t: standings_by_team[t]['gd'],
+            lambda t: standings_by_team[t]['gf'],
+        ]
+
+        for criterion in criteria:
+            groups = {}
+
+            for team in team_names:
+                value = criterion(team)
+                groups.setdefault(value, []).append(team)
+
+            # If this criterion separates at least something
+            if len(groups) > 1:
+                ordered_values = sorted(groups.keys(), reverse=True)
+                resolved_order = []
+
+                for value in ordered_values:
+                    subgroup = groups[value]
+
+                    if len(subgroup) == 1:
+                        resolved_order.extend(subgroup)
+                    else:
+                        # Re-apply FIFA criteria only to the still-tied teams
+                        resolved_order.extend(resolve_tie(subgroup))
+
+                return resolved_order
+
+        # If still completely tied after all available criteria
+        # You can replace this later with fair play / drawing lots
+        return sorted(team_names)
+
+    # First group by total points
+    points_groups = {}
+
+    for team in standings_list:
+        points_groups.setdefault(team['points'], []).append(team['team'])
+
+    final_order_names = []
+
+    for points in sorted(points_groups.keys(), reverse=True):
+        tied_team_names = points_groups[points]
+
+        if len(tied_team_names) == 1:
+            final_order_names.extend(tied_team_names)
+        else:
+            final_order_names.extend(resolve_tie(tied_team_names))
+
+    return [standings_by_team[team] for team in final_order_names]
 
 def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_results=False):
     """
