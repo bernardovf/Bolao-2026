@@ -969,8 +969,12 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
                                 </td>
                                 <td class="px-2 py-1 text-center">
-                                    {% if bet.bet_home is not none and bet.bet_away is not none %}
-                                        <span class="font-bold text-blue-600">{{ bet.bet_home }} - {{ bet.bet_away }}</span>
+                                    {% if bet.betting_closed %}
+                                        {% if bet.bet_home is not none and bet.bet_away is not none %}
+                                            <span class="font-bold text-blue-600">{{ bet.bet_home }} - {{ bet.bet_away }}</span>
+                                        {% else %}
+                                            <span class="text-slate-400 text-xs"> </span>
+                                        {% endif %}
                                     {% else %}
                                         <span class="text-slate-400 text-xs"> </span>
                                     {% endif %}
@@ -983,7 +987,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                             <span class="text-slate-400 text-xs"> </span>
                                         {% endif %}
                                     {% else %}
-                                        <span class="text-slate-400 text-xs">🔒</span>
+                                        <span class="text-slate-400 text-xs"> </span>
                                     {% endif %}
                                 </td>
                                 <td class="px-2 py-1 text-center">
@@ -1001,7 +1005,7 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                             <span class="text-slate-400 text-xs">-</span>
                                         {% endif %}
                                     {% else %}
-                                        <span class="text-slate-400 text-xs">🔒</span>
+                                        <span class="text-slate-400 text-xs"></span>
                                     {% endif %}
                                 </td>
                             </tr>
