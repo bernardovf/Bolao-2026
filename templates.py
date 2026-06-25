@@ -976,22 +976,30 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                                     {% endif %}
                                 </td>
                                 <td class="px-2 py-1 text-center">
-                                    {% if bet.final_home_goals is not none and bet.final_away_goals is not none %}
-                                        <span class="font-bold text-slate-700">{{ bet.final_home_goals }} - {{ bet.final_away_goals }}</span>
+                                    {% if bet.betting_closed %}
+                                        {% if bet.final_home_goals is not none and bet.final_away_goals is not none %}
+                                            <span class="font-bold text-slate-700">{{ bet.final_home_goals }} - {{ bet.final_away_goals }}</span>
+                                        {% else %}
+                                            <span class="text-slate-400 text-xs"> </span>
+                                        {% endif %}
                                     {% else %}
-                                        <span class="text-slate-400 text-xs"> </span>
+                                        <span class="text-slate-400 text-xs">🔒</span>
                                     {% endif %}
                                 </td>
                                 <td class="px-2 py-1 text-center">
-                                    {% if bet.points is not none %}
-                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
-                                            {% if bet.points == 10 %}bg-green-100 text-green-800
-                                            {% elif bet.points == 5 %}bg-blue-100 text-blue-800
-                                            {% else %}bg-slate-100 text-slate-600{% endif %}">
-                                            +{{ bet.points }}
-                                        </span>
+                                    {% if bet.betting_closed %}
+                                        {% if bet.points is not none %}
+                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full font-bold
+                                                {% if bet.points == 10 %}bg-green-100 text-green-800
+                                                {% elif bet.points == 5 %}bg-blue-100 text-blue-800
+                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                                +{{ bet.points }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-slate-400 text-xs">-</span>
+                                        {% endif %}
                                     {% else %}
-                                        <span class="text-slate-400 text-xs">-</span>
+                                        <span class="text-slate-400 text-xs">🔒</span>
                                     {% endif %}
                                 </td>
                             </tr>
