@@ -200,14 +200,14 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         .ranking-table tr th:nth-child(2),
         .ranking-table tr td:nth-child(2) {
             position: sticky;
-            left: 45px;
+            left: 30px;
             z-index: 20;
         }
 
         .ranking-table tr th:nth-child(3),
         .ranking-table tr td:nth-child(3) {
             position: sticky;
-            left: 160px;
+            left: 140px;
             z-index: 20;
             box-shadow: 3px 0 5px rgba(0,0,0,0.15);
         }
@@ -285,10 +285,11 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-1.5 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
-                            <th class="px-1 md:px-6 py-2 md:py-2 text-left font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
-                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Pts</th>
-                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-20">%</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12          md:w-16">Pos</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
+                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Total</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Grupos</th>
+                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Classificados</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
@@ -321,8 +322,11 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 <td class="px-2.0 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
-                                <td class="px-2 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="italic text-slate-600">{{ rank.percentage }}%</span>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_grupos or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="font-semibold text-blue-600">{{ rank.pts_extras or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
@@ -414,11 +418,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Fase ou Grupo:</label>
                 <select id="phaseFilter" onchange="updateFilters()"
                         class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none">
-                    {% if phases and 'Grupo' in phases[0].phase %}
-                        <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
-                            Todos os Grupos
-                        </option>
-                    {% endif %}
+                    <option value="Todos" {% if current_phase == 'Todos' %}selected{% endif %}>
+                        Todas as Fases
+                    </option>
                     {% for phase in phases %}
                         <option value="{{ phase.phase }}" {% if current_phase == phase.phase %}selected{% endif %}>
                             {{ phase.phase }}
@@ -519,8 +521,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 </div>
                             {% endif %}
                             <div class="bg-white rounded-lg md:rounded-xl shadow-md p-3 md:p-5 hover:shadow-lg transition border border-slate-200 relative">
-                                <!-- Stats Link (only visible when betting is closed) -->
-                                {% if betting_closed %}
+                                <!-- Stats Link (only visible when betting is closed for this phase) -->
+                                {% if match.betting_closed %}
                                 <a href="{{ url_for('match_stats', match_id=match.id) }}"
                                    class="absolute top-3 right-3 px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition border border-blue-200"
                                    title="Ver estatísticas">
@@ -538,7 +540,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                 {% set bet = user_bets.get(match.id) %}
                                 {% set points, match_type = calculate_match_points(bet.get('home_goals') if bet else None,
                                                                                   bet.get('away_goals') if bet else None,
-                                                                                  match.final_home_goals, match.final_away_goals) %}
+                                                                                  match.final_home_goals, match.final_away_goals,
+                                                                                  match.phase) %}
 
                                 <div class="grid md:grid-cols-[1fr_auto] items-start gap-4 md:gap-6">
                                     <!-- Teams + Inputs -->
@@ -560,9 +563,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Home input -->
                                             <input type="number" name="h_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['home_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if match.betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                                                    placeholder="0"
-                                                   {% if betting_closed %}disabled{% endif %}>
+                                                   {% if match.betting_closed %}disabled{% endif %}>
 
                                             <!-- Divider -->
                                             <div class="text-lg md:text-2xl font-black text-slate-400 px-1 text-center">×</div>
@@ -570,9 +573,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                             <!-- Away input -->
                                             <input type="number" name="a_{{ match.id }}" min="0" max="20"
                                                    value="{% if match.id in user_bets %}{{ user_bets[match.id]['away_goals'] }}{% endif %}"
-                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
+                                                   class="w-12 h-12 md:w-14 md:h-14 text-center text-lg md:text-xl font-black border-2 md:border-[3px] border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-[0_2px_0_rgba(59,130,246,0.15)] {% if match.betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                                                    placeholder="0"
-                                                   {% if betting_closed %}disabled{% endif %}>
+                                                   {% if match.betting_closed %}disabled{% endif %}>
 
                                             <!-- Away team (flag + name) -->
                                             <div class="flex items-center gap-2 min-w-0 justify-start">
@@ -590,7 +593,7 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                                     </div>
 
                                     <!-- Result & Points -->
-                                    {% if betting_closed %}
+                                    {% if match.betting_closed %}
                                     <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 md:gap-3 w-full sm:w-auto md:flex-none">
                                         <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm md:min-w-[160px]">
                                             <span class="text-[11px] md:text-xs font-black uppercase text-neutral-700 tracking-wide">Resultado</span>
@@ -625,9 +628,9 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
 
                     <div class="sticky bottom-4 md:static mt-4 md:mt-6">
                         <button type="submit"
-                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if betting_closed %}opacity-50 cursor-not-allowed{% endif %}"
-                                {% if betting_closed %}disabled{% endif %}>
-                            {% if betting_closed %}Apostas Encerradas{% else %}Salvar Palpites{% endif %}
+                                class="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition {% if not any_betting_open %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if not any_betting_open %}disabled{% endif %}>
+                            {% if any_betting_open %}Salvar Palpites{% else %}Apostas Encerradas{% endif %}
                         </button>
                     </div>
                 </form>

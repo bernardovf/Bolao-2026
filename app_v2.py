@@ -5,7 +5,7 @@ from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name
-from constants import translations
+from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
 from calculate_points import calculate_match_points
 from templates import *
 import psycopg2
@@ -20,21 +20,50 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 # CONFIGURAÇÕES DO BOLÃO
 # ============================================================================
 
-# Flag para controlar se os palpites estão fechados
+# Configuração de fechamento de apostas por fase
 #
-# BETTING_CLOSED = False (Palpites ABERTOS)
-#   - Botões "📊 Stats" ficam ESCONDIDOS em todas as páginas
-#   - Nomes no Ranking NÃO são clicáveis
-#   - Jogadores não podem ver palpites dos outros
+# Para cada fase, defina True (FECHADO) ou False (ABERTO)
 #
-# BETTING_CLOSED = True (Palpites FECHADOS)
+# Quando FECHADO:
 #   - Botões "📊 Stats" ficam VISÍVEIS
 #   - Nomes no Ranking são clicáveis
 #   - Todos podem ver estatísticas e palpites dos outros
+#   - Apostas não podem mais ser feitas/editadas
 #
-# IMPORTANTE: Altere para True um dia antes do início das partidas!
-BETTING_CLOSED = True
+# Quando ABERTO:
+#   - Botões "📊 Stats" ficam ESCONDIDOS
+#   - Nomes no Ranking NÃO são clicáveis
+#   - Jogadores não podem ver palpites dos outros
+#   - Apostas podem ser feitas/editadas
+#
+# IMPORTANTE: Altere para True um dia antes do início de cada fase!
+
+BETTING_CLOSED_PHASES = {
+    'Grupo': True,           # Grupo A, Grupo B, etc.
+    '16 Avos Final': False,
+    'Oitavas de Final': False,
+    'Quartas de Final': False,
+    'Semifinal': False,
+    'Final': False,
+}
+
+# Fallback: se a fase não estiver na lista acima, usa este valor
+BETTING_CLOSED_DEFAULT = True
+
+# Backward compatibility
+BETTING_CLOSED = True  # Used for general UI elements not tied to specific phases
 GRUPOS_CLOSED = False
+
+def is_betting_closed_for_phase(phase):
+    """Check if betting is closed for a specific phase"""
+    if not phase:
+        return BETTING_CLOSED_DEFAULT
+
+    for phase_key, is_closed in BETTING_CLOSED_PHASES.items():
+        if phase_key in phase:
+            return is_closed
+
+    return BETTING_CLOSED_DEFAULT
 
 # ============================================================================
 # DATABASE CONFIGURATION
@@ -42,6 +71,7 @@ GRUPOS_CLOSED = False
 
 # Database URL - usa PostgreSQL em produção, SQLite local para desenvolvimento
 DATABASE_URL = os.environ.get('DATABASE_URL')
+#DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026"
 
 # Se DATABASE_URL existe (Render), usa PostgreSQL
 # Se não existe (desenvolvimento local), usa SQLite
@@ -311,27 +341,62 @@ def dashboard():
     # Get all user bets with results
     user_bets = db_execute(conn, '''
         SELECT b.home_goals as bet_home, b.away_goals as bet_away,
-               f.final_home_goals, f.final_away_goals
+               f.final_home_goals, f.final_away_goals, f.phase
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE b.user_id = ? AND f.final_home_goals IS NOT NULL
     ''', (user_id,)).fetchall()
 
-    conn.close()
-
-    # Calculate points and stats using calculate_match_points
-    total_points = 0
+    # Calculate match points and stats using calculate_match_points
+    total_match_points = 0
     exact_matches = 0
     matches_finished = len(user_bets)
 
     for bet in user_bets:
         points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
-        total_points += points
+        total_match_points += points
         if match_type == 'exact':
             exact_matches += 1
+
+    # Calculate qualification points
+    qualification_points = 0
+    if GRUPOS_CLOSED:
+        real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
+        user_qualified = calculate_qualified_teams(db_execute, conn, user_id=user_id, use_real_results=False)
+        correct_qualified = user_qualified & real_qualified
+        qualification_points = len(correct_qualified) * 2
+
+    # Get user's palpites gerais
+    palpites_gerais = db_execute(conn, '''
+        SELECT campeao, artilheiro, melhor_jogador, zebra_longe, favorito_caiu, anfitriao_longe
+        FROM palpites_gerais
+        WHERE user_id = ?
+    ''', (user_id,)).fetchone()
+
+    conn.close()
+
+    # Calculate extras points
+    extras_points = 0
+    if palpites_gerais:
+        if CAMPEAO and palpites_gerais['campeao'] == CAMPEAO:
+            extras_points += 30
+        if ARTILHEIRO and normalize_player_name(palpites_gerais['artilheiro']) == ARTILHEIRO:
+            extras_points += 30
+        if MELHOR_JOGADOR and normalize_player_name(palpites_gerais['melhor_jogador']) == MELHOR_JOGADOR:
+            extras_points += 30
+        if ZEBRA and palpites_gerais['zebra_longe'] == ZEBRA:
+            extras_points += 30
+        if FAVORITO and palpites_gerais['favorito_caiu'] == FAVORITO:
+            extras_points += 30
+        if ANFITRIAO and palpites_gerais['anfitriao_longe'] == ANFITRIAO:
+            extras_points += 15
+
+    # Calculate total points (matching ranking calculation)
+    total_points = total_match_points + qualification_points + extras_points
 
     return render_template_string(DASHBOARD_TEMPLATE,
                                  user_name=user_name,
@@ -358,7 +423,7 @@ def ranking():
     # Get all bets with fixture results
     bets_data = db_execute(conn, '''
         SELECT b.user_id, b.home_goals as bet_home, b.away_goals as bet_away,
-               f.final_home_goals, f.final_away_goals
+               f.final_home_goals, f.final_away_goals, f.phase
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
@@ -374,25 +439,42 @@ def ranking():
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
     ''').fetchone()['count']
 
+    palpites_gerais = {
+        row['user_id']: dict(row)
+        for row in db_execute(conn, '''
+            SELECT user_id, campeao, artilheiro, melhor_jogador,
+                   zebra_longe, favorito_caiu, anfitriao_longe
+            FROM palpites_gerais
+        ''').fetchall()
+    }
+
     # Calculate points and statistics for each user
     user_stats = {}
     for bet in bets_data:
         points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
         user_id = bet['user_id']
 
         if user_id not in user_stats:
             user_stats[user_id] = {
-                'total_points': 0,
+                'pts_grupos': 0,    # group stage points
+                'pts_extras': 0,    # qualification points
+                'pts_campeao': 0,  # campeao
+                'pts_artilheiro': 0,  # artilheiro
+                'pts_melhor_jogador': 0,  # melhor jogador
+                'pts_zebra': 0,  # zebra
+                'pts_favorito': 0,  # favorito
+                'pts_anfitriao': 0,  # anfritrião
                 'cravadas': 0,      # exact matches (6 points)
                 'saldo': 0,         # goal difference matches (4 points)
                 'empates': 0,       # correct draws (3 points)
                 'colunas': 0        # partial/correct result (2 points)
             }
 
-        user_stats[user_id]['total_points'] += points
+        user_stats[user_id]['pts_grupos'] += points
         if match_type == 'exact':
             user_stats[user_id]['cravadas'] += 1
         elif match_type == 'saldo':
@@ -408,7 +490,14 @@ def ranking():
         # Initialize stats if user hasn't bet yet
         if user_id not in user_stats:
             user_stats[user_id] = {
-                'total_points': 0,
+                'pts_grupos': 0,
+                'pts_extras': 0,
+                'pts_campeao': 0,  # campeao
+                'pts_artilheiro': 0,  # artilheiro
+                'pts_melhor_jogador': 0,  # melhor jogador
+                'pts_zebra': 0,  # zebra
+                'pts_favorito': 0,  # favorito
+                'pts_anfitriao': 0,  # anfritrião
                 'cravadas': 0,
                 'saldo': 0,
                 'empates': 0,
@@ -422,15 +511,63 @@ def ranking():
         # Add qualification points (2 points per correct qualified team)
         if GRUPOS_CLOSED:
             qualification_points = len(correct_qualified) * 2
-            user_stats[user_id]['total_points'] += qualification_points
+            user_stats[user_id]['pts_extras'] = qualification_points
 
     # Build rankings list with all statistics
     rankings = []
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'total_points': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
-        total_points = stats['total_points']
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
+                                         'pts_melhor_jogador': 0, 'pts_zebra': 0, 'pts_favorito': 0, 'pts_anfitriao': 0,
+                                         'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        if CAMPEAO == "":
+            stats['pts_campeao'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('campeao') == CAMPEAO:
+                stats['pts_campeao'] = 30
+
+        if ARTILHEIRO == "":
+            stats['pts_artilheiro'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('artilheiro') and normalize_player_name(palpites_gerais[user_id]['artilheiro']) == ARTILHEIRO:
+                stats['pts_artilheiro'] = 30
+
+        if MELHOR_JOGADOR == "":
+            stats['pts_melhor_jogador'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('melhor_jogador') and normalize_player_name(palpites_gerais[user_id]['melhor_jogador']) == MELHOR_JOGADOR:
+                stats['pts_melhor_jogador'] = 30
+
+        if ZEBRA == "":
+            stats['pts_zebra'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('zebra_longe') == ZEBRA:
+                stats['pts_zebra'] = 30
+
+        if FAVORITO == "":
+            stats['pts_favorito'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('favorito_caiu') == FAVORITO:
+                stats['pts_favorito'] = 30
+
+        if ANFITRIAO == "":
+            stats['pts_anfitriao'] = 0
+        else:
+            if user_id in palpites_gerais and palpites_gerais[user_id].get('anfitriao_longe') == ANFITRIAO:
+                stats['pts_anfitriao'] = 15
+
+        pts_grupos = stats['pts_grupos']
+        pts_extras = stats['pts_extras']
+
+        pts_campeao = stats['pts_campeao']
+        pts_artilheiro = stats['pts_artilheiro']
+        pts_melhor_jogador = stats['pts_melhor_jogador']
+        pts_zebra = stats['pts_zebra']
+        pts_favorito = stats['pts_favorito']
+        pts_anfitriao = stats['pts_anfitriao']
+
+        total_points = pts_grupos + pts_extras + pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -439,6 +576,14 @@ def ranking():
             'id': user_id,
             'user_name': user['user_name'],
             'total_points': total_points,
+            'pts_grupos': pts_grupos,
+            'pts_extras': pts_extras,
+            'pts_campeao': pts_campeao,
+            'pts_artilheiro': pts_artilheiro,
+            'pts_melhor_jogador': pts_melhor_jogador,
+            'pts_zebra': pts_zebra,
+            'pts_favorito': pts_favorito,
+            'pts_anfitriao': pts_anfitriao,
             'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
             'saldo': stats['saldo'],
@@ -454,7 +599,7 @@ def ranking():
 
     # Get all matches with results, ordered by date
     matches = db_execute(conn, '''
-        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals, phase
         FROM fixtures
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
         ORDER BY kickoff_utc
@@ -509,7 +654,8 @@ def ranking():
                             bet['home_goals'],
                             bet['away_goals'],
                             match['final_home_goals'],
-                            match['final_away_goals']
+                            match['final_away_goals'],
+                            match['phase']
                         )
                         total += points
 
@@ -541,12 +687,31 @@ def jogador_detail(user_id):
         return redirect(url_for('ranking'))
 
     # Get all phases
-    phases = db_execute(conn, '''
+    phases_raw = db_execute(conn, '''
         SELECT phase
         FROM fixtures
         GROUP BY phase
         ORDER BY MIN(id)
     ''').fetchall()
+
+    # Consolidate all "Grupo X" phases into "Fase de Grupos" and ensure proper order
+    phases = []
+    other_phases = []
+    has_grupos = False
+
+    for phase_row in phases_raw:
+        phase = phase_row['phase']
+        if 'Grupo' in phase:
+            has_grupos = True
+        else:
+            other_phases.append({'phase': phase})
+
+    # Add "Fase de Grupos" first if there are any group phases
+    if has_grupos:
+        phases.append({'phase': 'Fase de Grupos'})
+
+    # Then add all other phases in order
+    phases.extend(other_phases)
 
     # Determine active phase filter
     phase_filter = request.args.get('phase')
@@ -554,7 +719,24 @@ def jogador_detail(user_id):
         phase_filter = phases[0]['phase']
 
     # Get all player bets with match info (no points in SQL), filtered by phase
-    if phase_filter:
+    if phase_filter == 'Fase de Grupos':
+        bets_raw = db_execute(conn, '''
+            SELECT
+                f.id as match_id,
+                f.phase,
+                f.home,
+                f.away,
+                f.kickoff_utc,
+                f.final_home_goals,
+                f.final_away_goals,
+                b.home_goals as bet_home,
+                b.away_goals as bet_away
+            FROM fixtures f
+            LEFT JOIN bet b ON f.id = b.match_id AND b.user_id = ?
+            WHERE f.phase LIKE ?
+            ORDER BY f.id
+        ''', (user_id, '%Grupo%')).fetchall()
+    elif phase_filter:
         bets_raw = db_execute(conn, '''
             SELECT
                 f.id as match_id,
@@ -610,7 +792,8 @@ def jogador_detail(user_id):
     for bet in bets_raw:
         points, _ = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
 
         # Convert Row to dict and add points
@@ -661,21 +844,37 @@ def matches():
     conn = get_db()
 
     # Get all phases
-    phases = db_execute(conn, '''
+    phases_raw = db_execute(conn, '''
         SELECT phase
         FROM fixtures
         GROUP BY phase
         ORDER BY MIN(id)
     ''').fetchall()
 
-    # Determine active phase (default to "Todos" for groups)
+    # Consolidate all "Grupo X" phases into "Fase de Grupos" and ensure proper order
+    phases = []
+    other_phases = []
+    has_grupos = False
+
+    for phase_row in phases_raw:
+        phase = phase_row['phase']
+        if 'Grupo' in phase:
+            has_grupos = True
+        else:
+            other_phases.append({'phase': phase})
+
+    # Add "Fase de Grupos" first if there are any group phases
+    if has_grupos:
+        phases.append({'phase': 'Fase de Grupos'})
+
+    # Then add all other phases in order
+    phases.extend(other_phases)
+
+    # Determine active phase (default to "Todos" to show all phases)
     phase_filter = request.args.get('phase')
     if not phase_filter:
-        # Default to "Todos" if first phase is a group
-        if phases and 'Grupo' in phases[0]['phase']:
-            phase_filter = 'Todos'
-        else:
-            phase_filter = phases[0]['phase'] if phases else ''
+        # Default to "Todos" to show all matches
+        phase_filter = 'Todos'
 
     # Get BRT date expression for this database
     brt_date_expr = get_brt_date_expression(conn)
@@ -689,9 +888,15 @@ def matches():
         dates = db_execute(conn, f'''
             SELECT DISTINCT {brt_date_expr} as match_date
             FROM fixtures
-            WHERE phase LIKE 'Grupo %'
             ORDER BY match_date
         ''').fetchall()
+    elif phase_filter == 'Fase de Grupos':
+        dates = db_execute(conn, f'''
+            SELECT DISTINCT {brt_date_expr} as match_date
+            FROM fixtures
+            WHERE phase LIKE ?
+            ORDER BY match_date
+        ''', ('%Grupo%',)).fetchall()
     else:
         dates = db_execute(conn, f'''
             SELECT DISTINCT {brt_date_expr} as match_date
@@ -727,23 +932,51 @@ def matches():
             date_filter = today_brt
         else:
             date_filter = 'Todas'
+    elif date_filter != 'Todas' and date_filter not in available_dates:
+        # Date doesn't exist in this phase - add it to the list so it stays selected
+        # but it will show 0 matches (which is fine)
+        try:
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d')
+            day_name = weekday_pt[date_obj.weekday()]
+            formatted = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+            formatted_dates.append({
+                'value': date_filter,
+                'label': formatted
+            })
+            available_dates.append(date_filter)
+        except:
+            # Invalid date format, reset to 'Todas'
+            date_filter = 'Todas'
 
     # Now build query based on filters
     if phase_filter == 'Todos':
-        # Show all group matches
+        # Show all matches
         if date_filter == 'Todas':
             fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
                 ORDER BY phase, kickoff_utc
             ''').fetchall()
         else:
             fixtures = db_execute(conn, f'''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
-                  AND {brt_date_expr} = ?
+                WHERE {brt_date_expr} = ?
                 ORDER BY phase, kickoff_utc
             ''', (date_filter,)).fetchall()
+    elif phase_filter == 'Fase de Grupos':
+        # Show all group matches
+        if date_filter == 'Todas':
+            fixtures = db_execute(conn, '''
+                SELECT * FROM fixtures
+                WHERE phase LIKE ?
+                ORDER BY phase, kickoff_utc
+            ''', ('%Grupo%',)).fetchall()
+        else:
+            fixtures = db_execute(conn, f'''
+                SELECT * FROM fixtures
+                WHERE phase LIKE ?
+                  AND {brt_date_expr} = ?
+                ORDER BY phase, kickoff_utc
+            ''', ('%Grupo%', date_filter)).fetchall()
     else:
         # Show specific phase
         if date_filter == 'Todas':
@@ -774,20 +1007,28 @@ def matches():
         # Convert rows to plain dictionaries so Jinja can safely call .get()
         user_bets = {bet['match_id']: dict(bet) for bet in bets}
 
+    # Add phase-specific betting_closed flag to each fixture
+    fixtures_with_betting_status = []
+    for fixture in fixtures:
+        fixture_dict = dict(fixture)
+        fixture_dict['betting_closed'] = is_betting_closed_for_phase(fixture['phase'])
+        fixtures_with_betting_status.append(fixture_dict)
+    fixtures = fixtures_with_betting_status
+
     # Calculate group standings if viewing group stage
     # Always use ALL group matches for standings, regardless of date filter
     group_standings = {}
     best_third_qualifiers = set()
-    if phase_filter == 'Todos' or 'Grupo' in phase_filter:
+    if phase_filter == 'Todos' or phase_filter == 'Fase de Grupos' or 'Grupo' in phase_filter:
         from collections import defaultdict
 
         # Get ALL group matches for standings calculation (ignore date filter)
-        if phase_filter == 'Todos':
+        if phase_filter == 'Todos' or phase_filter == 'Fase de Grupos':
             all_group_fixtures = db_execute(conn, '''
                 SELECT * FROM fixtures
-                WHERE phase LIKE 'Grupo %'
+                WHERE phase LIKE ?
                 ORDER BY phase, kickoff_utc
-            ''').fetchall()
+            ''', ('%Grupo%',)).fetchall()
         else:
             # Specific group - get all matches from that group
             all_group_fixtures = db_execute(conn, '''
@@ -817,7 +1058,8 @@ def matches():
 
         # Calculate standings for each group from the user's bets
         for group_name, group_fixtures in groups.items():
-            group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
+            if "Grupo" in group_name:
+                group_standings[group_name] = calculate_group_standings(group_fixtures, all_user_bets)
 
         # Rank third-placed teams across all groups
         third_place_candidates = []
@@ -831,6 +1073,9 @@ def matches():
         best_third_qualifiers = {team['team'] for team in third_place_candidates[:8]}
 
     conn.close()
+
+    # Check if any fixture has betting open
+    any_betting_open = any(not f['betting_closed'] for f in fixtures)
 
     return render_template_string(MATCHES_TEMPLATE,
                                  fixtures=fixtures,
@@ -846,21 +1091,18 @@ def matches():
                                  format_match_datetime=format_match_datetime,
                                  group_standings=group_standings,
                                  best_third_qualifiers=best_third_qualifiers,
-                                 betting_closed=BETTING_CLOSED)
+                                 betting_closed=BETTING_CLOSED,
+                                 any_betting_open=any_betting_open)
 
 @app.route('/save-bets', methods=['POST'])
 @login_required
 def save_bets():
     """Save user bets"""
-    # Block if betting is closed
-    if BETTING_CLOSED:
-        flash('Apostas encerradas! Não é mais possível fazer ou alterar palpites.', 'error')
-        return redirect(url_for('matches'))
-
     user_id = session['user_id']
     conn = get_db()
 
     saved_count = 0
+    blocked_count = 0
     for key, value in request.form.items():
         if key.startswith('h_'):
             match_id = int(key[2:])
@@ -874,6 +1116,15 @@ def save_bets():
                     try:
                         home_goals = int(home_goals)
                         away_goals = int(away_goals)
+
+                        # Get match phase to check if betting is closed for this phase
+                        match = db_execute(conn, '''
+                            SELECT phase FROM fixtures WHERE id = ?
+                        ''', (match_id,)).fetchone()
+
+                        if match and is_betting_closed_for_phase(match['phase']):
+                            blocked_count += 1
+                            continue
 
                         # Check if bet exists
                         existing_bet = db_execute(conn, '''
@@ -900,7 +1151,10 @@ def save_bets():
     conn.commit()
     conn.close()
 
-    flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
+    if saved_count > 0:
+        flash(f'✓ {saved_count} palpites salvos com sucesso!', 'success')
+    if blocked_count > 0:
+        flash(f'⚠ {blocked_count} palpites não foram salvos (apostas encerradas para esta fase)', 'warning')
 
     phase = request.args.get('phase')
     if phase:
@@ -1130,7 +1384,7 @@ def points_history():
 
     # Get all matches with results, ordered by date
     matches = db_execute(conn, '''
-        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals
+        SELECT id, home, away, kickoff_utc, final_home_goals, final_away_goals, phase
         FROM fixtures
         WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
         ORDER BY kickoff_utc
@@ -1189,7 +1443,8 @@ def points_history():
                             bet['home_goals'],
                             bet['away_goals'],
                             match['final_home_goals'],
-                            match['final_away_goals']
+                            match['final_away_goals'],
+                            match['phase']
                         )
                         total += points
 
