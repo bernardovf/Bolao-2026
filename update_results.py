@@ -2,87 +2,18 @@ import requests
 import psycopg2
 import os
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026" #os.environ.get("DATABASE_URL")
 API_KEY = os.environ.get("API_KEY")
+BASE_URL = "https://api.football-data.org/v4"
 
-# API-Football / API-Sports
-headers = {"x-apisports-key": API_KEY}
+headers = {
+    "X-Auth-Token": API_KEY
+}
 
 # API-Football fixture_id -> your old football-data.org fixture id
 FIXTURE_ID_MAP = {
-    1489369: 537327,
-    1538999: 537328,
-    1539004: 537329,
-    1489388: 537330,
-    1539010: 537331,
-    1489407: 537332,
-    1539000: 537333,
-    1489373: 537334,
-    1539005: 537335,
-    1489387: 537336,
-    1489408: 537337,
-    1539009: 537338,
-    1489371: 537339,
-    1489372: 537340,
-    1489389: 537341,
-    1489390: 537342,
-    1489405: 537343,
-    1489406: 537344,
-    1489370: 537345,
-    1539001: 537346,
-    1539006: 537347,
-    1489391: 537348,
-    1539012: 537349,
-    1489411: 537350,
-    1489374: 537351,
-    1489375: 537352,
-    1489393: 537353,
-    1489392: 537354,
-    1489410: 537355,
-    1489409: 537356,
-    1489376: 537357,
-    1539002: 537358,
-    1539007: 537359,
-    1489394: 537360,
-    1489412: 537361,
-    1539011: 537362,
-    1489377: 537363,
-    1489378: 537364,
-    1489395: 537365,
-    1489396: 537366,
-    1489415: 537367,
-    1489414: 537368,
-    1489380: 537369,
-    1489379: 537370,
-    1489397: 537371,
-    1489398: 537372,
-    1489417: 537373,
-    1489413: 537374,
-    1489383: 537391,
-    1539016: 537392,
-    1539017: 537393,
-    1489401: 537394,
-    1489416: 537395,
-    1539074: 537396,
-    1489381: 537397,
-    1489382: 537398,
-    1489399: 537399,
-    1489400: 537400,
-    1489418: 537401,
-    1489421: 537402,
-    1539003: 537403,
-    1489386: 537404,
-    1489404: 537405,
-    1539008: 537406,
-    1489419: 537407,
-    1539013: 537408,
-    1489384: 537409,
-    1489385: 537410,
-    1489402: 537411,
-    1489403: 537412,
-    1489422: 537413,
-    1489420: 537414,
-}
+    537344: 537343,
+    537343: 537344}
 
 TEAM_MAP = {
     "Mexico": "Mexico",
@@ -92,12 +23,12 @@ TEAM_MAP = {
     "Canada": "Canada",
     "Qatar": "Qatar",
     "Switzerland": "Switzerland",
-    "Bosnia & Herzegovina": "Bosnia and Herzegovina",
+    "Bosnia-Herzegovina": "Bosnia and Herzegovina",
     "Brazil": "Brazil",
     "Haiti": "Haiti",
     "Scotland": "Scotland",
     "Morocco": "Morocco",
-    "USA": "USA",
+    "United States": "USA",
     "Australia": "Australia",
     "Türkiye": "Turkey",
     "Paraguay": "Paraguay",
@@ -149,6 +80,7 @@ cur = conn.cursor()
 cur.execute("""
     SELECT id
     FROM fixtures
+    WHERE PHASE != '16 Avos Final'
 """)
 
 unfinished_old_ids = {row[0] for row in cur.fetchall()}
@@ -167,44 +99,37 @@ params = {
 }
 
 if api_fixture_ids:
-    url = "https://v3.football.api-sports.io/fixtures"
 
-    # API-Football supports ids as a joined string
-    # If this ever fails due to too many ids, split into chunks of 20.
-    ids_param = "-".join(str(x) for x in api_fixture_ids)
+    url = f"{BASE_URL}/competitions/WC/matches"
 
-    response = requests.get(
-        url,
-        headers=headers,
-        params=params
-    )
+
+    response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
 
     data = response.json()
-    fixtures = data.get("response", [])
+    fixtures = data['matches']
 
     for item in fixtures:
-        api_fixture_id = item["fixture"]["id"]
-        old_match_id = FIXTURE_ID_MAP.get(api_fixture_id)
-
+        api_fixture_id = item["id"]
+        old_match_id = FIXTURE_ID_MAP.get(api_fixture_id, api_fixture_id)
         if old_match_id is None:
             continue
 
-        status = item["fixture"]["status"]["short"]
+        status = item["status"]
 
         # API-Football finished status is usually FT
         # AET/PEN can happen in knockout phase, but group stage should be FT.
-        if status == "NS":
+        if status == "NOT STARTED":
             continue
 
-        home_goals = item["goals"]["home"]
-        away_goals = item["goals"]["away"]
+        home_goals = item["score"]["fullTime"]["home"]
+        away_goals = item["score"]["fullTime"]["away"]
 
         if home_goals is None or away_goals is None:
             continue
 
-        home = item["teams"]["home"]["name"]
-        away = item["teams"]["away"]["name"]
+        home = item["homeTeam"]["name"]
+        away = item["awayTeam"]["name"]
 
         cur.execute("""
             SELECT home, away
