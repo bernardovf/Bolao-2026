@@ -272,7 +272,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -392,7 +391,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -667,7 +665,6 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -850,7 +847,6 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1055,7 +1051,6 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1368,7 +1363,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1724,7 +1718,6 @@ HISTORICO_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1761,13 +1754,6 @@ HISTORICO_TEMPLATE = '''<!DOCTYPE html>
                     <!-- Header -->
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-black {{ badge_color }} rounded-full px-2 py-0.5">#{{ rank }}</span>
-                        {% if player.trend > 0 %}
-                            <span class="text-xs text-green-600 font-bold">▲{{ player.trend }}</span>
-                        {% elif player.trend < 0 %}
-                            <span class="text-xs text-red-500 font-bold">▼{{ player.trend|abs }}</span>
-                        {% else %}
-                            <span class="text-xs text-slate-400 font-bold">—</span>
-                        {% endif %}
                     </div>
 
                     <!-- Name -->
@@ -1887,7 +1873,6 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -2051,7 +2036,6 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -2288,7 +2272,6 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
