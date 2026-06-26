@@ -1392,8 +1392,6 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- Visual Distribution Bar -->
         <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
-            <p class="text-xs text-slate-500 mb-3 text-center">{{ stats.total_bets }} palpites totais</p>
-
             <!-- Percentage Bar -->
             <div class="flex h-12 rounded-lg overflow-hidden mb-3">
                 {% set home_pct = (stats.home_wins / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
