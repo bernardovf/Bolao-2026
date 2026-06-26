@@ -1,4 +1,4 @@
-from constants import flag_map, abbr_map, translations, translations_reduced, PLAYER_ALIASES
+from constants import flag_map, abbr_map, translations, translations_reduced, PLAYER_ALIASES, fifa_ranking
 from datetime import datetime, timedelta
 import unicodedata
 
@@ -231,9 +231,9 @@ def sort_group_standings(standings_list, fixtures, user_bets):
 
                 return resolved_order
 
-        # If still completely tied after all available criteria
-        # You can replace this later with fair play / drawing lots
-        return sorted(team_names)
+        # If still completely tied after all available criteria, use FIFA ranking
+        # Lower FIFA ranking number = better team (1 is best)
+        return sorted(team_names, key=lambda t: fifa_ranking.get(t, 999))
 
     # First group by total points
     points_groups = {}
@@ -327,8 +327,9 @@ def calculate_qualified_teams(db_execute_fn, conn, user_id=None, use_real_result
                 'gf': third['gf']
             })
 
-    # Sort thirds by points, goal difference, goals for
-    all_thirds.sort(key=lambda x: (x['points'], x['gd'], x['gf']), reverse=True)
+    # Sort thirds by points, goal difference, goals for, then FIFA ranking
+    # FIFA ranking: lower is better, so negate it for proper sorting
+    all_thirds.sort(key=lambda x: (x['points'], x['gd'], x['gf'], -fifa_ranking.get(x['team'], 999)), reverse=True)
 
     # Add best 8 thirds
     for third in all_thirds[:8]:

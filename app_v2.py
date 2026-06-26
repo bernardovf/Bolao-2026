@@ -5,7 +5,7 @@ from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name, translate_team_name_reduced
-from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
+from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO, country_colors, default_country_color
 from calculate_points import calculate_match_points
 from templates import *
 import psycopg2
@@ -1190,10 +1190,10 @@ def match_stats(match_id):
         SELECT u.id as user_id, u.user_name, b.home_goals, b.away_goals
         FROM users u
         LEFT JOIN bet b ON u.id = b.user_id AND b.match_id = ?
-        ORDER BY b.home_goals DESC, b.away_goals DESC, u.user_name
+        ORDER BY u.user_name
     ''', (match_id,)).fetchall()
 
-    # Calculate statistics and organize scores by result type
+    # Calculate statistics and organize scores by result type with user names
     total_bets = sum(1 for b in bets if b['home_goals'] is not None)
 
     home_win_scores = {}
@@ -1203,30 +1203,41 @@ def match_stats(match_id):
     for bet in bets:
         if bet['home_goals'] is not None and bet['away_goals'] is not None:
             score = f"{bet['home_goals']}-{bet['away_goals']}"
+            user_info = {'name': bet['user_name'], 'id': bet['user_id']}
 
             if bet['home_goals'] > bet['away_goals']:
-                home_win_scores[score] = home_win_scores.get(score, 0) + 1
+                if score not in home_win_scores:
+                    home_win_scores[score] = []
+                home_win_scores[score].append(user_info)
             elif bet['home_goals'] == bet['away_goals']:
-                draw_scores[score] = draw_scores.get(score, 0) + 1
+                if score not in draw_scores:
+                    draw_scores[score] = []
+                draw_scores[score].append(user_info)
             else:
-                away_win_scores[score] = away_win_scores.get(score, 0) + 1
+                if score not in away_win_scores:
+                    away_win_scores[score] = []
+                away_win_scores[score].append(user_info)
 
-    # Sort each category by count
-    home_win_scores = sorted(home_win_scores.items(), key=lambda x: x[1], reverse=True)
-    draw_scores = sorted(draw_scores.items(), key=lambda x: x[1], reverse=True)
-    away_win_scores = sorted(away_win_scores.items(), key=lambda x: x[1], reverse=True)
+    # Sort each category by count and convert to list of (score, users) tuples
+    home_win_scores = sorted(home_win_scores.items(), key=lambda x: len(x[1]), reverse=True)
+    draw_scores = sorted(draw_scores.items(), key=lambda x: len(x[1]), reverse=True)
+    away_win_scores = sorted(away_win_scores.items(), key=lambda x: len(x[1]), reverse=True)
 
     conn.close()
 
     stats = {
         'total_bets': total_bets,
-        'home_wins': sum(count for _, count in home_win_scores),
-        'draws': sum(count for _, count in draw_scores),
-        'away_wins': sum(count for _, count in away_win_scores),
+        'home_wins': sum(len(users) for _, users in home_win_scores),
+        'draws': sum(len(users) for _, users in draw_scores),
+        'away_wins': sum(len(users) for _, users in away_win_scores),
         'home_win_scores': home_win_scores,
         'draw_scores': draw_scores,
         'away_win_scores': away_win_scores,
     }
+
+    # Get country colors
+    home_color = country_colors.get(match['home'], default_country_color)
+    away_color = country_colors.get(match['away'], default_country_color)
 
     return render_template_string(
         MATCH_STATS_TEMPLATE,
@@ -1236,6 +1247,8 @@ def match_stats(match_id):
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
         betting_closed=BETTING_CLOSED,
+        home_color=home_color,
+        away_color=away_color,
     )
 
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
