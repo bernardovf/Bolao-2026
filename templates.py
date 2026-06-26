@@ -1364,28 +1364,30 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
         <!-- Statistics Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
             <!-- Home Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-blue-400 transition-all filter-card"
                  data-filter="home" onclick="filterBets('home', this)">
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center gap-10 mb-2">
                     {% set home_flag = get_flag_url(match.home) %}
                     {% if home_flag %}
                         <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
-                    {% endif %}
+                    {% endif %}                    
                     <div class="flex-1">
-                        <p class="text-base text-slate-500 mb-1">Vitória {{ translate_team_name(match.home) }}</p>
-                        <p class="text-3xl font-bold text-blue-600">{{ stats.home_wins }}</p>
+                        <p class="text-2xl font-bold text-slate-600">
+                            {{ stats.home_wins }}
+                            {% if stats.total_bets > 0 %}
+                                <span class="text-xl font-bold text-slate-600">
+                                    ({{ "%.0f"|format((stats.home_wins / stats.total_bets * 100)) }}%)
+                                </span>
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-                {% if stats.total_bets > 0 %}
-                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.home_wins / stats.total_bets * 100)) }}%</p>
-                {% endif %}
 
                 {% if stats.home_win_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.1 md:space-y-1">
                             {% for score, count in stats.home_win_scores %}
                                 <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
@@ -1400,16 +1402,23 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Draws -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-slate-400 transition-all filter-card"
                  data-filter="draw" onclick="filterBets('draw', this)">
-                <p class="text-s text-slate-500 mb-1">Empate</p>
-                <p class="text-3xl font-bold text-slate-600">{{ stats.draws }}</p>
-                {% if stats.total_bets > 0 %}
-                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.draws / stats.total_bets * 100)) }}%</p>
-                {% endif %}
+                <div class="flex items-center gap-10 mb-2">
+                    <p class="text-lg font-bold mb-0">Empate</p>
+                    <div class="flex-1">
+                        <p class="text-2xl font-bold text-slate-600">
+                            {{ stats.draws }}
+                            {% if stats.total_bets > 0 %}
+                                <span class="text-xl font-bold text-slate-600">
+                                    ({{ "%.0f"|format((stats.draws / stats.total_bets * 100)) }}%)
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
 
                 {% if stats.draw_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.1 md:space-y-1">
                             {% for score, count in stats.draw_scores %}
                                 <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
@@ -1424,24 +1433,26 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Away Wins -->
             <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-green-400 transition-all filter-card"
                  data-filter="away" onclick="filterBets('away', this)">
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center gap-10 mb-2">
                     {% set away_flag = get_flag_url(match.away) %}
                     {% if away_flag %}
                         <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
                     {% endif %}
-                    <div class="flex-1">
-                        <p class="text-s text-slate-500 mb-1">Vitória {{ translate_team_name(match.away) }}</p>
-                        <p class="text-3xl font-bold text-green-600">{{ stats.away_wins }}</p>
+                    <div class="flex-1">                        
+                        <p class="text-2xl font-bold text-slate-600">
+                            {{ stats.away_wins }}
+                            {% if stats.total_bets > 0 %}
+                                <span class="text-xl font-bold text-slate-600">
+                                    ({{ "%.0f"|format((stats.away_wins / stats.total_bets * 100)) }}%)
+                                </span>
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-                {% if stats.total_bets > 0 %}
-                    <p class="text-s text-slate-500 mb-3">{{ "%.0f"|format((stats.away_wins / stats.total_bets * 100)) }}%</p>
-                {% endif %}
 
                 {% if stats.away_win_scores %}
                     <div class="mt-3 pt-3 border-t border-slate-200">
-                        <p class="text-s font-bold text-slate-600 mb-2">Placares:</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.1 md:space-y-1">
                             {% for score, count in stats.away_win_scores %}
                                 <div class="flex items-center justify-between text-s">
                                     <span class="font-bold text-slate-700">{{ score }}</span>
@@ -1463,8 +1474,8 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 <table class="w-full text-sm">
                     <thead class="bg-slate-50 border-b border-slate-200">
                         <tr>
-                            <th class="px-4 py-3 text-left font-bold text-slate-700">Jogador</th>
-                            <th class="px-4 py-3 text-center font-bold text-slate-700">Palpite</th>
+                            <th class="px-4 py-1 text-left font-bold text-slate-700">Jogador</th>
+                            <th class="px-4 py-1 text-center font-bold text-slate-700">Palpite</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
@@ -1481,13 +1492,13 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                                 {% set result_type = 'none' %}
                             {% endif %}
                             <tr class="hover:bg-slate-50 transition bet-row" data-result="{{ result_type }}">
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-1">
                                     <a href="{{ url_for('jogador_detail', user_id=bet.user_id) }}"
                                        class="font-semibold text-blue-600 hover:text-blue-700">
                                         {{ bet.user_name }}
                                     </a>
                                 </td>
-                                <td class="px-4 py-3 text-center">
+                                <td class="px-4 py-1 text-center">
                                     {% if bet.home_goals is not none %}
                                         <span class="font-bold text-slate-700">{{ bet.home_goals }} - {{ bet.away_goals }}</span>
                                     {% else %}
