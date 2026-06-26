@@ -1343,7 +1343,9 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         body { font-family: 'IBM Plex Mono', monospace; }
         .score-breakdown { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .score-breakdown.open { max-height: 500px; }
+        .score-breakdown.open { max-height: 1500px; }
+        .users-list { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .users-list.open { max-height: 300px; overflow-y: auto; }
         .chevron { transition: transform 0.3s ease; }
         .chevron.open { transform: rotate(180deg); }
     </style>
@@ -1459,10 +1461,10 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                                         </svg>
                                     </div>
                                 </button>
-                                <div id="users-home-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                <div id="users-home-{{ loop.index }}" class="users-list bg-slate-50">
                                     <div class="px-3 py-2 space-y-1">
                                         {% for user in users %}
-                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline py-1">
                                                 {{ user.name }}
                                             </a>
                                         {% endfor %}
@@ -1497,10 +1499,10 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                                         </svg>
                                     </div>
                                 </button>
-                                <div id="users-draw-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                <div id="users-draw-{{ loop.index }}" class="users-list bg-slate-50">
                                     <div class="px-3 py-2 space-y-1">
                                         {% for user in users %}
-                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline py-1">
                                                 {{ user.name }}
                                             </a>
                                         {% endfor %}
@@ -1535,10 +1537,10 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                                         </svg>
                                     </div>
                                 </button>
-                                <div id="users-away-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                <div id="users-away-{{ loop.index }}" class="users-list bg-slate-50">
                                     <div class="px-3 py-2 space-y-1">
                                         {% for user in users %}
-                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline py-1">
                                                 {{ user.name }}
                                             </a>
                                         {% endfor %}
