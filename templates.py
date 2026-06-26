@@ -1815,7 +1815,7 @@ HISTORICO_TEMPLATE = '''<!DOCTYPE html>
                         borderColor: 'rgb(' + player.color + ')',
                         backgroundColor: 'rgba(' + player.color + ', 0.15)',
                         borderWidth: 2,
-                        fill: true,
+                        fill: 'end',
                         tension: 0.3,
                         pointRadius: 0,
                         pointHoverRadius: 3,
