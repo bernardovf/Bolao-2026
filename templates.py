@@ -1342,11 +1342,15 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         body { font-family: 'IBM Plex Mono', monospace; }
+        .score-breakdown { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .score-breakdown.open { max-height: 500px; }
+        .chevron { transition: transform 0.3s ease; }
+        .chevron.open { transform: rotate(180deg); }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-md">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen pb-6">
+    <!-- Sticky Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3 md:py-4">
                 <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
@@ -1363,106 +1367,141 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
     </nav>
 
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
-        <!-- Statistics Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
-            <!-- Home Wins -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-blue-400 transition-all filter-card"
-                 data-filter="home" onclick="filterBets('home', this)">
-                <div class="flex items-center gap-10 mb-2">
-                    {% set home_flag = get_flag_url(match.home) %}
+        <!-- Match Header -->
+        <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between gap-4">
+                {% set home_flag = get_flag_url(match.home) %}
+                {% set away_flag = get_flag_url(match.away) %}
+                <div class="flex items-center gap-2 flex-1">
                     {% if home_flag %}
-                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
-                    {% endif %}                    
-                    <div class="flex-1">
-                        <p class="text-2xl font-bold text-slate-600">
-                            {{ stats.home_wins }}
-                            {% if stats.total_bets > 0 %}
-                                <span class="text-xl font-bold text-slate-600">
-                                    ({{ "%.0f"|format((stats.home_wins / stats.total_bets * 100)) }}%)
-                                </span>
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                {% if stats.home_win_scores %}
-                    <div class="mt-3 pt-3 border-t border-slate-200">
-                        <div class="space-y-0.1 md:space-y-1">
-                            {% for score, count in stats.home_win_scores %}
-                                <div class="flex items-center justify-between text-s">
-                                    <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Draws -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-slate-400 transition-all filter-card"
-                 data-filter="draw" onclick="filterBets('draw', this)">
-                <div class="flex items-center gap-10 mb-2">
-                    <p class="text-lg font-bold mb-0">Empate</p>
-                    <div class="flex-1">
-                        <p class="text-2xl font-bold text-slate-600">
-                            {{ stats.draws }}
-                            {% if stats.total_bets > 0 %}
-                                <span class="text-xl font-bold text-slate-600">
-                                    ({{ "%.0f"|format((stats.draws / stats.total_bets * 100)) }}%)
-                                </span>
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                {% if stats.draw_scores %}
-                    <div class="mt-3 pt-3 border-t border-slate-200">
-                        <div class="space-y-0.1 md:space-y-1">
-                            {% for score, count in stats.draw_scores %}
-                                <div class="flex items-center justify-between text-s">
-                                    <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Away Wins -->
-            <div class="bg-white rounded-xl shadow-lg p-4 border border-slate-200 cursor-pointer hover:border-green-400 transition-all filter-card"
-                 data-filter="away" onclick="filterBets('away', this)">
-                <div class="flex items-center gap-10 mb-2">
-                    {% set away_flag = get_flag_url(match.away) %}
-                    {% if away_flag %}
-                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-18 h-12 rounded border border-slate-200 shadow-sm">
+                        <img src="{{ home_flag }}" alt="{{ translate_team_name(match.home) }}" class="w-8 h-6 rounded border border-slate-200">
                     {% endif %}
-                    <div class="flex-1">                        
-                        <p class="text-2xl font-bold text-slate-600">
-                            {{ stats.away_wins }}
-                            {% if stats.total_bets > 0 %}
-                                <span class="text-xl font-bold text-slate-600">
-                                    ({{ "%.0f"|format((stats.away_wins / stats.total_bets * 100)) }}%)
-                                </span>
-                            {% endif %}
-                        </p>
+                    <span class="font-bold text-slate-800 text-sm md:text-base">{{ translate_team_name(match.home) }}</span>
+                </div>
+                <span class="text-slate-400 font-bold">VS</span>
+                <div class="flex items-center gap-2 flex-1 justify-end">
+                    <span class="font-bold text-slate-800 text-sm md:text-base">{{ translate_team_name(match.away) }}</span>
+                    {% if away_flag %}
+                        <img src="{{ away_flag }}" alt="{{ translate_team_name(match.away) }}" class="w-8 h-6 rounded border border-slate-200">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Distribution Bar -->
+        <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+            <p class="text-xs text-slate-500 mb-3 text-center">{{ stats.total_bets }} palpites totais</p>
+
+            <!-- Percentage Bar -->
+            <div class="flex h-12 rounded-lg overflow-hidden mb-3">
+                {% set home_pct = (stats.home_wins / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
+                {% set draw_pct = (stats.draws / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
+                {% set away_pct = (stats.away_wins / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
+
+                <div class="bg-blue-500 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-600 transition filter-section"
+                     style="width: {{ home_pct }}%"
+                     data-filter="home"
+                     onclick="filterBets('home', this)">
+                    {% if home_pct > 8 %}<span class="text-xs md:text-sm">{{ home_pct }}%</span>{% endif %}
+                </div>
+                <div class="bg-slate-400 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-slate-500 transition filter-section"
+                     style="width: {{ draw_pct }}%"
+                     data-filter="draw"
+                     onclick="filterBets('draw', this)">
+                    {% if draw_pct > 8 %}<span class="text-xs md:text-sm">{{ draw_pct }}%</span>{% endif %}
+                </div>
+                <div class="bg-green-500 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-green-600 transition filter-section"
+                     style="width: {{ away_pct }}%"
+                     data-filter="away"
+                     onclick="filterBets('away', this)">
+                    {% if away_pct > 8 %}<span class="text-xs md:text-sm">{{ away_pct }}%</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Summary Labels -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="home" onclick="filterBets('home', this)">
+                    <p class="text-2xl font-black text-blue-600">{{ stats.home_wins }}</p>
+                    <p class="text-xs text-slate-600 font-semibold">Vitória {{ translate_team_name(match.home) }}</p>
+                </div>
+                <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="draw" onclick="filterBets('draw', this)">
+                    <p class="text-2xl font-black text-slate-600">{{ stats.draws }}</p>
+                    <p class="text-xs text-slate-600 font-semibold">Empate</p>
+                </div>
+                <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="away" onclick="filterBets('away', this)">
+                    <p class="text-2xl font-black text-green-600">{{ stats.away_wins }}</p>
+                    <p class="text-xs text-slate-600 font-semibold">Vitória {{ translate_team_name(match.away) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collapsible Score Breakdowns -->
+        <div class="space-y-3 mb-6">
+            <!-- Home Wins Breakdown -->
+            {% if stats.home_win_scores %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button onclick="toggleBreakdown('home')" class="w-full px-4 py-3 flex items-center justify-between bg-blue-50 hover:bg-blue-100 transition">
+                    <span class="font-bold text-blue-700">Placares Vitória {{ translate_team_name(match.home) }}</span>
+                    <svg class="w-5 h-5 text-blue-700 chevron" id="chevron-home" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="breakdown-home" class="score-breakdown">
+                    <div class="p-4 space-y-2">
+                        {% for score, count in stats.home_win_scores %}
+                            <div class="flex items-center justify-between py-1">
+                                <span class="font-bold text-slate-700">{{ score }}</span>
+                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-
-                {% if stats.away_win_scores %}
-                    <div class="mt-3 pt-3 border-t border-slate-200">
-                        <div class="space-y-0.1 md:space-y-1">
-                            {% for score, count in stats.away_win_scores %}
-                                <div class="flex items-center justify-between text-s">
-                                    <span class="font-bold text-slate-700">{{ score }}</span>
-                                    <span class="text-slate-500">{{ count }} ({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
             </div>
+            {% endif %}
+
+            <!-- Draws Breakdown -->
+            {% if stats.draw_scores %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button onclick="toggleBreakdown('draw')" class="w-full px-4 py-3 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition">
+                    <span class="font-bold text-slate-700">Placares Empate</span>
+                    <svg class="w-5 h-5 text-slate-700 chevron" id="chevron-draw" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="breakdown-draw" class="score-breakdown">
+                    <div class="p-4 space-y-2">
+                        {% for score, count in stats.draw_scores %}
+                            <div class="flex items-center justify-between py-1">
+                                <span class="font-bold text-slate-700">{{ score }}</span>
+                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Away Wins Breakdown -->
+            {% if stats.away_win_scores %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button onclick="toggleBreakdown('away')" class="w-full px-4 py-3 flex items-center justify-between bg-green-50 hover:bg-green-100 transition">
+                    <span class="font-bold text-green-700">Placares Vitória {{ translate_team_name(match.away) }}</span>
+                    <svg class="w-5 h-5 text-green-700 chevron" id="chevron-away" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="breakdown-away" class="score-breakdown">
+                    <div class="p-4 space-y-2">
+                        {% for score, count in stats.away_win_scores %}
+                            <div class="flex items-center justify-between py-1">
+                                <span class="font-bold text-slate-700">{{ score }}</span>
+                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- All Bets Table -->
@@ -1522,33 +1561,55 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
     <script>
         let currentFilter = null;
 
+        function toggleBreakdown(type) {
+            const breakdown = document.getElementById('breakdown-' + type);
+            const chevron = document.getElementById('chevron-' + type);
+
+            if (breakdown.classList.contains('open')) {
+                breakdown.classList.remove('open');
+                chevron.classList.remove('open');
+            } else {
+                breakdown.classList.add('open');
+                chevron.classList.add('open');
+            }
+        }
+
         function filterBets(type, element) {
             const rows = document.querySelectorAll('.bet-row');
-            const cards = document.querySelectorAll('.filter-card');
+            const sections = document.querySelectorAll('.filter-section');
 
             // If clicking the same filter, reset
             if (currentFilter === type) {
                 currentFilter = null;
                 rows.forEach(row => row.style.display = '');
-                cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400'));
+                sections.forEach(section => {
+                    section.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400');
+                    section.classList.remove('scale-105');
+                });
                 return;
             }
 
             // Set new filter
             currentFilter = type;
 
-            // Update card styles
-            cards.forEach(card => {
-                card.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400');
+            // Update section styles
+            sections.forEach(section => {
+                section.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400');
+                section.classList.remove('scale-105');
             });
 
-            if (type === 'home') {
-                element.classList.add('ring-4', 'ring-blue-400');
-            } else if (type === 'draw') {
-                element.classList.add('ring-4', 'ring-slate-400');
-            } else if (type === 'away') {
-                element.classList.add('ring-4', 'ring-green-400');
-            }
+            // Highlight all sections with matching filter
+            const matchingSections = document.querySelectorAll('[data-filter="' + type + '"]');
+            matchingSections.forEach(section => {
+                section.classList.add('scale-105');
+                if (type === 'home') {
+                    section.classList.add('ring-4', 'ring-blue-400');
+                } else if (type === 'draw') {
+                    section.classList.add('ring-4', 'ring-slate-400');
+                } else if (type === 'away') {
+                    section.classList.add('ring-4', 'ring-green-400');
+                }
+            });
 
             // Filter rows
             rows.forEach(row => {
@@ -1558,6 +1619,12 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 } else {
                     row.style.display = 'none';
                 }
+            });
+
+            // Scroll to bets table
+            document.querySelector('.bg-white.rounded-xl.shadow-lg.overflow-hidden.border').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
         }
     </script>
