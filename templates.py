@@ -270,8 +270,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-semibold text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -389,8 +389,8 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -663,8 +663,8 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -845,8 +845,8 @@ JOGADOR_DETAIL_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1049,8 +1049,8 @@ REGRAS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1361,8 +1361,8 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1693,6 +1693,161 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 </html>
 '''
 
+HISTORICO_TEMPLATE = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico - Bolão 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3 md:py-4">
+                <div class="flex items-center space-x-3 md:space-x-6 text-sm md:text-base">
+                    <a href="{{ url_for('dashboard') }}" class="font-medium text-slate-600 hover:text-blue-600">Início</a>
+                    <a href="{{ url_for('matches') }}" class="font-medium text-slate-600 hover:text-blue-600">Palpites</a>
+                    <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
+                    {% if betting_closed %}
+                    <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div class="mb-6">
+            <h1 class="text-2xl md:text-3xl font-black text-slate-800">Histórico de Posições</h1>
+            <p class="text-sm text-slate-500 mt-1">Evolução da posição no ranking dia a dia</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+            {% for player in chart_data %}
+                {% set rank = player.current_rank %}
+                {% if rank == 1 %}
+                    {% set badge_color = 'bg-yellow-400 text-yellow-900' %}
+                    {% set chart_color = '234, 179, 8' %}
+                    {% set card_border = 'border-yellow-300' %}
+                {% elif rank == 2 %}
+                    {% set badge_color = 'bg-slate-400 text-white' %}
+                    {% set chart_color = '148, 163, 184' %}
+                    {% set card_border = 'border-slate-300' %}
+                {% elif rank == 3 %}
+                    {% set badge_color = 'bg-amber-700 text-white' %}
+                    {% set chart_color = '180, 83, 9' %}
+                    {% set card_border = 'border-amber-300' %}
+                {% else %}
+                    {% set badge_color = 'bg-blue-100 text-blue-800' %}
+                    {% set chart_color = '59, 130, 246' %}
+                    {% set card_border = 'border-slate-200' %}
+                {% endif %}
+
+                <div class="bg-white rounded-xl shadow-md border {{ card_border }} p-3 flex flex-col gap-2">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black {{ badge_color }} rounded-full px-2 py-0.5">#{{ rank }}</span>
+                    </div>
+
+                    <!-- Name -->
+                    <a href="{{ url_for('jogador_detail', user_id=player.id) }}"
+                       class="text-sm font-bold text-slate-800 hover:text-blue-600 leading-tight truncate">
+                        {{ player.name }}
+                    </a>
+
+                    <!-- Points -->
+                    <p class="text-xs text-slate-400">{{ player.current_pts }} pts</p>
+
+                    <!-- Chart -->
+                    <div class="relative h-20">
+                        <canvas id="chart-{{ player.id }}"></canvas>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const totalUsers = {{ total_users }};
+        const dates = {{ dates_labels | tojson }};
+
+        const players = [
+            {% for player in chart_data %}
+            {
+                id: {{ player.id }},
+                positions: {{ player.positions | tojson }},
+                color: '{% if player.current_rank == 1 %}234, 179, 8{% elif player.current_rank == 2 %}148, 163, 184{% elif player.current_rank == 3 %}180, 83, 9{% else %}59, 130, 246{% endif %}'
+            },
+            {% endfor %}
+        ];
+
+        players.forEach(player => {
+            const ctx = document.getElementById('chart-' + player.id);
+            if (!ctx || !player.positions.length) return;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        data: player.positions,
+                        borderColor: 'rgb(' + player.color + ')',
+                        backgroundColor: 'rgba(' + player.color + ', 0.15)',
+                        borderWidth: 2,
+                        fill: 'end',
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: {
+                            label: ctx => '#' + ctx.raw
+                        }
+                    }},
+                    scales: {
+                        y: {
+                            reverse: true,
+                            min: 1,
+                            max: totalUsers,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 9 },
+                                color: '#94a3b8',
+                                maxTicksLimit: 5,
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            border: { display: false },
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 8 },
+                                color: '#94a3b8',
+                                maxTicksLimit: 5,
+                                maxRotation: 0,
+                            },
+                            grid: { display: false },
+                            border: { display: false },
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+'''
+
 EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1716,8 +1871,8 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-semibold text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -1879,8 +2034,8 @@ POINTS_HISTORY_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>
@@ -2114,9 +2269,9 @@ BET_PATTERNS_TEMPLATE = '''<!DOCTYPE html>
                     <a href="{{ url_for('palpites_gerais') }}" class="font-medium text-slate-600 hover:text-blue-600">Extras</a>
                     {% if betting_closed %}
                     <a href="{{ url_for('ranking') }}" class="font-medium text-slate-600 hover:text-blue-600">Ranking</a>
+                    <a href="{{ url_for('historico') }}" class="font-medium text-slate-600 hover:text-blue-600">Histórico</a>
                     {% endif %}
                     <a href="{{ url_for('regras') }}" class="font-medium text-slate-600 hover:text-blue-600">Regras</a>
-                    <a href="{{ url_for('logout') }}" class="font-medium text-slate-600 hover:text-red-600">Sair</a>
                 </div>
             </div>
         </div>

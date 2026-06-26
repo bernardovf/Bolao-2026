@@ -672,6 +672,107 @@ def ranking():
                                  history_dates=dates_str,
                                  history_users=history_data)
 
+@app.route('/historico')
+@login_required
+def historico():
+    """Ranking position history page — one area chart per player"""
+    if not BETTING_CLOSED:
+        flash('O histórico estará disponível após o encerramento das apostas.', 'info')
+        return redirect(url_for('dashboard'))
+
+    conn = get_db()
+    from datetime import datetime, timedelta
+
+    users = db_execute(conn, 'SELECT id, user_name FROM users ORDER BY user_name').fetchall()
+
+    # All finished matches ordered by kickoff
+    matches = db_execute(conn, '''
+        SELECT id, kickoff_utc, final_home_goals, final_away_goals, phase
+        FROM fixtures
+        WHERE final_home_goals IS NOT NULL AND final_away_goals IS NOT NULL
+        ORDER BY kickoff_utc
+    ''').fetchall()
+
+    all_bets = db_execute(conn, 'SELECT user_id, match_id, home_goals, away_goals FROM bet').fetchall()
+    conn.close()
+
+    # Index bets by (user_id, match_id)
+    bets_index = {}
+    for b in all_bets:
+        bets_index[(b['user_id'], b['match_id'])] = (b['home_goals'], b['away_goals'])
+
+    # Collect distinct BRT dates in order
+    dates_set = set()
+    for m in matches:
+        dt = datetime.fromisoformat(m['kickoff_utc'].replace('Z', '+00:00')) - timedelta(hours=3)
+        dates_set.add(dt.date())
+    dates = sorted(dates_set)
+    dates_labels = [d.strftime('%d/%m') for d in dates]
+
+    # For each date compute cumulative points for every user
+    # cumulative[user_id][date_index] = total points up to and including that date
+    cumulative = {u['id']: [0] * len(dates) for u in users}
+
+    for m in matches:
+        dt = datetime.fromisoformat(m['kickoff_utc'].replace('Z', '+00:00')) - timedelta(hours=3)
+        date_idx = dates.index(dt.date())
+
+        for u in users:
+            bet = bets_index.get((u['id'], m['id']))
+            if bet:
+                pts, _ = calculate_match_points(
+                    bet[0], bet[1],
+                    m['final_home_goals'], m['final_away_goals'],
+                    m['phase']
+                )
+                # Add to this date and carry forward to all subsequent dates
+                for i in range(date_idx, len(dates)):
+                    cumulative[u['id']][i] += pts
+
+    # Convert points → rank position per date
+    # rank_history[user_id] = [rank_day0, rank_day1, ...]
+    rank_history = {u['id']: [] for u in users}
+    for i in range(len(dates)):
+        # Sort users by cumulative points on this date (desc), name as tiebreaker
+        standings = sorted(users, key=lambda u: (-cumulative[u['id']][i], u['user_name']))
+        for pos, u in enumerate(standings, 1):
+            rank_history[u['id']].append(pos)
+
+    # Build final dataset per user
+    total_users = len(users)
+    # Current rank = last date's rank
+    current_ranks = {u['id']: rank_history[u['id']][-1] if rank_history[u['id']] else total_users for u in users}
+
+    # Sort users by current rank for display
+    sorted_users = sorted(users, key=lambda u: current_ranks[u['id']])
+
+    chart_data = []
+    for u in sorted_users:
+        uid = u['id']
+        positions = rank_history[uid]
+        current_pts = cumulative[uid][-1] if cumulative[uid] else 0
+        # Trend: compare last position to second-to-last
+        if len(positions) >= 2:
+            trend = positions[-2] - positions[-1]  # positive = improved
+        else:
+            trend = 0
+        chart_data.append({
+            'id': uid,
+            'name': u['user_name'],
+            'positions': positions,
+            'current_rank': current_ranks[uid],
+            'current_pts': current_pts,
+            'trend': trend,
+        })
+
+    return render_template_string(
+        HISTORICO_TEMPLATE,
+        chart_data=chart_data,
+        dates_labels=dates_labels,
+        total_users=total_users,
+        betting_closed=BETTING_CLOSED,
+    )
+
 @app.route('/jogador/<int:user_id>')
 @login_required
 def jogador_detail(user_id):
