@@ -80,7 +80,6 @@ cur = conn.cursor()
 cur.execute("""
     SELECT id
     FROM fixtures
-    WHERE PHASE != '16 Avos Final'
 """)
 
 unfinished_old_ids = {row[0] for row in cur.fetchall()}
