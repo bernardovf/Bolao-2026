@@ -237,6 +237,58 @@ FAVORITO = ""
 
 ANFITRIAO = ""
 
+# Country colors for UI theming (primary team color)
+country_colors = {
+    'Argentina': {'bg': 'bg-sky-500', 'hover': 'hover:bg-sky-600', 'text': 'text-sky-700', 'light': 'bg-sky-50', 'ring': 'ring-sky-400'},
+    'Brazil': {'bg': 'bg-yellow-400', 'hover': 'hover:bg-yellow-500', 'text': 'text-yellow-700', 'light': 'bg-yellow-50', 'ring': 'ring-yellow-400'},
+    'France': {'bg': 'bg-blue-600', 'hover': 'hover:bg-blue-700', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Spain': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'England': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Germany': {'bg': 'bg-slate-800', 'hover': 'hover:bg-slate-900', 'text': 'text-slate-700', 'light': 'bg-slate-50', 'ring': 'ring-slate-400'},
+    'Italy': {'bg': 'bg-blue-600', 'hover': 'hover:bg-blue-700', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Portugal': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Netherlands': {'bg': 'bg-orange-500', 'hover': 'hover:bg-orange-600', 'text': 'text-orange-700', 'light': 'bg-orange-50', 'ring': 'ring-orange-400'},
+    'Belgium': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Uruguay': {'bg': 'bg-sky-500', 'hover': 'hover:bg-sky-600', 'text': 'text-sky-700', 'light': 'bg-sky-50', 'ring': 'ring-sky-400'},
+    'Croatia': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Mexico': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'USA': {'bg': 'bg-blue-700', 'hover': 'hover:bg-blue-800', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Colombia': {'bg': 'bg-yellow-400', 'hover': 'hover:bg-yellow-500', 'text': 'text-yellow-700', 'light': 'bg-yellow-50', 'ring': 'ring-yellow-400'},
+    'Japan': {'bg': 'bg-blue-600', 'hover': 'hover:bg-blue-700', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Morocco': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Senegal': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Switzerland': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Denmark': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'South Korea': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Korea Republic': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Ecuador': {'bg': 'bg-yellow-400', 'hover': 'hover:bg-yellow-500', 'text': 'text-yellow-700', 'light': 'bg-yellow-50', 'ring': 'ring-yellow-400'},
+    'Poland': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Australia': {'bg': 'bg-yellow-400', 'hover': 'hover:bg-yellow-500', 'text': 'text-yellow-700', 'light': 'bg-yellow-50', 'ring': 'ring-yellow-400'},
+    'Canada': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Ghana': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Cameroon': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Nigeria': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Tunisia': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Algeria': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Egypt': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Iran': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'IR Iran': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Saudi Arabia': {'bg': 'bg-green-600', 'hover': 'hover:bg-green-700', 'text': 'text-green-700', 'light': 'bg-green-50', 'ring': 'ring-green-400'},
+    'Costa Rica': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Serbia': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Wales': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Turkey': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Türkiye': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Austria': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Sweden': {'bg': 'bg-blue-500', 'hover': 'hover:bg-blue-600', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Norway': {'bg': 'bg-red-600', 'hover': 'hover:bg-red-700', 'text': 'text-red-700', 'light': 'bg-red-50', 'ring': 'ring-red-400'},
+    'Scotland': {'bg': 'bg-blue-600', 'hover': 'hover:bg-blue-700', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+    'Ukraine': {'bg': 'bg-blue-500', 'hover': 'hover:bg-blue-600', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'},
+}
+
+# Default color scheme for countries not in the list
+default_country_color = {'bg': 'bg-blue-500', 'hover': 'hover:bg-blue-600', 'text': 'text-blue-700', 'light': 'bg-blue-50', 'ring': 'ring-blue-400'}
+
 # FIFA World Rankings (Official, January 2025)
 # Lower number = better ranking (1 is best)
 # Used as final tiebreaker for group standings

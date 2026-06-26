@@ -1400,7 +1400,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 {% set draw_pct = (stats.draws / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
                 {% set away_pct = (stats.away_wins / stats.total_bets * 100)|round|int if stats.total_bets > 0 else 0 %}
 
-                <div class="bg-blue-500 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-600 transition filter-section"
+                <div class="{{ home_color.bg }} flex items-center justify-center text-white font-bold cursor-pointer {{ home_color.hover }} transition filter-section"
                      style="width: {{ home_pct }}%"
                      data-filter="home"
                      onclick="filterBets('home', this)">
@@ -1412,7 +1412,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                      onclick="filterBets('draw', this)">
                     {% if draw_pct > 8 %}<span class="text-xs md:text-sm">{{ draw_pct }}%</span>{% endif %}
                 </div>
-                <div class="bg-green-500 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-green-600 transition filter-section"
+                <div class="{{ away_color.bg }} flex items-center justify-center text-white font-bold cursor-pointer {{ away_color.hover }} transition filter-section"
                      style="width: {{ away_pct }}%"
                      data-filter="away"
                      onclick="filterBets('away', this)">
@@ -1423,7 +1423,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Summary Labels -->
             <div class="grid grid-cols-3 gap-2 text-center">
                 <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="home" onclick="filterBets('home', this)">
-                    <p class="text-2xl font-black text-blue-600">{{ stats.home_wins }}</p>
+                    <p class="text-2xl font-black {{ home_color.text }}">{{ stats.home_wins }}</p>
                     <p class="text-xs text-slate-600 font-semibold">Vitória {{ translate_team_name(match.home) }}</p>
                 </div>
                 <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="draw" onclick="filterBets('draw', this)">
@@ -1431,7 +1431,7 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                     <p class="text-xs text-slate-600 font-semibold">Empate</p>
                 </div>
                 <div class="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition filter-section" data-filter="away" onclick="filterBets('away', this)">
-                    <p class="text-2xl font-black text-green-600">{{ stats.away_wins }}</p>
+                    <p class="text-2xl font-black {{ away_color.text }}">{{ stats.away_wins }}</p>
                     <p class="text-xs text-slate-600 font-semibold">Vitória {{ translate_team_name(match.away) }}</p>
                 </div>
             </div>
@@ -1442,9 +1442,9 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Home Wins Breakdown -->
             {% if stats.home_win_scores %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <button onclick="toggleBreakdown('home')" class="w-full px-4 py-3 flex items-center justify-between bg-blue-50 hover:bg-blue-100 transition">
-                    <span class="font-bold text-blue-700">Placares Vitória {{ translate_team_name(match.home) }}</span>
-                    <svg class="w-5 h-5 text-blue-700 chevron" id="chevron-home" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="toggleBreakdown('home')" class="w-full px-4 py-3 flex items-center justify-between {{ home_color.light }} hover:opacity-75 transition">
+                    <span class="font-bold {{ home_color.text }}">Placares Vitória {{ translate_team_name(match.home) }}</span>
+                    <svg class="w-5 h-5 {{ home_color.text }} chevron" id="chevron-home" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
@@ -1518,9 +1518,9 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
             <!-- Away Wins Breakdown -->
             {% if stats.away_win_scores %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <button onclick="toggleBreakdown('away')" class="w-full px-4 py-3 flex items-center justify-between bg-green-50 hover:bg-green-100 transition">
-                    <span class="font-bold text-green-700">Placares Vitória {{ translate_team_name(match.away) }}</span>
-                    <svg class="w-5 h-5 text-green-700 chevron" id="chevron-away" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="toggleBreakdown('away')" class="w-full px-4 py-3 flex items-center justify-between {{ away_color.light }} hover:opacity-75 transition">
+                    <span class="font-bold {{ away_color.text }}">Placares Vitória {{ translate_team_name(match.away) }}</span>
+                    <svg class="w-5 h-5 {{ away_color.text }} chevron" id="chevron-away" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
@@ -1657,20 +1657,20 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
 
             // Update section styles
             sections.forEach(section => {
-                section.classList.remove('ring-4', 'ring-blue-400', 'ring-green-400', 'ring-slate-400');
+                section.classList.remove('ring-4', '{{ home_color.ring }}', '{{ away_color.ring }}', 'ring-slate-400');
                 section.classList.remove('scale-105');
             });
 
             // Highlight all sections with matching filter
             const matchingSections = document.querySelectorAll('[data-filter="' + type + '"]');
             matchingSections.forEach(section => {
-                section.classList.add('scale-105');
+                section.classList.add('scale-105', 'ring-4');
                 if (type === 'home') {
-                    section.classList.add('ring-4', 'ring-blue-400');
+                    section.classList.add('{{ home_color.ring }}');
                 } else if (type === 'draw') {
-                    section.classList.add('ring-4', 'ring-slate-400');
+                    section.classList.add('ring-slate-400');
                 } else if (type === 'away') {
-                    section.classList.add('ring-4', 'ring-green-400');
+                    section.classList.add('{{ away_color.ring }}');
                 }
             });
 

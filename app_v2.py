@@ -5,7 +5,7 @@ from functools import wraps
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils import get_flag_url, get_team_abbr, translate_team_name, format_match_datetime, calculate_group_standings, calculate_qualified_teams, normalize_player_name, translate_team_name_reduced
-from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO
+from constants import translations, CAMPEAO, ARTILHEIRO, MELHOR_JOGADOR, ZEBRA, FAVORITO, ANFITRIAO, country_colors, default_country_color
 from calculate_points import calculate_match_points
 from templates import *
 import psycopg2
@@ -1235,6 +1235,10 @@ def match_stats(match_id):
         'away_win_scores': away_win_scores,
     }
 
+    # Get country colors
+    home_color = country_colors.get(match['home'], default_country_color)
+    away_color = country_colors.get(match['away'], default_country_color)
+
     return render_template_string(
         MATCH_STATS_TEMPLATE,
         match=match,
@@ -1243,6 +1247,8 @@ def match_stats(match_id):
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
         betting_closed=BETTING_CLOSED,
+        home_color=home_color,
+        away_color=away_color,
     )
 
 @app.route('/palpites-gerais', methods=['GET', 'POST'])
