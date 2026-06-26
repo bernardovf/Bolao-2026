@@ -1448,10 +1448,26 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 </button>
                 <div id="breakdown-home" class="score-breakdown">
                     <div class="p-4 space-y-2">
-                        {% for score, count in stats.home_win_scores %}
-                            <div class="flex items-center justify-between py-1">
-                                <span class="font-bold text-slate-700">{{ score }}</span>
-                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                        {% for score, users in stats.home_win_scores %}
+                            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                                <button onclick="toggleScoreUsers('home-{{ loop.index }}')" class="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500">{{ users|length }} <span class="text-xs">({{ "%.0f"|format((users|length / stats.total_bets * 100)) }}%)</span></span>
+                                        <svg class="w-4 h-4 text-slate-500 chevron" id="chevron-home-{{ loop.index }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <div id="users-home-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                    <div class="px-3 py-2 space-y-1">
+                                        {% for user in users %}
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                                {{ user.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
@@ -1470,10 +1486,26 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 </button>
                 <div id="breakdown-draw" class="score-breakdown">
                     <div class="p-4 space-y-2">
-                        {% for score, count in stats.draw_scores %}
-                            <div class="flex items-center justify-between py-1">
-                                <span class="font-bold text-slate-700">{{ score }}</span>
-                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                        {% for score, users in stats.draw_scores %}
+                            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                                <button onclick="toggleScoreUsers('draw-{{ loop.index }}')" class="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500">{{ users|length }} <span class="text-xs">({{ "%.0f"|format((users|length / stats.total_bets * 100)) }}%)</span></span>
+                                        <svg class="w-4 h-4 text-slate-500 chevron" id="chevron-draw-{{ loop.index }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <div id="users-draw-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                    <div class="px-3 py-2 space-y-1">
+                                        {% for user in users %}
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                                {{ user.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
@@ -1492,10 +1524,26 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 </button>
                 <div id="breakdown-away" class="score-breakdown">
                     <div class="p-4 space-y-2">
-                        {% for score, count in stats.away_win_scores %}
-                            <div class="flex items-center justify-between py-1">
-                                <span class="font-bold text-slate-700">{{ score }}</span>
-                                <span class="text-slate-500">{{ count }} <span class="text-xs">({{ "%.0f"|format((count / stats.total_bets * 100)) }}%)</span></span>
+                        {% for score, users in stats.away_win_scores %}
+                            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                                <button onclick="toggleScoreUsers('away-{{ loop.index }}')" class="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition">
+                                    <span class="font-bold text-slate-700">{{ score }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500">{{ users|length }} <span class="text-xs">({{ "%.0f"|format((users|length / stats.total_bets * 100)) }}%)</span></span>
+                                        <svg class="w-4 h-4 text-slate-500 chevron" id="chevron-away-{{ loop.index }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <div id="users-away-{{ loop.index }}" class="score-breakdown bg-slate-50">
+                                    <div class="px-3 py-2 space-y-1">
+                                        {% for user in users %}
+                                            <a href="{{ url_for('jogador_detail', user_id=user.id) }}" class="block text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                                                {{ user.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
@@ -1570,6 +1618,19 @@ MATCH_STATS_TEMPLATE = '''<!DOCTYPE html>
                 chevron.classList.remove('open');
             } else {
                 breakdown.classList.add('open');
+                chevron.classList.add('open');
+            }
+        }
+
+        function toggleScoreUsers(scoreId) {
+            const usersList = document.getElementById('users-' + scoreId);
+            const chevron = document.getElementById('chevron-' + scoreId);
+
+            if (usersList.classList.contains('open')) {
+                usersList.classList.remove('open');
+                chevron.classList.remove('open');
+            } else {
+                usersList.classList.add('open');
                 chevron.classList.add('open');
             }
         }

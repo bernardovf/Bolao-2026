@@ -1193,7 +1193,7 @@ def match_stats(match_id):
         ORDER BY b.home_goals DESC, b.away_goals DESC, u.user_name
     ''', (match_id,)).fetchall()
 
-    # Calculate statistics and organize scores by result type
+    # Calculate statistics and organize scores by result type with user names
     total_bets = sum(1 for b in bets if b['home_goals'] is not None)
 
     home_win_scores = {}
@@ -1203,26 +1203,33 @@ def match_stats(match_id):
     for bet in bets:
         if bet['home_goals'] is not None and bet['away_goals'] is not None:
             score = f"{bet['home_goals']}-{bet['away_goals']}"
+            user_info = {'name': bet['user_name'], 'id': bet['user_id']}
 
             if bet['home_goals'] > bet['away_goals']:
-                home_win_scores[score] = home_win_scores.get(score, 0) + 1
+                if score not in home_win_scores:
+                    home_win_scores[score] = []
+                home_win_scores[score].append(user_info)
             elif bet['home_goals'] == bet['away_goals']:
-                draw_scores[score] = draw_scores.get(score, 0) + 1
+                if score not in draw_scores:
+                    draw_scores[score] = []
+                draw_scores[score].append(user_info)
             else:
-                away_win_scores[score] = away_win_scores.get(score, 0) + 1
+                if score not in away_win_scores:
+                    away_win_scores[score] = []
+                away_win_scores[score].append(user_info)
 
-    # Sort each category by count
-    home_win_scores = sorted(home_win_scores.items(), key=lambda x: x[1], reverse=True)
-    draw_scores = sorted(draw_scores.items(), key=lambda x: x[1], reverse=True)
-    away_win_scores = sorted(away_win_scores.items(), key=lambda x: x[1], reverse=True)
+    # Sort each category by count and convert to list of (score, users) tuples
+    home_win_scores = sorted(home_win_scores.items(), key=lambda x: len(x[1]), reverse=True)
+    draw_scores = sorted(draw_scores.items(), key=lambda x: len(x[1]), reverse=True)
+    away_win_scores = sorted(away_win_scores.items(), key=lambda x: len(x[1]), reverse=True)
 
     conn.close()
 
     stats = {
         'total_bets': total_bets,
-        'home_wins': sum(count for _, count in home_win_scores),
-        'draws': sum(count for _, count in draw_scores),
-        'away_wins': sum(count for _, count in away_win_scores),
+        'home_wins': sum(len(users) for _, users in home_win_scores),
+        'draws': sum(len(users) for _, users in draw_scores),
+        'away_wins': sum(len(users) for _, users in away_win_scores),
         'home_win_scores': home_win_scores,
         'draw_scores': draw_scores,
         'away_win_scores': away_win_scores,
