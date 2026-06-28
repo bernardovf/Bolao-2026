@@ -40,7 +40,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 
 BETTING_CLOSED_PHASES = {
     'Grupo': True,           # Grupo A, Grupo B, etc.
-    '16 Avos Final': False,
+    '16 Avos Final': True,
     'Oitavas de Final': False,
     'Quartas de Final': False,
     'Semifinal': False,
