@@ -40,7 +40,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 
 BETTING_CLOSED_PHASES = {
     'Grupo': True,           # Grupo A, Grupo B, etc.
-    '16 Avos Final': False,
+    '16 Avos Final': True,
     'Oitavas de Final': False,
     'Quartas de Final': False,
     'Semifinal': False,
@@ -52,7 +52,7 @@ BETTING_CLOSED_DEFAULT = True
 
 # Backward compatibility
 BETTING_CLOSED = True  # Used for general UI elements not tied to specific phases
-GRUPOS_CLOSED = False
+GRUPOS_CLOSED = True
 
 def is_betting_closed_for_phase(phase):
     """Check if betting is closed for a specific phase"""
@@ -460,6 +460,7 @@ def ranking():
         if user_id not in user_stats:
             user_stats[user_id] = {
                 'pts_grupos': 0,    # group stage points
+                'pts_16avos': 0,    # 16 avos de final points
                 'pts_extras': 0,    # qualification points
                 'pts_campeao': 0,  # campeao
                 'pts_artilheiro': 0,  # artilheiro
@@ -473,7 +474,13 @@ def ranking():
                 'colunas': 0        # partial/correct result (2 points)
             }
 
-        user_stats[user_id]['pts_grupos'] += points
+        phase_lower = bet['phase'].lower() if bet['phase'] else ''
+        if 'grupo' in phase_lower:
+            user_stats[user_id]['pts_grupos'] += points
+        elif '16' in phase_lower or '16avos' in phase_lower or 'avos' in phase_lower:
+            user_stats[user_id]['pts_16avos'] += points
+        else:
+            user_stats[user_id]['pts_grupos'] += points
         if match_type == 'exact':
             user_stats[user_id]['cravadas'] += 1
         elif match_type == 'saldo':
@@ -490,6 +497,7 @@ def ranking():
         if user_id not in user_stats:
             user_stats[user_id] = {
                 'pts_grupos': 0,
+                'pts_16avos': 0,
                 'pts_extras': 0,
                 'pts_campeao': 0,  # campeao
                 'pts_artilheiro': 0,  # artilheiro
@@ -517,7 +525,7 @@ def ranking():
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_16avos': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
                                          'pts_melhor_jogador': 0, 'pts_zebra': 0, 'pts_favorito': 0, 'pts_anfitriao': 0,
                                          'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
         if CAMPEAO == "":
@@ -566,7 +574,8 @@ def ranking():
         pts_favorito = stats['pts_favorito']
         pts_anfitriao = stats['pts_anfitriao']
 
-        total_points = pts_grupos + pts_extras + pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
+        pts_16avos = stats['pts_16avos']
+        total_points = pts_grupos + pts_16avos + pts_extras + pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -576,6 +585,7 @@ def ranking():
             'user_name': user['user_name'],
             'total_points': total_points,
             'pts_grupos': pts_grupos,
+            'pts_16avos': pts_16avos,
             'pts_extras': pts_extras,
             'pts_campeao': pts_campeao,
             'pts_artilheiro': pts_artilheiro,
