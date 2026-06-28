@@ -358,7 +358,7 @@ def ranking():
     # Get all bets with fixture results
     bets_data = db_execute(conn, '''
         SELECT b.user_id, b.home_goals as bet_home, b.away_goals as bet_away,
-               f.final_home_goals, f.final_away_goals
+               f.final_home_goals, f.final_away_goals, f.phase
         FROM bet b
         JOIN fixtures f ON b.match_id = f.id
         WHERE f.final_home_goals IS NOT NULL AND f.final_away_goals IS NOT NULL
@@ -379,13 +379,15 @@ def ranking():
     for bet in bets_data:
         points, match_type = calculate_match_points(
             bet['bet_home'], bet['bet_away'],
-            bet['final_home_goals'], bet['final_away_goals']
+            bet['final_home_goals'], bet['final_away_goals'],
+            bet['phase']
         )
         user_id = bet['user_id']
 
         if user_id not in user_stats:
             user_stats[user_id] = {
                 'pts_grupos': 0,    # group stage points
+                'pts_16avos': 0,    # 16 avos de final points
                 'pts_extras': 0,    # qualification points
                 'cravadas': 0,      # exact matches (6 points)
                 'saldo': 0,         # goal difference matches (4 points)
@@ -393,7 +395,14 @@ def ranking():
                 'colunas': 0        # partial/correct result (2 points)
             }
 
-        user_stats[user_id]['pts_grupos'] += points
+        phase_lower = bet['phase'].lower() if bet['phase'] else ''
+        if '16 avos' in phase_lower or '16avos' in phase_lower:
+            user_stats[user_id]['pts_16avos'] += points
+        elif 'grupo' in phase_lower:
+            user_stats[user_id]['pts_grupos'] += points
+        else:
+            user_stats[user_id]['pts_grupos'] += points
+
         if match_type == 'exact':
             user_stats[user_id]['cravadas'] += 1
         elif match_type == 'saldo':
@@ -410,6 +419,7 @@ def ranking():
         if user_id not in user_stats:
             user_stats[user_id] = {
                 'pts_grupos': 0,
+                'pts_16avos': 0,
                 'pts_extras': 0,
                 'cravadas': 0,
                 'saldo': 0,
@@ -431,10 +441,11 @@ def ranking():
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_extras': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_16avos': 0, 'pts_extras': 0, 'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
         pts_grupos = stats['pts_grupos']
+        pts_16avos = stats['pts_16avos']
         pts_extras = stats['pts_extras']
-        total_points = pts_grupos + pts_extras
+        total_points = pts_grupos + pts_16avos + pts_extras
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -444,6 +455,7 @@ def ranking():
             'user_name': user['user_name'],
             'total_points': total_points,
             'pts_grupos': pts_grupos,
+            'pts_16avos': pts_16avos,
             'pts_extras': pts_extras,
             'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
