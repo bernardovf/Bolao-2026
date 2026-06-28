@@ -40,7 +40,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 
 BETTING_CLOSED_PHASES = {
     'Grupo': True,           # Grupo A, Grupo B, etc.
-    '16 Avos Final': False,
+    '16 Avos Final': True,
     'Oitavas de Final': False,
     'Quartas de Final': False,
     'Semifinal': False,
@@ -52,7 +52,7 @@ BETTING_CLOSED_DEFAULT = True
 
 # Backward compatibility
 BETTING_CLOSED = True  # Used for general UI elements not tied to specific phases
-GRUPOS_CLOSED = False
+GRUPOS_CLOSED = True
 
 def is_betting_closed_for_phase(phase):
     """Check if betting is closed for a specific phase"""
