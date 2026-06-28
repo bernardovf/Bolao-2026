@@ -52,7 +52,7 @@ BETTING_CLOSED_DEFAULT = True
 
 # Backward compatibility
 BETTING_CLOSED = True  # Used for general UI elements not tied to specific phases
-GRUPOS_CLOSED = False
+GRUPOS_CLOSED = True
 
 def is_betting_closed_for_phase(phase):
     """Check if betting is closed for a specific phase"""
