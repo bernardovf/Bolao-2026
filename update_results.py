@@ -13,7 +13,24 @@ headers = {
 # API-Football fixture_id -> your old football-data.org fixture id
 FIXTURE_ID_MAP = {
     537344: 537343,
-    537343: 537344}
+    537343: 537344,
+    537417: 1,
+    537423: 2,
+    537415: 3,
+    537418: 4,
+    537424: 5,
+    537416: 6,
+    537425: 7,
+    537426: 8,
+    537422: 9,
+    537421: 10,
+    537420: 11,
+    537419: 12,
+    537429: 13,
+    537428: 14,
+    537427: 15,
+    537430: 16
+}
 
 TEAM_MAP = {
     "Mexico": "Mexico",
@@ -80,10 +97,10 @@ cur = conn.cursor()
 cur.execute("""
     SELECT id
     FROM fixtures
+    WHERE phase = '16 Avos Final'
 """)
 
 unfinished_old_ids = {row[0] for row in cur.fetchall()}
-
 # Only request API-Football fixtures that map to unfinished DB fixtures
 api_fixture_ids = [
     api_id
@@ -124,11 +141,12 @@ if api_fixture_ids:
         home_goals = item["score"]["fullTime"]["home"]
         away_goals = item["score"]["fullTime"]["away"]
 
-        if home_goals is None or away_goals is None:
-            continue
-
         home = item["homeTeam"]["name"]
         away = item["awayTeam"]["name"]
+
+        if home_goals is None or away_goals is None:
+            print(f"NOT STARTED       {api_fixture_id} -> {old_match_id}: {home} vs {away}")
+            continue
 
         cur.execute("""
             SELECT home, away
