@@ -288,9 +288,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12          md:w-16">Pos</th>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
                             <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Total</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Grupos</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">16 Avos</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Classificados</th>
+                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">16a</th>
+                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Grupos</th>
+                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Classificados</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
                             <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
@@ -324,13 +324,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_grupos or 0 }}</span>
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_16avos or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_16avos or 0 }}</span>
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_grupos or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="font-semibold text-blue-600">{{ rank.pts_extras or 0 }}</span>
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_extras or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
@@ -458,57 +458,6 @@ MATCHES_TEMPLATE = '''<!DOCTYPE html>
         }
         </script>
 
-        <div class="flex flex-col-reverse md:flex-row md:items-start gap-6 md:gap-8">
-            {% if group_standings %}
-                <div class="md:w-5/12 lg:w-1/3">
-                    {% for group_name, standings in group_standings.items()|sort %}
-                        <div class="bg-white rounded-lg md:rounded-xl shadow-lg overflow-hidden mb-6 md:mb-8">
-                            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
-                                <h3 class="text-base font-black text-white">{{ group_name }}</h3>
-                            </div>
-
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-xs md:text-sm">
-                                    <thead class="bg-slate-100 border-b-2 border-slate-200">
-                                        <tr>
-                                            <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">#</th>
-                                            <th class="px-2 md:px-3 py-2 text-left font-bold text-slate-700">Equipe</th>
-                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">J</th>
-                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">GP</th>
-                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">SG</th>
-                                            <th class="px-2 md:px-3 py-2 text-center font-bold text-slate-700">Pts</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-200">
-                                        {% for team in standings %}
-                                            {% set qualifies_top = loop.index <= 2 %}
-                                            {% set qualifies_third = loop.index == 3 and team.team in best_third_qualifiers %}
-                                            {% set is_qualified = qualifies_top or qualifies_third %}
-                                            {% set row_class = 'bg-green-200' if is_qualified else '' %}
-                                            <tr class="hover:bg-slate-50 transition {{ row_class }}">
-                                                <td class="px-2 md:px-3 py-2 font-bold text-slate-600">{{ loop.index }}</td>
-                                                <td class="px-2 md:px-3 py-2">
-                                                    <div class="flex items-center gap-1 md:gap-2">
-                                                        {% set team_flag = get_flag_url(team.team) %}
-                                                        {% if team_flag %}
-                                                            <img src="{{ team_flag }}" alt="{{ translate_team_name(team.team) }}" class="w-7 h-5 md:w-8 md:h-6 rounded border border-slate-200 flex-shrink-0">
-                                                        {% endif %}
-                                                        <span class="font-semibold text-slate-800 truncate text-sm md:text-sm">{{ translate_team_name(team.team) }}</span>
-                                                    </div>
-                                                </td>
-                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.played }}</td>
-                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gf }}</td>
-                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.gd }}</td>
-                                                <td class="px-2 md:px-3 py-2 text-center text-slate-600">{{ team.points }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
 
             <!-- Matches Form -->
             <div class="md:flex-1">
