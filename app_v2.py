@@ -704,7 +704,6 @@ def historico():
     ''').fetchall()
 
     all_bets = db_execute(conn, 'SELECT user_id, match_id, home_goals, away_goals FROM bet').fetchall()
-    conn.close()
 
     # Index bets by (user_id, match_id)
     bets_index = {}
@@ -738,6 +737,27 @@ def historico():
                 # Add to this date and carry forward to all subsequent dates
                 for i in range(date_idx, len(dates)):
                     cumulative[u['id']][i] += pts
+
+    # Add qualification (classificados) points starting from the last group match date
+    if GRUPOS_CLOSED and dates:
+        last_group_idx = 0
+        for m in matches:
+            if 'grupo' in (m['phase'] or '').lower():
+                dt = datetime.fromisoformat(m['kickoff_utc'].replace('Z', '+00:00')) - timedelta(hours=3)
+                idx = dates.index(dt.date())
+                if idx > last_group_idx:
+                    last_group_idx = idx
+
+        real_qualified = calculate_qualified_teams(db_execute, conn, user_id=None, use_real_results=True)
+        for u in users:
+            uid = u['id']
+            user_qualified = calculate_qualified_teams(db_execute, conn, user_id=uid, use_real_results=False)
+            qual_pts = len(user_qualified & real_qualified) * 2
+            if qual_pts > 0:
+                for i in range(last_group_idx, len(dates)):
+                    cumulative[uid][i] += qual_pts
+
+    conn.close()
 
     # Convert points → rank position per date
     # rank_history[user_id] = [rank_day0, rank_day1, ...]
