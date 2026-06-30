@@ -138,8 +138,12 @@ if api_fixture_ids:
         if status == "NOT STARTED":
             continue
 
-        home_goals = item["score"]["fullTime"]["home"]
-        away_goals = item["score"]["fullTime"]["away"]
+        if "regularTime" in item["score"]:
+            home_goals = item["score"]["regularTime"]["home"]
+            away_goals = item["score"]["regularTime"]["away"]
+        else:
+            home_goals = item["score"]["fullTime"]["home"]
+            away_goals = item["score"]["fullTime"]["away"]
 
         home = item["homeTeam"]["name"]
         away = item["awayTeam"]["name"]
