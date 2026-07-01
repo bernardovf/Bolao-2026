@@ -1955,7 +1955,9 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     {% for scorer in top_scorers %}
-                    <tr class="{% if loop.index == 1 %}bg-yellow-50{% endif %} hover:bg-slate-50 transition">
+                    <tr class="scorer-row {% if loop.index == 1 %}bg-yellow-50{% endif %} hover:bg-blue-50 transition cursor-pointer select-none"
+                        data-filter="{{ scorer.name }}"
+                        onclick="filterPlayers('{{ scorer.name }}', this)">
                         <td class="px-4 py-3 font-semibold text-slate-800">
                             {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}<span class="inline-block w-5 text-center text-slate-400 text-xs">{{ loop.index }}</span>{% endif %}
                             {{ scorer.name }}
@@ -2022,34 +2024,36 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
         let currentFilter = null;
 
         function filterPlayers(option, element) {
-            const rows = document.querySelectorAll('.player-row');
+            const playerRows = document.querySelectorAll('.player-row');
             const cards = document.querySelectorAll('.filter-card');
+            const scorerRows = document.querySelectorAll('.scorer-row');
 
             // If clicking the same filter, reset
             if (currentFilter === option) {
                 currentFilter = null;
-                rows.forEach(row => row.style.display = '');
+                playerRows.forEach(row => row.style.display = '');
                 cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400'));
+                scorerRows.forEach(row => row.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-100'));
                 return;
             }
 
             // Set new filter
             currentFilter = option;
 
-            // Update card styles
-            cards.forEach(card => {
-                card.classList.remove('ring-4', 'ring-blue-400');
-            });
-            element.classList.add('ring-4', 'ring-blue-400');
+            // Reset all highlights
+            cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400'));
+            scorerRows.forEach(row => row.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-100'));
 
-            // Filter rows
-            rows.forEach(row => {
-                const prediction = row.dataset.prediction;
-                if (prediction === option) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            // Highlight selected element
+            if (element.classList.contains('scorer-row')) {
+                element.classList.add('ring-2', 'ring-blue-400', 'bg-blue-100');
+            } else {
+                element.classList.add('ring-4', 'ring-blue-400');
+            }
+
+            // Filter prediction rows
+            playerRows.forEach(row => {
+                row.style.display = row.dataset.prediction === option ? '' : 'none';
             });
         }
     </script>
