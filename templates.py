@@ -738,6 +738,34 @@ PALPITES_GERAIS_TEMPLATE = '''<!DOCTYPE html>
                        placeholder="Nome do jogador"
                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition font-semibold text-slate-800 {% if betting_closed %}opacity-60 cursor-not-allowed{% endif %}"
                        {% if betting_closed %}disabled{% endif %}>
+                {% if top_scorers %}
+                <div class="mt-4">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Artilheiros</p>
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold">Jogador</th>
+                                    <th class="px-3 py-2 text-left font-semibold">Posição</th>
+                                    <th class="px-3 py-2 text-center font-semibold">Gols</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for scorer in top_scorers %}
+                                <tr class="{% if loop.index == 1 %}bg-yellow-50{% endif %} hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold text-slate-800">
+                                        {% if loop.index == 1 %}<span class="mr-1">🥇</span>{% elif loop.index == 2 %}<span class="mr-1">🥈</span>{% elif loop.index == 3 %}<span class="mr-1">🥉</span>{% endif %}
+                                        {{ scorer.name }}
+                                    </td>
+                                    <td class="px-3 py-2 text-slate-500">{{ scorer.position }}</td>
+                                    <td class="px-3 py-2 text-center font-bold text-blue-600">{{ scorer.goals }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Best Player -->

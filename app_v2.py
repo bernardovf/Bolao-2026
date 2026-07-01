@@ -1435,6 +1435,11 @@ def palpites_gerais():
         GROUP BY home
         ORDER BY MIN(id)
     ''').fetchall()
+    top_scorers = db_execute(conn, '''
+        SELECT name, goals, position
+        FROM top_scorers
+        ORDER BY goals DESC, name ASC
+    ''').fetchall()
     conn.close()
 
     team_names = []
@@ -1454,6 +1459,7 @@ def palpites_gerais():
         row=dict(row) if row else {},
         translated_teams=translated_teams,
         betting_closed=BETTING_CLOSED,
+        top_scorers=[dict(s) for s in top_scorers],
     )
 
 @app.route('/extras/<category>/stats')
