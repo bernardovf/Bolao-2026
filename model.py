@@ -65,6 +65,8 @@ ALIASES = {
     "Cabo Verde": "Cape Verde",
 }
 
+DRAW_THRESHOLD = 50
+
 def normalize_team(team):
     team = str(team).strip()
     return ALIASES.get(team, team)
@@ -118,6 +120,22 @@ def elo_2x1_strategy(home_team, away_team):
     else:
         return 1, 2
 
+def elo_1x0_draw_strategy(home_team, away_team):
+    home = normalize_team(home_team)
+    away = normalize_team(away_team)
+
+    home_elo = TEAM_RATINGS[home][0]
+    away_elo = TEAM_RATINGS[away][0]
+
+    elo_diff = abs(home_elo - away_elo)
+
+    if elo_diff <= DRAW_THRESHOLD:
+        return 1, 1
+
+    if home_elo > away_elo:
+        return 1, 0
+    else:
+        return 0, 1
 
 # Read file
 fixtures = pd.read_csv("fixtures.csv")
@@ -133,15 +151,16 @@ rows = []
 for _, match in fixtures.iterrows():
     home = normalize_team(match["home"])
     away = normalize_team(match["away"])
-
-    pred_home_1, pred_away_1 = elo_1x0_strategy(home, away)
-    pred_home_2, pred_away_2 = elo_2x1_strategy(home, away)
-
     real_home = int(match["final_home_goals"])
     real_away = int(match["final_away_goals"])
 
+    pred_home_1, pred_away_1 = elo_1x0_strategy(home, away)
+    pred_home_2, pred_away_2 = elo_2x1_strategy(home, away)
+    pred_home_3, pred_away_3 = elo_1x0_draw_strategy(home, away)
+
     points_1 = calculate_points(pred_home_1, pred_away_1, real_home, real_away)
     points_2 = calculate_points(pred_home_2, pred_away_2, real_home, real_away)
+    points_3 = calculate_points(pred_home_3, pred_away_3, real_home, real_away)
 
     rows.append({
         "match_id": match.get("id", None),
@@ -150,16 +169,20 @@ for _, match in fixtures.iterrows():
         "home_elo": TEAM_RATINGS[home][0],
         "away_elo": TEAM_RATINGS[away][0],
         "elo_favorite": home if TEAM_RATINGS[home][0] >= TEAM_RATINGS[away][0] else away,
-        "prediction_1": f"{pred_home_1}-{pred_away_1}",
         "actual": f"{real_home}-{real_away}",
         "points 1x0": points_1,
-        "points 2x1": points_2
+        "points 2x1": points_2,
+        "points draw 1x0": points_3,
+
     })
 
 results = pd.DataFrame(rows)
 
 print("Total points 1x0:", results["points 1x0"].sum())
-print("% 1x0:", round(results["points 1x0"].sum() / (len(results) * 10) * 100, 1), "%")
+print("% 1x0:", round(results["points 1x0"].sum() / (len(results) * 6) * 100, 0), "%")
 print("")
 print("Total points 2x1:", results["points 2x1"].sum())
-print("Percentage of max:", round(results["points 2x1"].sum() / (len(results) * 10) * 100, 1), "%")
+print("% 2x1:", round(results["points 2x1"].sum() / (len(results) * 6) * 100, 0), "%")
+print("")
+print("Total points Draw 1x0:", results["points draw 1x0"].sum())
+print("% Draw 1x0:", round(results["points draw 1x0"].sum() / (len(results) * 6) * 100, 0), "%")
