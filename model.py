@@ -82,15 +82,15 @@ def calculate_points(pred_home, pred_away, real_home, real_away):
     real_result = get_result(real_home, real_away)
 
     if pred_home == real_home and pred_away == real_away:
-        return 10
+        return 6
 
     if pred_result == real_result:
         if pred_result == "D":
-            return 5
+            return 3
         elif (pred_home - pred_away) == (real_home - real_away):
-            return 6.6
+            return 4
         else:
-            return 3.3
+            return 2
 
     return 0
 
@@ -105,6 +105,19 @@ def elo_1x0_strategy(home_team, away_team):
         return 1, 0
     else:
         return 0, 1
+
+def elo_2x1_strategy(home_team, away_team):
+    home = normalize_team(home_team)
+    away = normalize_team(away_team)
+
+    home_elo = TEAM_RATINGS[home][0]
+    away_elo = TEAM_RATINGS[away][0]
+
+    if home_elo >= away_elo:
+        return 2, 1
+    else:
+        return 1, 2
+
 
 # Read file
 fixtures = pd.read_csv("fixtures.csv")
@@ -121,12 +134,14 @@ for _, match in fixtures.iterrows():
     home = normalize_team(match["home"])
     away = normalize_team(match["away"])
 
-    pred_home, pred_away = elo_1x0_strategy(home, away)
+    pred_home_1, pred_away_1 = elo_1x0_strategy(home, away)
+    pred_home_2, pred_away_2 = elo_2x1_strategy(home, away)
 
     real_home = int(match["final_home_goals"])
     real_away = int(match["final_away_goals"])
 
-    points = calculate_points(pred_home, pred_away, real_home, real_away)
+    points_1 = calculate_points(pred_home_1, pred_away_1, real_home, real_away)
+    points_2 = calculate_points(pred_home_2, pred_away_2, real_home, real_away)
 
     rows.append({
         "match_id": match.get("id", None),
@@ -135,17 +150,16 @@ for _, match in fixtures.iterrows():
         "home_elo": TEAM_RATINGS[home][0],
         "away_elo": TEAM_RATINGS[away][0],
         "elo_favorite": home if TEAM_RATINGS[home][0] >= TEAM_RATINGS[away][0] else away,
-        "prediction": f"{pred_home}-{pred_away}",
+        "prediction_1": f"{pred_home_1}-{pred_away_1}",
         "actual": f"{real_home}-{real_away}",
-        "points": points,
+        "points 1x0": points_1,
+        "points 2x1": points_2
     })
 
 results = pd.DataFrame(rows)
 
-print(results)
-print()
-print("Total points:", results["points"].sum())
-print("Matches:", len(results))
-print("Points per match:", round(results["points"].mean(), 2))
-print("Max possible:", len(results) * 10)
-print("Percentage of max:", round(results["points"].sum() / (len(results) * 10) * 100, 1), "%")
+print("Total points 1x0:", results["points 1x0"].sum())
+print("% 1x0:", round(results["points 1x0"].sum() / (len(results) * 10) * 100, 1), "%")
+print("")
+print("Total points 2x1:", results["points 2x1"].sum())
+print("Percentage of max:", round(results["points 2x1"].sum() / (len(results) * 10) * 100, 1), "%")
