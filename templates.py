@@ -1902,6 +1902,32 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
             <p class="text-base md:text-lg text-slate-600">Estatísticas dos palpites</p>
         </div>
 
+        <!-- Top Scorers Table (artilheiro only) -->
+        {% if category == 'artilheiro' and top_scorers %}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 mb-6">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-bold text-slate-700 text-lg">Jogador</th>
+                        <th class="px-4 py-3 text-center font-bold text-slate-700 text-lg">Gols</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for scorer in top_scorers %}
+                    <tr class="scorer-row hover:bg-blue-50 transition cursor-pointer select-none"
+                        data-filter="{{ scorer.name }}"
+                        onclick="filterPlayers('{{ scorer.name }}', this)">
+                        <td class="px-4 py-3 font-semibold text-slate-800 text-lg">
+                            {{ scorer.name }}
+                        </td>
+                        <td class="px-4 py-3 text-center font-black text-blue-600 text-lg">{{ scorer.goals }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
         <!-- Options Summary -->
         {% if options %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -1939,37 +1965,6 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
             </div>
         {% endif %}
 
-        <!-- Top Scorers Table (artilheiro only) -->
-        {% if category == 'artilheiro' and top_scorers %}
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 mb-6">
-            <div class="px-4 py-3 bg-slate-100 border-b border-slate-300">
-                <h2 class="text-lg font-bold text-slate-800">Artilheiros da Copa</h2>
-            </div>
-            <table class="w-full text-sm">
-                <thead class="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                        <th class="px-4 py-3 text-left font-bold text-slate-700">Jogador</th>
-                        <th class="px-4 py-3 text-left font-bold text-slate-700">Posição</th>
-                        <th class="px-4 py-3 text-center font-bold text-slate-700">Gols</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for scorer in top_scorers %}
-                    <tr class="scorer-row {% if loop.index == 1 %}bg-yellow-50{% endif %} hover:bg-blue-50 transition cursor-pointer select-none"
-                        data-filter="{{ scorer.name }}"
-                        onclick="filterPlayers('{{ scorer.name }}', this)">
-                        <td class="px-4 py-3 font-semibold text-slate-800">
-                            {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}<span class="inline-block w-5 text-center text-slate-400 text-xs">{{ loop.index }}</span>{% endif %}
-                            {{ scorer.name }}
-                        </td>
-                        <td class="px-4 py-3 text-slate-500">{{ scorer.position }}</td>
-                        <td class="px-4 py-3 text-center font-black text-blue-600 text-lg">{{ scorer.goals }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
 
         <!-- All Predictions Table -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
