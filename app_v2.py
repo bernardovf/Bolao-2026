@@ -1503,6 +1503,14 @@ def extras_stats(category):
     # Check if this category uses team names
     is_team_category = category in ['campeao', 'zebra_longe', 'favorito_caiu', 'anfitriao_longe']
 
+    top_scorers = []
+    if category == 'artilheiro':
+        top_scorers = [dict(s) for s in db_execute(conn, '''
+            SELECT name, goals, position
+            FROM top_scorers
+            ORDER BY goals DESC, name ASC
+        ''').fetchall()]
+
     conn.close()
 
     return render_template_string(
@@ -1516,6 +1524,7 @@ def extras_stats(category):
         translate_team_name=translate_team_name,
         get_flag_url=get_flag_url,
         betting_closed=BETTING_CLOSED,
+        top_scorers=top_scorers,
     )
 
 @app.route('/regras')
