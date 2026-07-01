@@ -22,7 +22,7 @@ def get_phase_multiplier(phase):
         return 6  # Quartas: 36, 24, 18, 12
     elif 'semi' in phase_lower:
         return 8  # Semi: 48, 32, 24, 16
-    elif 'terceiro' in phase_lower or '3' in phase_lower:
+    elif 'terceiro' in phase_lower or '3o' in phase_lower:
         return 8  # Terceiro Lugar: 48, 32, 24, 16
     elif 'final' in phase_lower:
         return 12  # Final: 72, 48, 36, 24
