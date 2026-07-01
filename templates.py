@@ -314,6 +314,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 data-saldo="{{ rank.saldo }}"
                                 data-emp="{{ rank.empates }}"
                                 data-col="{{ rank.colunas }}"
+                                data-pos="{{ loop.index }}"
                                 {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
                                 <td class="px-1.5 md:px-6 py-0.5 md:py-1 text-center">
                                     <span class="pos-num text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
@@ -396,12 +397,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             return sortDir * (parseFloat(bv) - parseFloat(av));
         });
 
-        rows.forEach((row, idx) => {
+        rows.forEach((row) => {
             tbody.appendChild(row);
+            const pos = parseInt(row.dataset.pos);
             const posSpan = row.querySelector('.pos-num');
             if (posSpan) {
-                posSpan.textContent = idx + 1;
-                posSpan.className = 'pos-num text-base md:text-xl font-black ' + (idx < 3 ? 'text-blue-600' : 'text-slate-500');
+                posSpan.textContent = pos;
+                posSpan.className = 'pos-num text-base md:text-xl font-black ' + (pos <= 3 ? 'text-blue-600' : 'text-slate-500');
             }
         });
 
