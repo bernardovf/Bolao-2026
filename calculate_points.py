@@ -16,11 +16,11 @@ def get_phase_multiplier(phase):
         return 1  # Grupos: 6, 4, 3, 2
     elif '16 avos' in phase_lower or '16avos' in phase_lower:
         return 3  # 16 avos: 18, 12, 9, 6
-    elif 'oitava' in phase_lower:
+    elif 'oitavas' in phase_lower:
         return 4  # Oitavas: 24, 16, 12, 8
-    elif 'quarta' in phase_lower:
+    elif 'quartas' in phase_lower:
         return 6  # Quartas: 36, 24, 18, 12
-    elif 'semi' in phase_lower:
+    elif 'semifinal' in phase_lower:
         return 8  # Semi: 48, 32, 24, 16
     elif 'terceiro' in phase_lower or '3o' in phase_lower:
         return 8  # Terceiro Lugar: 48, 32, 24, 16
