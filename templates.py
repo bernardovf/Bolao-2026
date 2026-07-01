@@ -257,6 +257,11 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         .ranking-table tbody tr.bg-yellow-50 td:nth-child(3) {
             background: rgb(254, 252, 232);
         }
+
+        th[data-col] { cursor: pointer; user-select: none; }
+        th[data-col]:hover { background: rgb(29, 78, 216); }
+        .sort-icon { opacity: 0.5; font-size: 0.75em; margin-left: 2px; }
+        th[data-col].active-sort .sort-icon { opacity: 1; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
@@ -285,23 +290,33 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                         <!-- Column Headers -->
                         <tr>
-                            <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12          md:w-16">Pos</th>
-                            <th class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador</th>
-                            <th class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24">Total</th>
-                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">16a</th>
-                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Grupos</th>
-                            <th class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Classificados</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates</th>
-                            <th class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Colunas</th>
+                            <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
+                            <th data-col="name" onclick="sortBy('name',1)"  class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador<span class="sort-icon">↕</span></th>
+                            <th data-col="total" onclick="sortBy('total',-1)" class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24 active-sort">Total<span class="sort-icon">↓</span></th>
+                            <th data-col="avos" onclick="sortBy('avos',-1)"  class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">16a<span class="sort-icon">↕</span></th>
+                            <th data-col="grupos" onclick="sortBy('grupos',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Grupos<span class="sort-icon">↕</span></th>
+                            <th data-col="class" onclick="sortBy('class',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Classificados<span class="sort-icon">↕</span></th>
+                            <th data-col="crav" onclick="sortBy('crav',-1)"  class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas<span class="sort-icon">↕</span></th>
+                            <th data-col="saldo" onclick="sortBy('saldo',-1)" class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo<span class="sort-icon">↕</span></th>
+                            <th data-col="emp" onclick="sortBy('emp',-1)"   class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates<span class="sort-icon">↕</span></th>
+                            <th data-col="col" onclick="sortBy('col',-1)"   class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Colunas<span class="sort-icon">↕</span></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200">
+                    <tbody id="ranking-tbody" class="divide-y divide-slate-200">
                         {% for rank in rankings %}
-                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}" {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
+                            <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}"
+                                data-name="{{ rank.user_name }}"
+                                data-total="{{ rank.total_points or 0 }}"
+                                data-avos="{{ rank.pts_16avos or 0 }}"
+                                data-grupos="{{ rank.pts_grupos or 0 }}"
+                                data-class="{{ rank.pts_extras or 0 }}"
+                                data-crav="{{ rank.cravadas }}"
+                                data-saldo="{{ rank.saldo }}"
+                                data-emp="{{ rank.empates }}"
+                                data-col="{{ rank.colunas }}"
+                                {% if betting_closed %}onclick="window.location.href='{{ url_for('jogador_detail', user_id=rank.id) }}'"{% endif %}>
                                 <td class="px-1.5 md:px-6 py-0.5 md:py-1 text-center">
-                                    <span class="text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
+                                    <span class="pos-num text-base md:text-xl font-black {% if loop.index <= 3 %}text-blue-600{% else %}text-slate-500{% endif %}">{{ loop.index }}</span>
                                 </td>
                                 <td class="px-1 md:px-6 py-0.5 md:py-1">
                                     {% if betting_closed %}
@@ -357,6 +372,53 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             </a>
         </div>
     </div>
+
+    <script>
+    let sortCol = 'total', sortDir = -1;
+
+    function sortBy(col, defaultDir) {
+        if (sortCol === col) {
+            sortDir *= -1;
+        } else {
+            sortCol = col;
+            sortDir = defaultDir;
+        }
+
+        const tbody = document.getElementById('ranking-tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((a, b) => {
+            const av = a.dataset[col] || '';
+            const bv = b.dataset[col] || '';
+            if (col === 'name') {
+                return sortDir * av.localeCompare(bv, 'pt-BR', {sensitivity: 'base'});
+            }
+            return sortDir * (parseFloat(bv) - parseFloat(av));
+        });
+
+        rows.forEach((row, idx) => {
+            tbody.appendChild(row);
+            const posSpan = row.querySelector('.pos-num');
+            if (posSpan) {
+                posSpan.textContent = idx + 1;
+                posSpan.className = 'pos-num text-base md:text-xl font-black ' + (idx < 3 ? 'text-blue-600' : 'text-slate-500');
+            }
+        });
+
+        document.querySelectorAll('th[data-col]').forEach(th => {
+            const icon = th.querySelector('.sort-icon');
+            if (th.dataset.col === col) {
+                th.classList.add('active-sort');
+                icon.textContent = sortDir === -1 ? '↓' : '↑';
+                icon.style.opacity = '1';
+            } else {
+                th.classList.remove('active-sort');
+                icon.textContent = '↕';
+                icon.style.opacity = '0.5';
+            }
+        });
+    }
+    </script>
 </body>
 </html>
 '''
