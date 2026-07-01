@@ -1,6 +1,7 @@
 import requests
 import psycopg2
 import os
+from utils import normalize_player_name
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 API_KEY = os.environ.get("API_KEY")
@@ -118,12 +119,39 @@ if api_fixture_ids:
 
     url = f"{BASE_URL}/competitions/WC/matches"
 
-
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
 
     data = response.json()
     fixtures = data['matches']
+
+    url_2 = f"{BASE_URL}/competitions/WC/scorers"
+    response_2 = requests.get(url_2, headers=headers, timeout=20)
+    response_2.raise_for_status()
+    cur.execute("DELETE FROM top_scorers")
+
+    data_2 = response_2.json()
+    # Insert fresh data
+    query = """
+    INSERT INTO top_scorers (name, goals, position)
+    VALUES (%s, %s, %s)
+    """
+
+    position = 0
+    last_goals = None
+
+    for index, scorer in enumerate(data_2["scorers"], start=1):
+        player_name = normalize_player_name(scorer["player"]["name"])
+        goals = scorer["goals"]
+
+        # Same number of goals -> same position
+        if goals != last_goals:
+            position += 1
+            last_goals = goals
+            if position == 4:
+                break
+
+        cur.execute(query, (player_name, goals, position))
 
     for item in fixtures:
         api_fixture_id = item["id"]

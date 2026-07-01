@@ -221,7 +221,16 @@ PLAYER_ALIASES = {
     "harry kane": "Harry Kane",
 
     # Neymar
-    "baleno": "Neymar"
+    "baleno": "Neymar",
+
+    # Messi
+    "lionel messi": "Messi",
+
+    # haaland
+    "erling haaland": "Haaland",
+
+    # haaland
+    "ousmane dembele": "Dembélé"
 
 }
 
