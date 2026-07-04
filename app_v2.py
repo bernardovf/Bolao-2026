@@ -576,7 +576,8 @@ def ranking():
         pts_anfitriao = stats['pts_anfitriao']
 
         pts_16avos = stats['pts_16avos']
-        total_points = pts_grupos + pts_16avos + pts_extras + pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
+        pts_bonus = pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
+        total_points = pts_grupos + pts_16avos + pts_extras + pts_bonus
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -588,6 +589,7 @@ def ranking():
             'pts_grupos': pts_grupos,
             'pts_16avos': pts_16avos,
             'pts_extras': pts_extras,
+            'pts_bonus': pts_bonus,
             'pts_campeao': pts_campeao,
             'pts_artilheiro': pts_artilheiro,
             'pts_melhor_jogador': pts_melhor_jogador,

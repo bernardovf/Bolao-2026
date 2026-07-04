@@ -296,6 +296,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th data-col="avos" onclick="sortBy('avos',-1)"  class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">16a<span class="sort-icon">↕</span></th>
                             <th data-col="grupos" onclick="sortBy('grupos',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Grupos<span class="sort-icon">↕</span></th>
                             <th data-col="class" onclick="sortBy('class',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Classificados<span class="sort-icon">↕</span></th>
+                            <th data-col="bonus" onclick="sortBy('bonus',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Extras<span class="sort-icon">↕</span></th>
                             <th data-col="crav" onclick="sortBy('crav',-1)"  class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Cravadas<span class="sort-icon">↕</span></th>
                             <th data-col="saldo" onclick="sortBy('saldo',-1)" class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-20">Saldo<span class="sort-icon">↕</span></th>
                             <th data-col="emp" onclick="sortBy('emp',-1)"   class="px-1 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-14 md:w-24">Empates<span class="sort-icon">↕</span></th>
@@ -310,6 +311,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 data-avos="{{ rank.pts_16avos or 0 }}"
                                 data-grupos="{{ rank.pts_grupos or 0 }}"
                                 data-class="{{ rank.pts_extras or 0 }}"
+                                data-bonus="{{ rank.pts_bonus or 0 }}"
                                 data-crav="{{ rank.cravadas }}"
                                 data-saldo="{{ rank.saldo }}"
                                 data-emp="{{ rank.empates }}"
@@ -347,6 +349,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-sm font-normal text-blue-600">{{ rank.pts_extras or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_bonus or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
