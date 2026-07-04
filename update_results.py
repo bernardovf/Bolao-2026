@@ -3,8 +3,8 @@ import psycopg2
 import os
 from utils import normalize_player_name
 
-DATABASE_URL = "postgresql://bolao_user:Y6DhyjbBLilYQWh72yhoJqNKLXGfNr9v@dpg-d7b9oa2dbo4c73ctntq0-a.oregon-postgres.render.com/bolao_2026" #os.environ.get("DATABASE_URL")
-API_KEY = "e0ee125088694e0799a6ed7d23ccfc1c" #os.environ.get("API_KEY")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+API_KEY = os.environ.get("API_KEY")
 BASE_URL = "https://api.football-data.org/v4"
 
 headers = {
