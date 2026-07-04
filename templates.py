@@ -1902,6 +1902,32 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
             <p class="text-base md:text-lg text-slate-600">Estatísticas dos palpites</p>
         </div>
 
+        <!-- Top Scorers Table (artilheiro only) -->
+        {% if category == 'artilheiro' and top_scorers %}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 mb-6">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-bold text-slate-700 text-lg">Jogador</th>
+                        <th class="px-4 py-3 text-center font-bold text-slate-700 text-lg">Gols</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for scorer in top_scorers %}
+                    <tr class="scorer-row hover:bg-blue-50 transition cursor-pointer select-none"
+                        data-filter="{{ scorer.name }}"
+                        onclick="filterPlayers('{{ scorer.name }}', this)">
+                        <td class="px-4 py-3 font-semibold text-slate-800 text-lg">
+                            {{ scorer.name }}
+                        </td>
+                        <td class="px-4 py-3 text-center font-black text-blue-600 text-lg">{{ scorer.goals }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
         <!-- Options Summary -->
         {% if options %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -1938,6 +1964,7 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
                 <p class="text-slate-500">Nenhum palpite registrado ainda</p>
             </div>
         {% endif %}
+
 
         <!-- All Predictions Table -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
@@ -1992,34 +2019,36 @@ EXTRAS_STATS_TEMPLATE = '''<!DOCTYPE html>
         let currentFilter = null;
 
         function filterPlayers(option, element) {
-            const rows = document.querySelectorAll('.player-row');
+            const playerRows = document.querySelectorAll('.player-row');
             const cards = document.querySelectorAll('.filter-card');
+            const scorerRows = document.querySelectorAll('.scorer-row');
 
             // If clicking the same filter, reset
             if (currentFilter === option) {
                 currentFilter = null;
-                rows.forEach(row => row.style.display = '');
+                playerRows.forEach(row => row.style.display = '');
                 cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400'));
+                scorerRows.forEach(row => row.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-100'));
                 return;
             }
 
             // Set new filter
             currentFilter = option;
 
-            // Update card styles
-            cards.forEach(card => {
-                card.classList.remove('ring-4', 'ring-blue-400');
-            });
-            element.classList.add('ring-4', 'ring-blue-400');
+            // Reset all highlights
+            cards.forEach(card => card.classList.remove('ring-4', 'ring-blue-400'));
+            scorerRows.forEach(row => row.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-100'));
 
-            // Filter rows
-            rows.forEach(row => {
-                const prediction = row.dataset.prediction;
-                if (prediction === option) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            // Highlight selected element
+            if (element.classList.contains('scorer-row')) {
+                element.classList.add('ring-2', 'ring-blue-400', 'bg-blue-100');
+            } else {
+                element.classList.add('ring-4', 'ring-blue-400');
+            }
+
+            // Filter prediction rows
+            playerRows.forEach(row => {
+                row.style.display = row.dataset.prediction === option ? '' : 'none';
             });
         }
     </script>
