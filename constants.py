@@ -240,9 +240,9 @@ ARTILHEIRO = ""
 
 MELHOR_JOGADOR = ""
 
-ZEBRA = ""
+ZEBRA = "Cabo Verde"
 
-FAVORITO = ""
+FAVORITO = "Germany"
 
 ANFITRIAO = ""
 
