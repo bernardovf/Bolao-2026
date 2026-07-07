@@ -124,6 +124,8 @@ if api_fixture_ids:
 
     data = response.json()
     fixtures = data['matches']
+    print(data)
+    exit()
 
     url_2 = f"{BASE_URL}/competitions/WC/scorers"
     response_2 = requests.get(url_2, headers=headers, timeout=20)
@@ -154,7 +156,6 @@ if api_fixture_ids:
         cur.execute(query, (player_name, goals, position))
 
     for item in fixtures:
-        print(item)
         api_fixture_id = item["id"]
         old_match_id = FIXTURE_ID_MAP.get(api_fixture_id, api_fixture_id)
         if old_match_id is None:
@@ -215,13 +216,13 @@ if api_fixture_ids:
 
         print(f"Updating {old_match_id}: {db_home_norm} {db_home_goals} - {db_away_norm} {db_away_goals}")
 
-        cur.execute("""
-            UPDATE fixtures
-            SET
-                final_home_goals = %s,
-                final_away_goals = %s
-            WHERE id = %s
-        """, (db_home_goals, db_away_goals, old_match_id))
+        #cur.execute("""
+        #    UPDATE fixtures
+        #    SET
+        #        final_home_goals = %s,
+        #        final_away_goals = %s
+        #    WHERE id = %s
+        #""", (db_home_goals, db_away_goals, old_match_id))
 
         updated += 1
         print("")

@@ -293,8 +293,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
                             <th data-col="name" onclick="sortBy('name',1)"  class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador<span class="sort-icon">↕</span></th>
                             <th data-col="total" onclick="sortBy('total',-1)" class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24 active-sort">Total<span class="sort-icon">↓</span></th>
-                            <th data-col="quartas" onclick="sortBy('quartas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">4as<span class="sort-icon">↕</span></th>
-                            <th data-col="oitavas" onclick="sortBy('oitavas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">8as<span class="sort-icon">↕</span></th>
+                            <th data-col="quartas" onclick="sortBy('quartas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Quartas<span class="sort-icon">↕</span></th>
+                            <th data-col="oitavas" onclick="sortBy('oitavas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Oitavas<span class="sort-icon">↕</span></th>
                             <th data-col="avos" onclick="sortBy('avos',-1)"  class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">16a<span class="sort-icon">↕</span></th>
                             <th data-col="grupos" onclick="sortBy('grupos',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Grupos<span class="sort-icon">↕</span></th>
                             <th data-col="class" onclick="sortBy('class',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Classificados<span class="sort-icon">↕</span></th>
