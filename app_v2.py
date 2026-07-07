@@ -713,6 +713,12 @@ def historico():
     ''').fetchall()
 
     all_bets = db_execute(conn, 'SELECT user_id, match_id, home_goals, away_goals FROM bet').fetchall()
+    palpites_gerais_rows = db_execute(conn, '''
+        SELECT user_id, campeao, artilheiro, melhor_jogador,
+               zebra_longe, favorito_caiu, anfitriao_longe
+        FROM palpites_gerais
+    ''').fetchall()
+    palpites_gerais_index = {row['user_id']: dict(row) for row in palpites_gerais_rows}
 
     # Index bets by (user_id, match_id)
     bets_index = {}
@@ -765,6 +771,28 @@ def historico():
             if qual_pts > 0:
                 for i in range(last_group_idx, len(dates)):
                     cumulative[uid][i] += qual_pts
+
+    # Add palpites_gerais bonus points at the last date
+    if dates:
+        last_idx = len(dates) - 1
+        for u in users:
+            uid = u['id']
+            pg = palpites_gerais_index.get(uid, {})
+            bonus = 0
+            if CAMPEAO and pg.get('campeao') == CAMPEAO:
+                bonus += 30
+            if ARTILHEIRO and pg.get('artilheiro') and normalize_player_name(pg['artilheiro']) == ARTILHEIRO:
+                bonus += 30
+            if MELHOR_JOGADOR and pg.get('melhor_jogador') and normalize_player_name(pg['melhor_jogador']) == MELHOR_JOGADOR:
+                bonus += 30
+            if ZEBRA and pg.get('zebra_longe') == ZEBRA:
+                bonus += 30
+            if FAVORITO and pg.get('favorito_caiu') == FAVORITO:
+                bonus += 30
+            if ANFITRIAO and pg.get('anfitriao_longe') == ANFITRIAO:
+                bonus += 15
+            if bonus > 0:
+                cumulative[uid][last_idx] += bonus
 
     conn.close()
 
