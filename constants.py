@@ -244,7 +244,7 @@ ZEBRA = "Cabo Verde"
 
 FAVORITO = "Germany"
 
-ANFITRIAO = ""
+ANFITRIAO = "USA"
 
 # Country colors for UI theming (primary team color)
 country_colors = {
