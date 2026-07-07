@@ -154,7 +154,6 @@ if api_fixture_ids:
         cur.execute(query, (player_name, goals, position))
 
     for item in fixtures:
-        print(item)
         api_fixture_id = item["id"]
         old_match_id = FIXTURE_ID_MAP.get(api_fixture_id, api_fixture_id)
         if old_match_id is None:
