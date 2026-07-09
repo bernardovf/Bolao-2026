@@ -697,7 +697,7 @@ def ranking():
         })
 
     # Build unique sorted option lists for what-if filters
-    campeao_options = sorted({r['bet_campeao'] for r in rankings if r['bet_campeao']})
+    campeao_options = ("Argentina", "France", "Spain", "England")
     artilheiro_options = sorted({r['bet_artilheiro'] for r in rankings if r['bet_artilheiro']})
     melhor_jogador_options = sorted({r['bet_melhor_jogador'] for r in rankings if r['bet_melhor_jogador']})
 

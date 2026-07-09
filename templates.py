@@ -286,10 +286,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 
         <!-- What-if Filters -->
         <div class="bg-white rounded-xl shadow-md border border-slate-200 p-4 mb-4">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Simulação — E se...</p>
             <div class="flex flex-wrap gap-3">
                 <div class="flex items-center gap-2">
-                    <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Campeão:</label>
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Campeão:</label>
                     <select id="filter-campeao" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
                         <option value="">— atual —</option>
                         <option value="Spain">Espanha</option>
@@ -298,7 +297,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Artilheiro:</label>
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Artilheiro:</label>
                     <select id="filter-artilheiro" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
                         <option value="">— atual —</option>
                         <option value="Mbappé">Mbappé</option>
@@ -308,7 +307,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
                     <select id="filter-melhor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
                         <option value="">— atual —</option>
                         <option value="Lamine Yamal">Lamine Yamal</option>
@@ -319,7 +318,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                         <option value="Oline">Oline</option>
                     </select>
                 </div>
-                <button onclick="resetFilters()" class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-700 transition font-semibold">Resetar</button>
+                <button onclick="resetFilters()" class="text-sm px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-700 transition font-semibold">Resetar</button>
             </div>
         </div>
 
