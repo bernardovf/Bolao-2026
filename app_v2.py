@@ -592,6 +592,8 @@ def ranking():
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
 
+        pg = palpites_gerais.get(user_id, {})
+        pts_outros = pts_zebra + pts_favorito + pts_anfitriao  # non-simulated bonus
         rankings.append({
             'id': user_id,
             'user_name': user['user_name'],
@@ -602,12 +604,16 @@ def ranking():
             'pts_quartas': pts_quartas,
             'pts_extras': pts_extras,
             'pts_bonus': pts_bonus,
+            'pts_outros': pts_outros,
             'pts_campeao': pts_campeao,
             'pts_artilheiro': pts_artilheiro,
             'pts_melhor_jogador': pts_melhor_jogador,
             'pts_zebra': pts_zebra,
             'pts_favorito': pts_favorito,
             'pts_anfitriao': pts_anfitriao,
+            'bet_campeao': pg.get('campeao') or '',
+            'bet_artilheiro': normalize_player_name(pg.get('artilheiro') or '') or '',
+            'bet_melhor_jogador': normalize_player_name(pg.get('melhor_jogador') or '') or '',
             'percentage': int(round(percentage)),
             'cravadas': stats['cravadas'],
             'saldo': stats['saldo'],
@@ -690,12 +696,20 @@ def ranking():
             'points': cumulative_points
         })
 
+    # Build unique sorted option lists for what-if filters
+    campeao_options = sorted({r['bet_campeao'] for r in rankings if r['bet_campeao']})
+    artilheiro_options = sorted({r['bet_artilheiro'] for r in rankings if r['bet_artilheiro']})
+    melhor_jogador_options = sorted({r['bet_melhor_jogador'] for r in rankings if r['bet_melhor_jogador']})
+
     return render_template_string(RANKING_TEMPLATE,
                                  rankings=rankings,
                                  current_user_id=session['user_id'],
                                  betting_closed=BETTING_CLOSED,
                                  history_dates=dates_str,
-                                 history_users=history_data)
+                                 history_users=history_data,
+                                 campeao_options=campeao_options,
+                                 artilheiro_options=artilheiro_options,
+                                 melhor_jogador_options=melhor_jogador_options)
 
 @app.route('/historico')
 @login_required
