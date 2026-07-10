@@ -283,6 +283,44 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     </nav>
 
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
+
+        <!-- What-if Filters -->
+        <div class="bg-white rounded-xl shadow-md border border-slate-200 p-4 mb-4">
+            <div class="flex flex-wrap gap-3">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Campeão:</label>
+                    <select id="filter-campeao" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
+                        <option value="">— atual —</option>
+                        <option value="Spain">Espanha</option>
+                        <option value="France">França</option>
+                        <option value="England">Inglaterra</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Artilheiro:</label>
+                    <select id="filter-artilheiro" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
+                        <option value="">— atual —</option>
+                        <option value="Mbappé">Mbappé</option>
+                        <option value="Harry Kane">Harry Kane</option>
+                        <option value="Oyarzabal">Oyarzabal</option>
+                        <option value="Lamine Yamal">Lamine Yamal</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
+                    <select id="filter-melhor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
+                        <option value="">— atual —</option>
+                        <option value="Lamine Yamal">Lamine Yamal</option>
+                        <option value="Mbappé">Mbappé</option>
+                        <option value="Harry Kane">Harry Kane</option>
+                        <option value="Dani Olmo">Dani Olmo</option>
+                        <option value="Jude Bellingham">Jude Bellingham</option>
+                        <option value="Oline">Oline</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- Ranking Table -->
         <div class="bg-white rounded-xl md:rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
@@ -316,6 +354,13 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 data-grupos="{{ rank.pts_grupos or 0 }}"
                                 data-class="{{ rank.pts_extras or 0 }}"
                                 data-bonus="{{ rank.pts_bonus or 0 }}"
+                                data-outros="{{ rank.pts_outros or 0 }}"
+                                data-bet-campeao="{{ rank.bet_campeao }}"
+                                data-bet-artilheiro="{{ rank.bet_artilheiro }}"
+                                data-bet-melhor="{{ rank.bet_melhor_jogador }}"
+                                data-pts-campeao="{{ rank.pts_campeao or 0 }}"
+                                data-pts-artilheiro="{{ rank.pts_artilheiro or 0 }}"
+                                data-pts-melhor="{{ rank.pts_melhor_jogador or 0 }}"
                                 data-crav="{{ rank.cravadas }}"
                                 data-saldo="{{ rank.saldo }}"
                                 data-emp="{{ rank.empates }}"
@@ -343,7 +388,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     {% endif %}
                                 </td>
                                 <td class="px-2.0 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                    <span class="cell-total text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-sm font-normal text-blue-600">{{ rank.pts_quartas or 0 }}</span>
@@ -361,7 +406,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                     <span class="text-sm font-normal text-blue-600">{{ rank.pts_extras or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
-                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_bonus or 0 }}</span>
+                                    <span class="cell-bonus text-sm font-normal text-blue-600">{{ rank.pts_bonus or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="font-semibold text-slate-600">{{ rank.cravadas }}</span>
@@ -392,6 +437,66 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     <script>
     let sortCol = 'total', sortDir = -1;
 
+    function computeBonus(row) {
+        const campeao    = document.getElementById('filter-campeao').value;
+        const artilheiro = document.getElementById('filter-artilheiro').value;
+        const melhor     = document.getElementById('filter-melhor').value;
+        const outros     = parseFloat(row.dataset.outros) || 0;
+
+        // Each category: if filter active → simulate; if "— atual —" (empty) → use actual stored pts
+        const campeaoPts    = campeao
+            ? (row.dataset.betCampeao    === campeao    ? 30 : 0)
+            : (parseFloat(row.dataset.ptsCampeao)    || 0);
+        const artilheiroPts = artilheiro
+            ? (row.dataset.betArtilheiro === artilheiro ? 30 : 0)
+            : (parseFloat(row.dataset.ptsArtilheiro)  || 0);
+        const melhorPts     = melhor
+            ? (row.dataset.betMelhor     === melhor     ? 30 : 0)
+            : (parseFloat(row.dataset.ptsMelhor)       || 0);
+
+        return campeaoPts + artilheiroPts + melhorPts + outros;
+    }
+
+    function computeTotal(row) {
+        const base = parseFloat(row.dataset.grupos  || 0)
+                   + parseFloat(row.dataset.avos    || 0)
+                   + parseFloat(row.dataset.oitavas || 0)
+                   + parseFloat(row.dataset.quartas || 0)
+                   + parseFloat(row.dataset.class   || 0);
+        return base + computeBonus(row);
+    }
+
+    function applyFilters() {
+        const tbody = document.getElementById('ranking-tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Update bonus and total cells
+        rows.forEach(row => {
+            const bonus = computeBonus(row);
+            const total = computeTotal(row);
+            row.dataset.bonus = bonus;
+            row.dataset.total = total;
+            row.querySelector('.cell-bonus').textContent = bonus;
+            row.querySelector('.cell-total').textContent = total;
+        });
+
+        // Re-sort by total desc
+        rows.sort((a, b) => {
+            const diff = parseFloat(b.dataset.total) - parseFloat(a.dataset.total);
+            if (diff !== 0) return diff;
+            return (a.dataset.name || '').localeCompare(b.dataset.name || '', 'pt-BR');
+        });
+
+        rows.forEach((row, idx) => {
+            tbody.appendChild(row);
+            const posSpan = row.querySelector('.pos-num');
+            if (posSpan) {
+                posSpan.textContent = idx + 1;
+                posSpan.className = 'pos-num text-base md:text-xl font-black ' + (idx < 3 ? 'text-blue-600' : 'text-slate-500');
+            }
+        });
+    }
+
     function sortBy(col, defaultDir) {
         if (sortCol === col) {
             sortDir *= -1;
@@ -412,7 +517,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             return sortDir * (parseFloat(bv) - parseFloat(av));
         });
 
-        rows.forEach((row) => {
+        rows.forEach((row, idx) => {
             tbody.appendChild(row);
             const pos = parseInt(row.dataset.pos);
             const posSpan = row.querySelector('.pos-num');
@@ -435,6 +540,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
             }
         });
     }
+
     </script>
 </body>
 </html>
