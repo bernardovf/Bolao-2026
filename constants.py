@@ -230,7 +230,22 @@ PLAYER_ALIASES = {
     "erling haaland": "Haaland",
 
     # haaland
-    "ousmane dembele": "Dembélé"
+    "ousmane dembele": "Dembélé",
+
+    # Oyarzabal
+    "oyarzabal": "Oyarzabal",
+    "mikel oyarzabal": "Oyarzabal",
+
+    # Dani Olmo
+    "dani olmo": "Dani Olmo",
+    "olmo": "Dani Olmo",
+
+    # Jude Bellingham
+    "bellingham": "Jude Bellingham",
+    "jude bellingham": "Jude Bellingham",
+
+    # Oline
+    "oline": "Oline",
 
 }
 
