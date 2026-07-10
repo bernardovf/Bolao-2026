@@ -315,7 +315,7 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                         <option value="Harry Kane">Harry Kane</option>
                         <option value="Dani Olmo">Dani Olmo</option>
                         <option value="Jude Bellingham">Jude Bellingham</option>
-                        <option value="Oline">Oline</option>
+                        <option value="Olise">Olise</option>
                     </select>
                 </div>
             </div>
