@@ -318,7 +318,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                         <option value="Oline">Oline</option>
                     </select>
                 </div>
-                <button onclick="resetFilters()" class="text-sm px-3 py-1.5 rounded-lg border border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-700 transition font-semibold">Resetar</button>
             </div>
         </div>
 
@@ -359,6 +358,9 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 data-bet-campeao="{{ rank.bet_campeao }}"
                                 data-bet-artilheiro="{{ rank.bet_artilheiro }}"
                                 data-bet-melhor="{{ rank.bet_melhor_jogador }}"
+                                data-pts-campeao="{{ rank.pts_campeao or 0 }}"
+                                data-pts-artilheiro="{{ rank.pts_artilheiro or 0 }}"
+                                data-pts-melhor="{{ rank.pts_melhor_jogador or 0 }}"
                                 data-crav="{{ rank.cravadas }}"
                                 data-saldo="{{ rank.saldo }}"
                                 data-emp="{{ rank.empates }}"
@@ -436,22 +438,22 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     let sortCol = 'total', sortDir = -1;
 
     function computeBonus(row) {
-        const campeao  = document.getElementById('filter-campeao').value;
+        const campeao    = document.getElementById('filter-campeao').value;
         const artilheiro = document.getElementById('filter-artilheiro').value;
-        const melhor   = document.getElementById('filter-melhor').value;
-        const outros   = parseFloat(row.dataset.outros) || 0;
+        const melhor     = document.getElementById('filter-melhor').value;
+        const outros     = parseFloat(row.dataset.outros) || 0;
 
-        const campeaoPts    = campeao    && row.dataset.betCampeao    === campeao    ? 30 : 0;
-        const artilheiroPts = artilheiro && row.dataset.betArtilheiro === artilheiro ? 30 : 0;
-        const melhorPts     = melhor     && row.dataset.betMelhor     === melhor     ? 30 : 0;
+        // Each category: if filter active → simulate; if "— atual —" (empty) → use actual stored pts
+        const campeaoPts    = campeao
+            ? (row.dataset.betCampeao    === campeao    ? 30 : 0)
+            : (parseFloat(row.dataset.ptsCampeao)    || 0);
+        const artilheiroPts = artilheiro
+            ? (row.dataset.betArtilheiro === artilheiro ? 30 : 0)
+            : (parseFloat(row.dataset.ptsArtilheiro)  || 0);
+        const melhorPts     = melhor
+            ? (row.dataset.betMelhor     === melhor     ? 30 : 0)
+            : (parseFloat(row.dataset.ptsMelhor)       || 0);
 
-        // If a filter is active, use simulated; otherwise fall back to actual pts_bonus
-        const anyFilter = campeao || artilheiro || melhor;
-        if (!anyFilter) return parseFloat(row.dataset.bonus) || 0;
-
-        // Simulated: recompute from scratch with what the user bet
-        const simCampeao    = campeao    ? campeaoPts    : (parseFloat(row.dataset.bonus) - outros - artilheiroPts - melhorPts);
-        // Simplest: sum simulated + outros (zebra/favorito/anfitriao always kept)
         return campeaoPts + artilheiroPts + melhorPts + outros;
     }
 
@@ -493,22 +495,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 posSpan.className = 'pos-num text-base md:text-xl font-black ' + (idx < 3 ? 'text-blue-600' : 'text-slate-500');
             }
         });
-    }
-
-    function resetFilters() {
-        document.getElementById('filter-campeao').value = '';
-        document.getElementById('filter-artilheiro').value = '';
-        document.getElementById('filter-melhor').value = '';
-
-        // Restore original bonus and total
-        const tbody = document.getElementById('ranking-tbody');
-        Array.from(tbody.querySelectorAll('tr')).forEach(row => {
-            row.dataset.bonus = row.dataset.origBonus;
-            row.dataset.total = row.dataset.origTotal;
-            row.querySelector('.cell-bonus').textContent = row.dataset.origBonus;
-            row.querySelector('.cell-total').textContent = row.dataset.origTotal;
-        });
-        sortBy('total', -1);
     }
 
     function sortBy(col, defaultDir) {
@@ -555,13 +541,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
         });
     }
 
-    // Store originals on load for reset
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('#ranking-tbody tr').forEach(row => {
-            row.dataset.origBonus = row.dataset.bonus;
-            row.dataset.origTotal = row.dataset.total;
-        });
-    });
     </script>
 </body>
 </html>
