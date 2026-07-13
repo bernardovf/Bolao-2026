@@ -361,69 +361,24 @@ def rating_strategy(home_team, away_team):
     # Very strong favorite
     return (3, 0) if home_is_fav else (0, 3)
 
-import sqlite3, os
-
-DB_PATH = "bolao_2026_dev.db"
-
 # ---------------------------------------------------------------------------
-# Load users and bets from DB; export bets to bet.csv
+# Load inputs: bet.csv (bets + user names) and fixtures.csv (match results)
 # ---------------------------------------------------------------------------
-conn = sqlite3.connect(DB_PATH)
-conn.row_factory = sqlite3.Row
+bets_df = pd.read_csv("bet.csv")
+bets = {
+    (int(r["user_id"]), int(r["match_id"])): (int(r["home_goals"]), int(r["away_goals"]))
+    for _, r in bets_df.iterrows()
+}
+users = {int(r["user_id"]): r["user_name"] for _, r in bets_df.drop_duplicates("user_id").iterrows()}
+print(f"Loaded {len(bets)} bets from {len(users)} users")
 
-users_raw  = conn.execute("SELECT id, user_name FROM users ORDER BY user_name").fetchall()
-bets_raw   = conn.execute("SELECT user_id, match_id, home_goals, away_goals FROM bet").fetchall()
-
-# Try to get results from DB (production may have them)
-fixtures_db = conn.execute("""
-    SELECT id, phase, home, away, final_home_goals, final_away_goals
-    FROM fixtures
-    WHERE final_home_goals IS NOT NULL
-      AND final_home_goals != 'NULL'
-""").fetchall()
-
-conn.close()
-
-users = {r["id"]: r["user_name"] for r in users_raw}
-bets  = {(r["user_id"], r["match_id"]): (r["home_goals"], r["away_goals"]) for r in bets_raw}
-
-# Export bets with user names to bet.csv
-bets_export = [
-    {
-        "user_id":    r["user_id"],
-        "user_name":  users.get(r["user_id"], "?"),
-        "match_id":   r["match_id"],
-        "home_goals": r["home_goals"],
-        "away_goals": r["away_goals"],
-    }
-    for r in bets_raw
-]
-pd.DataFrame(bets_export).to_csv("bet.csv", index=False)
-print(f"Exported {len(bets_export)} bets to bet.csv")
-
-# ---------------------------------------------------------------------------
-# Load fixtures with results — DB first, then fall back to fixtures.csv
-# ---------------------------------------------------------------------------
-if fixtures_db:
-    fixtures_list = [
-        {
-            "id":                r["id"],
-            "phase":             r["phase"],
-            "home":              r["home"],
-            "away":              r["away"],
-            "final_home_goals":  int(r["final_home_goals"]),
-            "final_away_goals":  int(r["final_away_goals"]),
-        }
-        for r in fixtures_db
-    ]
-    print(f"Loaded {len(fixtures_list)} finished matches from DB")
-elif os.path.exists("fixtures.csv"):
-    df = pd.read_csv("fixtures.csv").dropna(subset=["final_home_goals", "final_away_goals"])
-    fixtures_list = df.to_dict("records")
-    print(f"Loaded {len(fixtures_list)} finished matches from fixtures.csv")
-else:
-    print("No finished matches found. Provide fixtures.csv with results or use production DB.")
-    raise SystemExit(1)
+fixtures_df = pd.read_csv("fixtures.csv").dropna(subset=["final_home_goals", "final_away_goals"])
+fixtures_df = fixtures_df[
+    (fixtures_df["final_home_goals"].astype(str) != "NULL") &
+    (fixtures_df["final_away_goals"].astype(str) != "NULL")
+].copy()
+fixtures_list = fixtures_df.to_dict("records")
+print(f"Loaded {len(fixtures_list)} finished matches from fixtures.csv")
 
 STRATEGIES = [
     ("1x0",           elo_1x0_strategy),
