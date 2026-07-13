@@ -362,14 +362,16 @@ def rating_strategy(home_team, away_team):
     return (3, 0) if home_is_fav else (0, 3)
 
 # ---------------------------------------------------------------------------
-# Load inputs: bet.csv (bets + user names) and fixtures.csv (match results)
+# Load inputs: users.csv, bet.csv, fixtures.csv
 # ---------------------------------------------------------------------------
+users_df = pd.read_csv("users.csv")
+users = {int(r["id"]): r["user_name"] for _, r in users_df.iterrows()}
+
 bets_df = pd.read_csv("bet.csv")
 bets = {
     (int(r["user_id"]), int(r["match_id"])): (int(r["home_goals"]), int(r["away_goals"]))
     for _, r in bets_df.iterrows()
 }
-users = {int(r["user_id"]): r["user_name"] for _, r in bets_df.drop_duplicates("user_id").iterrows()}
 print(f"Loaded {len(bets)} bets from {len(users)} users")
 
 fixtures_df = pd.read_csv("fixtures.csv").dropna(subset=["final_home_goals", "final_away_goals"])
