@@ -130,6 +130,26 @@ def normalize_team(team):
     team = str(team).strip()
     return ALIASES.get(team, team)
 
+def get_phase_multiplier(phase):
+    if not phase or (isinstance(phase, float) and math.isnan(phase)):
+        return 1
+    phase_lower = str(phase).lower()
+    if 'grupo' in phase_lower:
+        return 1
+    elif '16 avos' in phase_lower or '16avos' in phase_lower:
+        return 3
+    elif 'oitava' in phase_lower:
+        return 4
+    elif 'quarta' in phase_lower:
+        return 6
+    elif 'semifinal' in phase_lower:
+        return 8
+    elif 'terceiro' in phase_lower or '3o' in phase_lower:
+        return 8
+    elif 'final' in phase_lower:
+        return 12
+    return 1
+
 def get_result(home_goals, away_goals):
     if home_goals > away_goals:
         return "H"
@@ -138,20 +158,21 @@ def get_result(home_goals, away_goals):
     else:
         return "D"
 
-def calculate_points(pred_home, pred_away, real_home, real_away):
+def calculate_points(pred_home, pred_away, real_home, real_away, phase=None):
+    multiplier = get_phase_multiplier(phase)
     pred_result = get_result(pred_home, pred_away)
     real_result = get_result(real_home, real_away)
 
     if pred_home == real_home and pred_away == real_away:
-        return 6
+        return 6 * multiplier
 
     if pred_result == real_result:
         if pred_result == "D":
-            return 3
+            return 3 * multiplier
         elif (pred_home - pred_away) == (real_home - real_away):
-            return 4
+            return 4 * multiplier
         else:
-            return 2
+            return 2 * multiplier
 
     return 0
 
@@ -356,6 +377,8 @@ for _, match in fixtures.iterrows():
     away = normalize_team(match["away"])
     real_home = int(match["final_home_goals"])
     real_away = int(match["final_away_goals"])
+    phase = match.get("phase")
+    multiplier = get_phase_multiplier(phase)
 
     pred_home_1, pred_away_1 = elo_1x0_strategy(home, away)
     pred_home_2, pred_away_2 = elo_2x1_strategy(home, away)
@@ -365,16 +388,18 @@ for _, match in fixtures.iterrows():
     pred_home_6, pred_away_6 = best_expected_points_strategy(home, away)
     pred_home_7, pred_away_7 = rating_strategy(home, away)
 
-    points_1 = calculate_points(pred_home_1, pred_away_1, real_home, real_away)
-    points_2 = calculate_points(pred_home_2, pred_away_2, real_home, real_away)
-    points_3 = calculate_points(pred_home_3, pred_away_3, real_home, real_away)
-    points_4 = calculate_points(pred_home_4, pred_away_4, real_home, real_away)
-    points_5 = calculate_points(pred_home_5, pred_away_5, real_home, real_away)
-    points_6 = calculate_points(pred_home_6, pred_away_6, real_home, real_away)
-    points_7 = calculate_points(pred_home_7, pred_away_7, real_home, real_away)
+    points_1 = calculate_points(pred_home_1, pred_away_1, real_home, real_away, phase)
+    points_2 = calculate_points(pred_home_2, pred_away_2, real_home, real_away, phase)
+    points_3 = calculate_points(pred_home_3, pred_away_3, real_home, real_away, phase)
+    points_4 = calculate_points(pred_home_4, pred_away_4, real_home, real_away, phase)
+    points_5 = calculate_points(pred_home_5, pred_away_5, real_home, real_away, phase)
+    points_6 = calculate_points(pred_home_6, pred_away_6, real_home, real_away, phase)
+    points_7 = calculate_points(pred_home_7, pred_away_7, real_home, real_away, phase)
 
     rows.append({
         "match_id": match.get("id", None),
+        "phase": phase,
+        "multiplier": multiplier,
         "home": home,
         "away": away,
         "home_elo": TEAM_RATINGS[home][0],
@@ -393,23 +418,29 @@ for _, match in fixtures.iterrows():
 
 results = pd.DataFrame(rows)
 results.to_csv("results.csv", index=False)
+
+max_possible = (results["multiplier"] * 6).sum()
+
+def pct(col):
+    return round(results[col].sum() / max_possible * 100, 0)
+
 print("Total points 1x0:", results["points 1x0"].sum())
-print("% 1x0:", round(results["points 1x0"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% 1x0:", pct("points 1x0"), "%")
 print("")
 print("Total points 2x1:", results["points 2x1"].sum())
-print("% 2x1:", round(results["points 2x1"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% 2x1:", pct("points 2x1"), "%")
 print("")
 print("Total points Draw 1x0:", results["points draw 1x0"].sum())
-print("% Draw 1x0:", round(results["points draw 1x0"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% Draw 1x0:", pct("points draw 1x0"), "%")
 print("")
 print("Total points elo:", results["points just elo"].sum())
-print("% elo:", round(results["points just elo"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% elo:", pct("points just elo"), "%")
 print("")
 print("Total points elo tiered:", results["points elo tiered"].sum())
-print("% elo tiered:", round(results["points elo tiered"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% elo tiered:", pct("points elo tiered"), "%")
 print("")
 print("Total best expected:", results["best expected"].sum())
-print("% best expected:", round(results["best expected"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% best expected:", pct("best expected"), "%")
 print("")
 print("Total rating strategy:", results["rating strategy"].sum())
-print("% rating strategy:", round(results["rating strategy"].sum() / (len(results) * 6) * 100, 0), "%")
+print("% rating strategy:", pct("rating strategy"), "%")
