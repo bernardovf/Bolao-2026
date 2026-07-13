@@ -1,0 +1,101 @@
+match_id,phase,multiplier,home,away,home_elo,away_elo,elo_favorite,actual,points 1x0,points 2x1,points draw 1x0,points just elo,points elo tiered,best expected,rating strategy,elo tiered
+1,16 Avos Final,3,South Africa,Canada,1526,1741,Canada,0 x 1,18,12,18,12,12,18,12,1 x 2
+2,16 Avos Final,3,Brazil,Japan,1885,1833,Brazil,2 x 1,12,18,12,12,12,12,12,1 x 0
+3,16 Avos Final,3,Germany,Paraguay,1867,1706,Germany,1 x 1,0,0,0,0,0,0,0,2 x 1
+4,16 Avos Final,3,Netherlands,Morocco,1868,1736,Netherlands,1 x 1,0,0,0,0,0,0,0,1 x 0
+5,16 Avos Final,3,Ivory Coast,Norway,1618,1746,Norway,1 x 2,12,18,12,12,12,12,18,1 x 2
+6,16 Avos Final,3,France,Sweden,1939,1701,France,3 x 0,6,6,6,6,6,6,6,2 x 0
+7,16 Avos Final,3,Mexico,Ecuador,1800,1793,Mexico,2 x 0,6,6,0,0,0,0,0,1 x 1
+8,16 Avos Final,3,England,DR Congo,1886,1538,England,2 x 1,12,18,12,6,6,6,6,3 x 0
+9,16 Avos Final,3,Belgium,Senegal,1816,1727,Belgium,2 x 2,0,0,0,0,0,0,9,1 x 1
+10,16 Avos Final,3,United States,Bosnia and Herzegovina,1765,1589,United States,2 x 0,6,6,6,6,6,6,6,2 x 1
+11,16 Avos Final,3,Spain,Austria,1979,1749,Spain,3 x 0,6,6,6,6,6,6,6,2 x 0
+12,16 Avos Final,3,Portugal,Croatia,1874,1821,Portugal,2 x 1,12,18,12,12,12,12,12,1 x 0
+13,16 Avos Final,3,Switzerland,Algeria,1781,1659,Switzerland,2 x 0,6,6,6,6,6,6,6,1 x 0
+14,16 Avos Final,3,Australia,Egypt,1747,1632,Australia,1 x 1,0,0,0,0,0,0,0,1 x 0
+15,16 Avos Final,3,Argentina,Cape Verde,1965,1489,Argentina,1 x 1,0,0,0,0,0,0,0,3 x 0
+16,16 Avos Final,3,Colombia,Ghana,1855,1478,Colombia,1 x 0,18,12,18,6,6,6,6,3 x 0
+537327,Grupo A,1,Mexico,South Africa,1800,1526,Mexico,2 x 0,2,2,2,2,2,2,6,2 x 0
+537328,Grupo A,1,South Korea,Czechia,1754,1691,South Korea,2 x 1,4,6,4,4,4,4,4,1 x 0
+537329,Grupo A,1,South Africa,Czechia,1526,1691,Czechia,1 x 1,0,0,0,0,0,0,0,1 x 2
+537330,Grupo A,1,Mexico,South Korea,1800,1754,Mexico,1 x 0,6,4,0,0,0,6,6,1 x 0
+537331,Grupo A,1,Mexico,Czechia,1800,1691,Mexico,3 x 0,2,2,2,2,2,2,2,2 x 1
+537332,Grupo A,1,South Africa,South Korea,1526,1754,South Korea,1 x 0,0,0,0,0,0,0,0,0 x 2
+537333,Grupo B,1,Canada,Bosnia and Herzegovina,1741,1589,Canada,1 x 1,0,0,0,0,0,0,0,2 x 1
+537334,Grupo B,1,Qatar,Switzerland,1591,1781,Switzerland,1 x 1,0,0,0,0,0,0,0,0 x 2
+537335,Grupo B,1,Bosnia and Herzegovina,Switzerland,1589,1781,Switzerland,1 x 4,2,2,2,2,2,2,2,0 x 2
+537336,Grupo B,1,Canada,Qatar,1741,1591,Canada,6 x 0,2,2,2,2,2,2,2,2 x 0
+537337,Grupo B,1,Canada,Switzerland,1741,1781,Switzerland,1 x 2,4,6,0,0,0,4,4,0 x 1
+537338,Grupo B,1,Bosnia and Herzegovina,Qatar,1589,1591,Qatar,3 x 1,0,0,0,0,0,2,0,1 x 1
+537339,Grupo C,1,Brazil,Morocco,1885,1736,Brazil,1 x 1,0,0,0,0,0,0,0,2 x 1
+537340,Grupo C,1,Haiti,Scotland,1583,1684,Scotland,0 x 1,6,4,6,6,6,6,4,1 x 2
+537341,Grupo C,1,Brazil,Haiti,1885,1583,Brazil,3 x 0,2,2,2,2,2,2,6,3 x 0
+537342,Grupo C,1,Morocco,Scotland,1736,1684,Morocco,1 x 0,6,4,6,6,6,6,6,1 x 0
+537343,Grupo C,1,Morocco,Haiti,1736,1583,Morocco,4 x 2,2,2,2,2,2,2,4,2 x 0
+537344,Grupo C,1,Brazil,Scotland,1885,1684,Brazil,3 x 0,2,2,2,2,2,2,2,2 x 0
+537345,Grupo D,1,United States,Paraguay,1765,1706,United States,4 x 1,2,2,2,2,2,2,0,1 x 1
+537346,Grupo D,1,Australia,Turkey,1747,1771,Turkey,2 x 0,0,0,0,0,0,0,0,1 x 1
+537347,Grupo D,1,Paraguay,Turkey,1706,1771,Turkey,1 x 0,0,0,0,0,0,0,0,0 x 1
+537348,Grupo D,1,United States,Australia,1765,1747,United States,2 x 0,2,2,0,0,0,0,0,1 x 1
+537349,Grupo D,1,United States,Turkey,1765,1771,Turkey,2 x 3,4,4,0,0,0,4,4,0 x 1
+537350,Grupo D,1,Paraguay,Australia,1706,1747,Australia,0 x 0,0,0,3,3,3,0,3,1 x 1
+537351,Grupo E,1,Germany,Curaçao,1867,1520,Germany,7 x 1,2,2,2,2,2,2,2,3 x 0
+537352,Grupo E,1,Ivory Coast,Ecuador,1618,1793,Ecuador,1 x 0,0,0,0,0,0,0,0,1 x 2
+537353,Grupo E,1,Germany,Ivory Coast,1867,1618,Germany,2 x 1,4,6,4,6,6,4,2,2 x 0
+537354,Grupo E,1,Curaçao,Ecuador,1520,1793,Ecuador,0 x 0,0,0,0,0,0,0,0,0 x 3
+537355,Grupo E,1,Germany,Ecuador,1867,1793,Germany,1 x 2,0,0,0,0,0,0,0,1 x 0
+537356,Grupo E,1,Curaçao,Ivory Coast,1520,1618,Ivory Coast,0 x 2,2,2,2,2,2,2,6,0 x 2
+537357,Grupo F,1,Netherlands,Japan,1868,1833,Netherlands,2 x 2,0,0,3,3,3,0,3,1 x 1
+537358,Grupo F,1,Sweden,Tunisia,1701,1583,Sweden,5 x 1,2,2,2,2,2,2,2,1 x 0
+537359,Grupo F,1,Netherlands,Sweden,1868,1701,Netherlands,5 x 1,2,2,2,2,2,2,2,2 x 0
+537360,Grupo F,1,Japan,Tunisia,1833,1583,Japan,4 x 0,2,2,2,2,2,2,2,2 x 0
+537361,Grupo F,1,Netherlands,Tunisia,1868,1583,Netherlands,3 x 1,2,2,2,2,4,4,4,2 x 0
+537362,Grupo F,1,Japan,Sweden,1833,1701,Japan,1 x 1,0,0,0,0,0,0,0,2 x 1
+537363,Grupo G,1,Belgium,Egypt,1816,1632,Belgium,1 x 1,0,0,0,0,0,0,0,2 x 1
+537364,Grupo G,1,Iran,New Zealand,1757,1599,Iran,2 x 2,0,0,0,0,0,0,0,2 x 1
+537365,Grupo G,1,Belgium,Iran,1816,1757,Belgium,0 x 0,0,0,0,0,0,0,0,1 x 0
+537366,Grupo G,1,Egypt,New Zealand,1632,1599,Egypt,3 x 1,2,2,0,0,0,2,2,1 x 0
+537367,Grupo G,1,Belgium,New Zealand,1816,1599,Belgium,5 x 1,2,2,2,2,2,2,2,2 x 0
+537368,Grupo G,1,Egypt,Iran,1632,1757,Iran,1 x 1,0,0,0,0,0,0,0,0 x 1
+537369,Grupo H,1,Spain,Cape Verde,1979,1489,Spain,0 x 0,0,0,0,0,0,0,0,3 x 0
+537370,Grupo H,1,Saudi Arabia,Uruguay,1616,1803,Uruguay,1 x 1,0,0,0,0,0,0,0,0 x 2
+537371,Grupo H,1,Spain,Saudi Arabia,1979,1616,Spain,4 x 0,2,2,2,2,2,2,2,3 x 0
+537372,Grupo H,1,Cape Verde,Uruguay,1489,1803,Uruguay,2 x 2,0,0,0,0,0,0,0,0 x 2
+537373,Grupo H,1,Spain,Uruguay,1979,1803,Spain,1 x 0,6,4,6,6,4,6,2,2 x 0
+537374,Grupo H,1,Cape Verde,Saudi Arabia,1489,1616,Saudi Arabia,0 x 0,0,0,0,0,0,0,0,0 x 1
+537375,Oitavas de Final,4,Paraguay,France,1706,1939,France,0 x 1,24,16,24,16,16,24,8,0 x 2
+537376,Oitavas de Final,4,Canada,Morocco,1741,1736,Canada,0 x 3,0,0,0,0,0,8,8,0 x 1
+537377,Oitavas de Final,4,Brazil,Norway,1885,1746,Brazil,1 x 2,0,0,0,0,0,0,0,2 x 1
+537378,Oitavas de Final,4,Mexico,England,1800,1886,England,2 x 3,16,16,16,16,16,16,16,1 x 2
+537379,Oitavas de Final,4,Portugal,Spain,1874,1979,Spain,0 x 1,24,16,24,24,24,24,16,1 x 2
+537380,Oitavas de Final,4,United States,Belgium,1765,1816,Belgium,1 x 4,8,8,8,8,8,8,8,0 x 1
+537381,Oitavas de Final,4,Argentina,Egypt,1965,1632,Argentina,3 x 2,16,16,16,8,8,8,8,3 x 0
+537382,Oitavas de Final,4,Switzerland,Colombia,1781,1855,Colombia,0 x 0,0,0,0,0,0,0,0,0 x 1
+537383,Quartas de Final,6,France,Morocco,1939,1736,France,2 x 0,12,12,12,12,12,12,12,2 x 1
+537384,Quartas de Final,6,Spain,Belgium,1979,1816,Spain,2 x 1,24,36,24,24,36,24,12,2 x 0
+537385,Quartas de Final,6,Norway,England,1746,1886,England,1 x 1,0,0,0,0,0,0,0,1 x 2
+537386,Quartas de Final,6,Argentina,Switzerland,1965,1781,Argentina,1 x 1,0,0,0,0,0,0,0,2 x 0
+537391,Grupo I,1,France,Senegal,1939,1727,France,3 x 1,2,2,2,2,2,2,2,2 x 1
+537392,Grupo I,1,Iraq,Norway,1653,1746,Norway,1 x 4,2,2,2,2,2,2,2,1 x 2
+537393,Grupo I,1,France,Iraq,1939,1653,France,3 x 0,2,2,2,2,2,2,6,3 x 0
+537394,Grupo I,1,Senegal,Norway,1727,1746,Norway,2 x 3,4,4,0,0,0,0,0,1 x 1
+537395,Grupo I,1,France,Norway,1939,1746,France,4 x 1,2,2,2,2,2,2,2,2 x 1
+537396,Grupo I,1,Senegal,Iraq,1727,1653,Senegal,5 x 0,2,2,2,2,2,2,2,2 x 1
+537397,Grupo J,1,Argentina,Algeria,1965,1659,Argentina,3 x 0,2,2,2,2,2,2,6,3 x 0
+537398,Grupo J,1,Austria,Jordan,1749,1628,Austria,3 x 1,2,2,2,2,2,2,2,2 x 1
+537399,Grupo J,1,Argentina,Austria,1965,1749,Argentina,2 x 0,2,2,2,2,2,2,6,2 x 0
+537400,Grupo J,1,Algeria,Jordan,1659,1628,Algeria,2 x 1,4,6,0,0,0,4,4,1 x 0
+537401,Grupo J,1,Argentina,Jordan,1965,1628,Argentina,3 x 1,2,2,2,4,4,4,2,3 x 0
+537402,Grupo J,1,Algeria,Austria,1659,1749,Austria,3 x 3,0,0,0,0,0,0,0,0 x 1
+537403,Grupo K,1,Portugal,DR Congo,1874,1538,Portugal,1 x 1,0,0,0,0,0,0,0,3 x 0
+537404,Grupo K,1,Uzbekistan,Colombia,1711,1855,Colombia,1 x 3,2,2,2,2,2,2,2,1 x 2
+537405,Grupo K,1,Portugal,Uzbekistan,1874,1711,Portugal,5 x 0,2,2,2,2,2,2,2,2 x 1
+537406,Grupo K,1,DR Congo,Colombia,1538,1855,Colombia,0 x 1,6,4,6,4,2,2,2,0 x 3
+537407,Grupo K,1,Portugal,Colombia,1874,1855,Portugal,0 x 0,0,0,3,3,3,0,3,1 x 1
+537408,Grupo K,1,DR Congo,Uzbekistan,1538,1711,Uzbekistan,3 x 1,0,0,0,0,0,0,0,1 x 2
+537409,Grupo L,1,England,Croatia,1886,1821,England,4 x 2,2,2,2,2,2,2,2,1 x 0
+537410,Grupo L,1,Ghana,Panama,1478,1699,Panama,1 x 0,0,0,0,0,0,0,0,1 x 2
+537411,Grupo L,1,England,Ghana,1886,1478,England,0 x 0,0,0,0,0,0,0,0,3 x 0
+537412,Grupo L,1,Croatia,Panama,1821,1699,Croatia,1 x 0,6,4,6,6,6,6,4,2 x 1
+537413,Grupo L,1,England,Panama,1886,1699,England,2 x 0,2,2,2,2,2,2,6,2 x 0
+537414,Grupo L,1,Croatia,Ghana,1821,1478,Croatia,2 x 1,4,6,4,2,2,2,2,3 x 0
