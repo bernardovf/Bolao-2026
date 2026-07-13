@@ -361,86 +361,115 @@ def rating_strategy(home_team, away_team):
     # Very strong favorite
     return (3, 0) if home_is_fav else (0, 3)
 
-# Read file
-fixtures = pd.read_csv("fixtures.csv")
+# ---------------------------------------------------------------------------
+# Load inputs: bet.csv (bets + user names) and fixtures.csv (match results)
+# ---------------------------------------------------------------------------
+bets_df = pd.read_csv("bet.csv")
+bets = {
+    (int(r["user_id"]), int(r["match_id"])): (int(r["home_goals"]), int(r["away_goals"]))
+    for _, r in bets_df.iterrows()
+}
+users = {int(r["user_id"]): r["user_name"] for _, r in bets_df.drop_duplicates("user_id").iterrows()}
+print(f"Loaded {len(bets)} bets from {len(users)} users")
 
-# Keep only matches with final scores
-fixtures = fixtures.dropna(subset=["final_home_goals", "final_away_goals"]).copy()
+fixtures_df = pd.read_csv("fixtures.csv").dropna(subset=["final_home_goals", "final_away_goals"])
+fixtures_df = fixtures_df[
+    (fixtures_df["final_home_goals"].astype(str) != "NULL") &
+    (fixtures_df["final_away_goals"].astype(str) != "NULL")
+].copy()
+fixtures_list = fixtures_df.to_dict("records")
+print(f"Loaded {len(fixtures_list)} finished matches from fixtures.csv")
 
-fixtures["final_home_goals"] = fixtures["final_home_goals"].astype(int)
-fixtures["final_away_goals"] = fixtures["final_away_goals"].astype(int)
+STRATEGIES = [
+    ("1x0",           elo_1x0_strategy),
+    ("2x1",           elo_2x1_strategy),
+    ("draw/1x0",      elo_1x0_draw_strategy),
+    ("elo bolão",     elo_bolao_strategy),
+    ("elo tiered",    elo_tiered_strategy),
+    ("best expected", best_expected_points_strategy),
+    ("rating",        rating_strategy),
+]
 
-rows = []
+# ---------------------------------------------------------------------------
+# Score every finished match
+# ---------------------------------------------------------------------------
+match_rows       = []
+strategy_totals  = {name: 0 for name, _ in STRATEGIES}
+user_totals      = {uid: 0 for uid in users}
+user_bets_played = {uid: 0 for uid in users}
+max_possible     = 0
 
-for _, match in fixtures.iterrows():
-    home = normalize_team(match["home"])
-    away = normalize_team(match["away"])
-    real_home = int(match["final_home_goals"])
-    real_away = int(match["final_away_goals"])
-    phase = match.get("phase")
-    multiplier = get_phase_multiplier(phase)
+for f in fixtures_list:
+    match_id  = f["id"]
+    phase     = f.get("phase")
+    home      = normalize_team(f["home"])
+    away      = normalize_team(f["away"])
+    real_home = int(f["final_home_goals"])
+    real_away = int(f["final_away_goals"])
+    mult      = get_phase_multiplier(phase)
+    max_possible += 6 * mult
 
-    pred_home_1, pred_away_1 = elo_1x0_strategy(home, away)
-    pred_home_2, pred_away_2 = elo_2x1_strategy(home, away)
-    pred_home_3, pred_away_3 = elo_1x0_draw_strategy(home, away)
-    pred_home_4, pred_away_4 = elo_bolao_strategy(home, away)
-    pred_home_5, pred_away_5 = elo_tiered_strategy(home, away)
-    pred_home_6, pred_away_6 = best_expected_points_strategy(home, away)
-    pred_home_7, pred_away_7 = rating_strategy(home, away)
+    row = {
+        "match_id": match_id,
+        "phase":    phase,
+        "home":     home,
+        "away":     away,
+        "result":   f"{real_home}x{real_away}",
+    }
 
-    points_1 = calculate_points(pred_home_1, pred_away_1, real_home, real_away, phase)
-    points_2 = calculate_points(pred_home_2, pred_away_2, real_home, real_away, phase)
-    points_3 = calculate_points(pred_home_3, pred_away_3, real_home, real_away, phase)
-    points_4 = calculate_points(pred_home_4, pred_away_4, real_home, real_away, phase)
-    points_5 = calculate_points(pred_home_5, pred_away_5, real_home, real_away, phase)
-    points_6 = calculate_points(pred_home_6, pred_away_6, real_home, real_away, phase)
-    points_7 = calculate_points(pred_home_7, pred_away_7, real_home, real_away, phase)
+    for name, fn in STRATEGIES:
+        ph, pa = fn(home, away)
+        pts = calculate_points(ph, pa, real_home, real_away, phase)
+        row[f"strat_{name}"] = pts
+        strategy_totals[name] += pts
 
-    rows.append({
-        "match_id": match.get("id", None),
-        "phase": phase,
-        "multiplier": multiplier,
-        "home": home,
-        "away": away,
-        "home_elo": TEAM_RATINGS[home][0],
-        "away_elo": TEAM_RATINGS[away][0],
-        "elo_favorite": home if TEAM_RATINGS[home][0] >= TEAM_RATINGS[away][0] else away,
-        "actual": f"{real_home} x {real_away}",
-        "points 1x0": points_1,
-        "points 2x1": points_2,
-        "points draw 1x0": points_3,
-        "points just elo": points_4,
-        "points elo tiered": points_5,
-        "best expected": points_6,
-        "rating strategy": points_7,
-        "elo tiered": f"{pred_home_7} x {pred_away_7}",
+    for uid in users:
+        bet = bets.get((uid, match_id))
+        if bet is not None:
+            pts = calculate_points(bet[0], bet[1], real_home, real_away, phase)
+            user_bets_played[uid] += 1
+        else:
+            pts = 0
+        row[f"user_{uid}"] = pts
+        user_totals[uid] += pts
+
+    match_rows.append(row)
+
+pd.DataFrame(match_rows).to_csv("results.csv", index=False)
+
+# ---------------------------------------------------------------------------
+# Final ranking: users + strategies, sorted by total points
+# ---------------------------------------------------------------------------
+ranking_rows = []
+
+for uid, uname in users.items():
+    total = user_totals[uid]
+    ranking_rows.append({
+        "participant":  uname,
+        "type":         "jogador",
+        "bets_played":  user_bets_played[uid],
+        "total_pts":    total,
+        "% max":        round(total / max_possible * 100, 1) if max_possible else 0,
     })
 
-results = pd.DataFrame(rows)
-results.to_csv("results.csv", index=False)
+for sname, total in strategy_totals.items():
+    ranking_rows.append({
+        "participant": sname,
+        "type":        "estratégia",
+        "bets_played": len(fixtures_list),
+        "total_pts":   total,
+        "% max":       round(total / max_possible * 100, 1) if max_possible else 0,
+    })
 
-max_possible = (results["multiplier"] * 6).sum()
+ranking = (
+    pd.DataFrame(ranking_rows)
+    .sort_values("total_pts", ascending=False)
+    .reset_index(drop=True)
+)
+ranking.index += 1
+ranking.index.name = "pos"
 
-def pct(col):
-    return round(results[col].sum() / max_possible * 100, 0)
-
-print("Total points 1x0:", results["points 1x0"].sum())
-print("% 1x0:", pct("points 1x0"), "%")
-print("")
-print("Total points 2x1:", results["points 2x1"].sum())
-print("% 2x1:", pct("points 2x1"), "%")
-print("")
-print("Total points Draw 1x0:", results["points draw 1x0"].sum())
-print("% Draw 1x0:", pct("points draw 1x0"), "%")
-print("")
-print("Total points elo:", results["points just elo"].sum())
-print("% elo:", pct("points just elo"), "%")
-print("")
-print("Total points elo tiered:", results["points elo tiered"].sum())
-print("% elo tiered:", pct("points elo tiered"), "%")
-print("")
-print("Total best expected:", results["best expected"].sum())
-print("% best expected:", pct("best expected"), "%")
-print("")
-print("Total rating strategy:", results["rating strategy"].sum())
-print("% rating strategy:", pct("rating strategy"), "%")
+ranking.to_csv("ranking.csv")
+print()
+print(ranking.to_string())
+print(f"\nMáx possível: {max_possible} pts  |  {len(fixtures_list)} jogos encerrados")
