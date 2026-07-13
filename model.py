@@ -176,7 +176,7 @@ def calculate_points(pred_home, pred_away, real_home, real_away, phase=None):
 
     return 0
 
-def elo_1x0_strategy(home_team, away_team):
+def elo_1x0_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -188,7 +188,7 @@ def elo_1x0_strategy(home_team, away_team):
     else:
         return 0, 1
 
-def elo_2x1_strategy(home_team, away_team):
+def elo_2x1_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -200,7 +200,7 @@ def elo_2x1_strategy(home_team, away_team):
     else:
         return 1, 2
 
-def elo_1x0_draw_strategy(home_team, away_team):
+def elo_1x0_draw_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -217,7 +217,7 @@ def elo_1x0_draw_strategy(home_team, away_team):
     else:
         return 0, 1
 
-def elo_bolao_strategy(home_team, away_team):
+def elo_bolao_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -238,7 +238,7 @@ def elo_bolao_strategy(home_team, away_team):
 
     return (2, 0) if elo_diff > 0 else (0, 2)
 
-def elo_tiered_strategy(home_team, away_team):
+def elo_tiered_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -279,7 +279,7 @@ def elo_tiered_strategy(home_team, away_team):
     else:
         return 0, 3
 
-def best_expected_points_strategy(home_team, away_team, max_goals=6):
+def best_expected_points_strategy(home_team, away_team, max_goals=6, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -317,7 +317,7 @@ def best_expected_points_strategy(home_team, away_team, max_goals=6):
 
     return best["pred_home"], best["pred_away"]
 
-def rating_strategy(home_team, away_team):
+def rating_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
 
@@ -361,6 +361,54 @@ def rating_strategy(home_team, away_team):
     # Very strong favorite
     return (3, 0) if home_is_fav else (0, 3)
 
+def lean_low_strategy(home_team, away_team, **_):
+    """Elo direction but always predict the minimum scoreline (1-0/0-1/1-1).
+    Maximises exact-score hits at the cost of saldo coverage."""
+    home = normalize_team(home_team)
+    away = normalize_team(away_team)
+    elo_diff = TEAM_RATINGS[home][0] - TEAM_RATINGS[away][0]
+    if abs(elo_diff) <= DRAW_THRESHOLD:
+        return 1, 1
+    return (1, 0) if elo_diff > 0 else (0, 1)
+
+def draw_hunter_strategy(home_team, away_team, **_):
+    """Widens the draw zone to Elo gap ≤ 150 (from 50).
+    Capitalises on users under-betting draws (17% bets vs ~28% real rate)."""
+    home = normalize_team(home_team)
+    away = normalize_team(away_team)
+    elo_diff = TEAM_RATINGS[home][0] - TEAM_RATINGS[away][0]
+    if abs(elo_diff) <= 150:
+        return 1, 1
+    return (1, 0) if elo_diff > 0 else (0, 1)
+
+def crowd_consensus_strategy(home_team, away_team, match_bets=None, **_):
+    """Predict whatever the plurality of users bet for this match."""
+    if not match_bets:
+        return lean_low_strategy(home_team, away_team)
+    from collections import Counter
+    return Counter(match_bets).most_common(1)[0][0]
+
+def crowd_contrarian_strategy(home_team, away_team, match_bets=None, **_):
+    """Among the top-8 most likely Poisson scorelines, pick the one that
+    fewest users predicted — maximises payoff when others miss."""
+    home = normalize_team(home_team)
+    away = normalize_team(away_team)
+    lambda_home, lambda_away = calculate_lambdas(home, away)
+
+    candidates = sorted(
+        [((h, a), poisson(h, lambda_home) * poisson(a, lambda_away))
+         for h in range(7) for a in range(7)],
+        key=lambda x: -x[1]
+    )
+    top = [score for score, _ in candidates[:8]]
+
+    if not match_bets:
+        return top[0]
+
+    from collections import Counter
+    crowd = Counter(match_bets)
+    return min(top, key=lambda s: crowd.get(s, 0))
+
 # ---------------------------------------------------------------------------
 # Load inputs: users.csv, bet.csv, fixtures.csv
 # ---------------------------------------------------------------------------
@@ -383,14 +431,24 @@ fixtures_list = fixtures_df.to_dict("records")
 print(f"Loaded {len(fixtures_list)} finished matches from fixtures.csv")
 
 STRATEGIES = [
-    ("1x0",           elo_1x0_strategy),
-    ("2x1",           elo_2x1_strategy),
-    ("draw/1x0",      elo_1x0_draw_strategy),
-    ("elo bolão",     elo_bolao_strategy),
-    ("elo tiered",    elo_tiered_strategy),
-    ("best expected", best_expected_points_strategy),
-    ("rating",        rating_strategy),
+    ("1x0",                elo_1x0_strategy),
+    ("2x1",                elo_2x1_strategy),
+    ("draw/1x0",           elo_1x0_draw_strategy),
+    ("elo bolão",          elo_bolao_strategy),
+    ("elo tiered",         elo_tiered_strategy),
+    ("best expected",      best_expected_points_strategy),
+    ("rating",             rating_strategy),
+    # new strategies
+    ("lean low",           lean_low_strategy),
+    ("draw hunter",        draw_hunter_strategy),
+    ("crowd consensus",    crowd_consensus_strategy),
+    ("crowd contrarian",   crowd_contrarian_strategy),
 ]
+
+# Index bets by match_id for crowd-aware strategies
+bets_by_match = {}
+for (uid, mid), score in bets.items():
+    bets_by_match.setdefault(mid, []).append(score)
 
 # ---------------------------------------------------------------------------
 # Score every finished match
@@ -402,14 +460,15 @@ user_bets_played = {uid: 0 for uid in users}
 max_possible     = 0
 
 for f in fixtures_list:
-    match_id  = f["id"]
-    phase     = f.get("phase")
-    home      = normalize_team(f["home"])
-    away      = normalize_team(f["away"])
-    real_home = int(f["final_home_goals"])
-    real_away = int(f["final_away_goals"])
-    mult      = get_phase_multiplier(phase)
+    match_id    = f["id"]
+    phase       = f.get("phase")
+    home        = normalize_team(f["home"])
+    away        = normalize_team(f["away"])
+    real_home   = int(f["final_home_goals"])
+    real_away   = int(f["final_away_goals"])
+    mult        = get_phase_multiplier(phase)
     max_possible += 6 * mult
+    match_bets  = bets_by_match.get(match_id, [])
 
     row = {
         "match_id": match_id,
@@ -420,7 +479,7 @@ for f in fixtures_list:
     }
 
     for name, fn in STRATEGIES:
-        ph, pa = fn(home, away)
+        ph, pa = fn(home, away, match_bets=match_bets)
         pts = calculate_points(ph, pa, real_home, real_away, phase)
         row[f"strat_{name}"] = pts
         strategy_totals[name] += pts
