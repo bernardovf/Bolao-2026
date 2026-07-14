@@ -290,32 +290,26 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Campeão:</label>
                     <select id="filter-campeao" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— atual —</option>
+                        <option value="">— Outro —</option>
                         <option value="Spain">Espanha</option>
-                        <option value="France">França</option>
                         <option value="England">Inglaterra</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Artilheiro:</label>
                     <select id="filter-artilheiro" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— atual —</option>
+                        <option value="">— Outro —</option>
                         <option value="Mbappé">Mbappé</option>
                         <option value="Harry Kane">Harry Kane</option>
-                        <option value="Oyarzabal">Oyarzabal</option>
-                        <option value="Lamine Yamal">Lamine Yamal</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
                     <select id="filter-melhor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— atual —</option>
+                        <option value="">— Outro —</option>
                         <option value="Lamine Yamal">Lamine Yamal</option>
-                        <option value="Mbappé">Mbappé</option>
                         <option value="Harry Kane">Harry Kane</option>
-                        <option value="Dani Olmo">Dani Olmo</option>
                         <option value="Jude Bellingham">Jude Bellingham</option>
-                        <option value="Olise">Olise</option>
                     </select>
                 </div>
             </div>
