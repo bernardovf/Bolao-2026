@@ -43,7 +43,7 @@ BETTING_CLOSED_PHASES = {
     '16 Avos Final': True,
     'Oitavas de Final': True,
     'Quartas de Final': True,
-    'Semifinal': False,
+    'Semifinal': True,
     '3o Lugar': False,
     'Final': False,
 }
@@ -464,6 +464,7 @@ def ranking():
                 'pts_16avos': 0,    # 16 avos de final points
                 'pts_oitavas': 0,   # oitavas de final points
                 'pts_quartas': 0,   # quartas de final points
+                'pts_semifinal': 0, # semifinal/3rd place points
                 'pts_extras': 0,    # qualification points
                 'pts_campeao': 0,  # campeao
                 'pts_artilheiro': 0,  # artilheiro
@@ -486,6 +487,10 @@ def ranking():
             user_stats[user_id]['pts_oitavas'] += points
         elif 'quarta' in phase_lower:
             user_stats[user_id]['pts_quartas'] += points
+        elif 'semifinal' in phase_lower or 'terceiro' in phase_lower or '3o' in phase_lower:
+            user_stats[user_id]['pts_semifinal'] += points
+        elif 'final' in phase_lower:
+            user_stats[user_id]['pts_semifinal'] += points
         else:
             user_stats[user_id]['pts_grupos'] += points
         if match_type == 'exact':
@@ -507,6 +512,7 @@ def ranking():
                 'pts_16avos': 0,
                 'pts_oitavas': 0,
                 'pts_quartas': 0,
+                'pts_semifinal': 0,
                 'pts_extras': 0,
                 'pts_campeao': 0,  # campeao
                 'pts_artilheiro': 0,  # artilheiro
@@ -534,7 +540,7 @@ def ranking():
     max_possible_points = total_finished_matches * 6 if total_finished_matches > 0 else 1
     for user in users:
         user_id = user['id']
-        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_16avos': 0, 'pts_oitavas': 0, 'pts_quartas': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
+        stats = user_stats.get(user_id, {'pts_grupos': 0, 'pts_16avos': 0, 'pts_oitavas': 0, 'pts_quartas': 0, 'pts_semifinal': 0, 'pts_extras': 0, 'pts_campeao': 0, 'pts_artilheiro': 0,
                                          'pts_melhor_jogador': 0, 'pts_zebra': 0, 'pts_favorito': 0, 'pts_anfitriao': 0,
                                          'cravadas': 0, 'saldo': 0, 'empates': 0, 'colunas': 0})
         if CAMPEAO == "":
@@ -586,8 +592,9 @@ def ranking():
         pts_16avos = stats['pts_16avos']
         pts_oitavas = stats['pts_oitavas']
         pts_quartas = stats['pts_quartas']
+        pts_semifinal = stats['pts_semifinal']
         pts_bonus = pts_campeao + pts_artilheiro + pts_melhor_jogador + pts_zebra + pts_favorito + pts_anfitriao
-        total_points = pts_grupos + pts_16avos + pts_oitavas + pts_quartas + pts_extras + pts_bonus
+        total_points = pts_grupos + pts_16avos + pts_oitavas + pts_quartas + pts_semifinal + pts_extras + pts_bonus
 
         # Calculate percentage
         percentage = (total_points / max_possible_points * 100) if max_possible_points > 0 else 0
@@ -602,6 +609,7 @@ def ranking():
             'pts_16avos': pts_16avos,
             'pts_oitavas': pts_oitavas,
             'pts_quartas': pts_quartas,
+            'pts_semifinal': pts_semifinal,
             'pts_extras': pts_extras,
             'pts_bonus': pts_bonus,
             'pts_outros': pts_outros,
