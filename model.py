@@ -508,18 +508,14 @@ for uid, uname in users.items():
     ranking_rows.append({
         "participant":  uname,
         "type":         "jogador",
-        "bets_played":  user_bets_played[uid],
         "total_pts":    total,
-        "% max":        round(total / max_possible * 100, 1) if max_possible else 0,
     })
 
 for sname, total in strategy_totals.items():
     ranking_rows.append({
         "participant": sname,
         "type":        "estratégia",
-        "bets_played": len(fixtures_list),
         "total_pts":   total,
-        "% max":       round(total / max_possible * 100, 1) if max_possible else 0,
     })
 
 ranking = (
