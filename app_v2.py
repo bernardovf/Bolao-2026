@@ -42,8 +42,8 @@ BETTING_CLOSED_PHASES = {
     'Grupo': True,           # Grupo A, Grupo B, etc.
     '16 Avos Final': True,
     'Oitavas de Final': True,
-    'Quartas de Final': False,
-    'Semifinal': False,
+    'Quartas de Final': True,
+    'Semifinal': True,
     '3o Lugar': False,
     'Final': False,
 }
