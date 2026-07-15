@@ -176,6 +176,21 @@ def calculate_points(pred_home, pred_away, real_home, real_away, phase=None):
 
     return 0
 
+def calculate_points_contrarian(pred_home, pred_away, real_home, real_away, phase=None, match_bets=None):
+    """Same as calculate_points, but applies a 1/sqrt(pct) rarity multiplier.
+
+    pct = fraction of bets on this match that chose (pred_home, pred_away).
+    Rare picks get rewarded more; consensus picks get rewarded less.
+    When nobody bet the result, pct is floored at 1/n (as if one person did).
+    """
+    base = calculate_points(pred_home, pred_away, real_home, real_away, phase)
+    if base == 0 or not match_bets:
+        return base
+    n = len(match_bets)
+    k = match_bets.count((pred_home, pred_away))
+    pct = k / n if k > 0 else 1 / n
+    return round(base / math.sqrt(pct), 2)
+
 def elo_1x0_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
@@ -453,11 +468,13 @@ for (uid, mid), score in bets.items():
 # ---------------------------------------------------------------------------
 # Score every finished match
 # ---------------------------------------------------------------------------
-match_rows       = []
-strategy_totals  = {name: 0 for name, _ in STRATEGIES}
-user_totals      = {uid: 0 for uid in users}
-user_bets_played = {uid: 0 for uid in users}
-max_possible     = 0
+match_rows            = []
+strategy_totals       = {name: 0 for name, _ in STRATEGIES}
+strategy_totals_ctr   = {name: 0.0 for name, _ in STRATEGIES}
+user_totals           = {uid: 0 for uid in users}
+user_totals_ctr       = {uid: 0.0 for uid in users}
+user_bets_played      = {uid: 0 for uid in users}
+max_possible          = 0
 
 for f in fixtures_list:
     match_id    = f["id"]
@@ -480,19 +497,26 @@ for f in fixtures_list:
 
     for name, fn in STRATEGIES:
         ph, pa = fn(home, away, match_bets=match_bets)
-        pts = calculate_points(ph, pa, real_home, real_away, phase)
-        row[f"strat_{name}"] = pts
-        strategy_totals[name] += pts
+        pts     = calculate_points(ph, pa, real_home, real_away, phase)
+        pts_ctr = calculate_points_contrarian(ph, pa, real_home, real_away, phase, match_bets)
+        row[f"strat_{name}"]     = pts
+        row[f"strat_{name}_ctr"] = pts_ctr
+        strategy_totals[name]     += pts
+        strategy_totals_ctr[name] += pts_ctr
 
     for uid in users:
         bet = bets.get((uid, match_id))
         if bet is not None:
-            pts = calculate_points(bet[0], bet[1], real_home, real_away, phase)
+            pts     = calculate_points(bet[0], bet[1], real_home, real_away, phase)
+            pts_ctr = calculate_points_contrarian(bet[0], bet[1], real_home, real_away, phase, match_bets)
             user_bets_played[uid] += 1
         else:
             pts = 0
-        row[f"user_{uid}"] = pts
-        user_totals[uid] += pts
+            pts_ctr = 0.0
+        row[f"user_{uid}"]     = pts
+        row[f"user_{uid}_ctr"] = pts_ctr
+        user_totals[uid]       += pts
+        user_totals_ctr[uid]   += pts_ctr
 
     match_rows.append(row)
 
@@ -504,18 +528,19 @@ pd.DataFrame(match_rows).to_csv("results.csv", index=False)
 ranking_rows = []
 
 for uid, uname in users.items():
-    total = user_totals[uid]
     ranking_rows.append({
         "participant":  uname,
         "type":         "jogador",
-        "total_pts":    total,
+        "total_pts":    user_totals[uid],
+        "total_pts_ctr": round(user_totals_ctr[uid], 2),
     })
 
 for sname, total in strategy_totals.items():
     ranking_rows.append({
-        "participant": sname,
-        "type":        "estratégia",
-        "total_pts":   total,
+        "participant":   sname,
+        "type":          "estratégia",
+        "total_pts":     total,
+        "total_pts_ctr": round(strategy_totals_ctr[sname], 2),
     })
 
 ranking = (
@@ -528,5 +553,19 @@ ranking.index.name = "pos"
 
 ranking.to_csv("ranking.csv")
 print()
-print(ranking.to_string())
+print("=== Ranking por pontos normais ===")
+print(ranking[["participant", "type", "total_pts"]].to_string())
+
+ranking_ctr = (
+    pd.DataFrame(ranking_rows)
+    .sort_values("total_pts_ctr", ascending=False)
+    .reset_index(drop=True)
+)
+ranking_ctr.index += 1
+ranking_ctr.index.name = "pos"
+
+ranking_ctr.to_csv("ranking_contrarian.csv")
+print()
+print("=== Ranking por pontos contrarian (1/√pct) ===")
+print(ranking_ctr[["participant", "type", "total_pts_ctr"]].to_string())
 print(f"\nMáx possível: {max_possible} pts  |  {len(fixtures_list)} jogos encerrados")
