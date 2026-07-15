@@ -191,6 +191,22 @@ def calculate_points_contrarian(pred_home, pred_away, real_home, real_away, phas
     pct = k / n if k > 0 else 1 / n
     return round(base / math.sqrt(pct), 2)
 
+def calculate_points_contrarian_result(pred_home, pred_away, real_home, real_away, phase=None, match_bets=None):
+    """Same as calculate_points, but applies a 1/sqrt(pct) rarity multiplier
+    based on the predicted result direction (H/D/A) rather than the exact score.
+
+    pct = fraction of bets on this match that predicted the same result direction
+    (home win / draw / away win) as (pred_home, pred_away).
+    """
+    base = calculate_points(pred_home, pred_away, real_home, real_away, phase)
+    if base == 0 or not match_bets:
+        return base
+    pred_dir = get_result(pred_home, pred_away)
+    n = len(match_bets)
+    k = sum(1 for (bh, ba) in match_bets if get_result(bh, ba) == pred_dir)
+    pct = k / n if k > 0 else 1 / n
+    return round(base / math.sqrt(pct), 2)
+
 def elo_1x0_strategy(home_team, away_team, **_):
     home = normalize_team(home_team)
     away = normalize_team(away_team)
@@ -468,14 +484,16 @@ for (uid, mid), score in bets.items():
 # ---------------------------------------------------------------------------
 # Score every finished match
 # ---------------------------------------------------------------------------
-match_rows            = []
-detail_rows           = []   # one row per (player, finished match) with a bet
-strategy_totals       = {name: 0 for name, _ in STRATEGIES}
-strategy_totals_ctr   = {name: 0.0 for name, _ in STRATEGIES}
-user_totals           = {uid: 0 for uid in users}
-user_totals_ctr       = {uid: 0.0 for uid in users}
-user_bets_played      = {uid: 0 for uid in users}
-max_possible          = 0
+match_rows                = []
+detail_rows               = []   # one row per (player, finished match) with a bet
+strategy_totals           = {name: 0 for name, _ in STRATEGIES}
+strategy_totals_ctr       = {name: 0.0 for name, _ in STRATEGIES}
+strategy_totals_ctr_res   = {name: 0.0 for name, _ in STRATEGIES}
+user_totals               = {uid: 0 for uid in users}
+user_totals_ctr           = {uid: 0.0 for uid in users}
+user_totals_ctr_res       = {uid: 0.0 for uid in users}
+user_bets_played          = {uid: 0 for uid in users}
+max_possible              = 0
 
 for f in fixtures_list:
     match_id    = f["id"]
@@ -498,48 +516,61 @@ for f in fixtures_list:
     }
 
     for name, fn in STRATEGIES:
-        ph, pa = fn(home, away, match_bets=match_bets)
-        pts     = calculate_points(ph, pa, real_home, real_away, phase)
-        pts_ctr = calculate_points_contrarian(ph, pa, real_home, real_away, phase, match_bets)
-        row[f"strat_{name}"]     = pts
-        row[f"strat_{name}_ctr"] = pts_ctr
-        strategy_totals[name]     += pts
-        strategy_totals_ctr[name] += pts_ctr
+        ph, pa       = fn(home, away, match_bets=match_bets)
+        pts          = calculate_points(ph, pa, real_home, real_away, phase)
+        pts_ctr      = calculate_points_contrarian(ph, pa, real_home, real_away, phase, match_bets)
+        pts_ctr_res  = calculate_points_contrarian_result(ph, pa, real_home, real_away, phase, match_bets)
+        row[f"strat_{name}"]         = pts
+        row[f"strat_{name}_ctr"]     = pts_ctr
+        row[f"strat_{name}_ctr_res"] = pts_ctr_res
+        strategy_totals[name]         += pts
+        strategy_totals_ctr[name]     += pts_ctr
+        strategy_totals_ctr_res[name] += pts_ctr_res
 
     for uid in users:
         bet = bets.get((uid, match_id))
         if bet is not None:
-            bh, ba  = bet
-            pts     = calculate_points(bh, ba, real_home, real_away, phase)
-            pts_ctr = calculate_points_contrarian(bh, ba, real_home, real_away, phase, match_bets)
+            bh, ba       = bet
+            pts          = calculate_points(bh, ba, real_home, real_away, phase)
+            pts_ctr      = calculate_points_contrarian(bh, ba, real_home, real_away, phase, match_bets)
+            pts_ctr_res  = calculate_points_contrarian_result(bh, ba, real_home, real_away, phase, match_bets)
             user_bets_played[uid] += 1
 
-            # compute pct and multiplier for the report
+            # pct / multiplier for exact score
             if n_bets > 0:
-                k   = match_bets.count((bh, ba))
-                pct = k / n_bets if k > 0 else 1 / n_bets
+                k_score   = match_bets.count((bh, ba))
+                pct_score = k_score / n_bets if k_score > 0 else 1 / n_bets
+                pred_dir  = get_result(bh, ba)
+                k_res     = sum(1 for (x, y) in match_bets if get_result(x, y) == pred_dir)
+                pct_res   = k_res / n_bets if k_res > 0 else 1 / n_bets
             else:
-                pct = 1.0
-            multiplier = 1 / math.sqrt(pct) if pts > 0 else 1.0
+                pct_score = pct_res = 1.0
+            mult_score = 1 / math.sqrt(pct_score) if pts > 0 else 1.0
+            mult_res   = 1 / math.sqrt(pct_res)   if pts > 0 else 1.0
 
             detail_rows.append({
-                "player":          users[uid],
-                "home":            home,
-                "away":            away,
-                "real_result":     f"{real_home}x{real_away}",
-                "bet_result":      f"{bh}x{ba}",
-                "pts":             pts,
-                "pct_bets":        round(pct * 100, 2),
-                "multiplier":      round(multiplier, 4),
-                "pts_contrarian":  pts_ctr,
+                "player":              users[uid],
+                "phase":               phase,
+                "home":                home,
+                "away":                away,
+                "real_result":         f"{real_home}x{real_away}",
+                "bet_result":          f"{bh}x{ba}",
+                "pts":                 pts,
+                "pct_bets_score":      round(pct_score * 100, 2),
+                "multiplier_score":    round(mult_score, 4),
+                "pts_contrarian_score": pts_ctr,
+                "pct_bets_result":     round(pct_res * 100, 2),
+                "multiplier_result":   round(mult_res, 4),
+                "pts_contrarian_result": pts_ctr_res,
             })
         else:
-            pts = 0
-            pts_ctr = 0.0
-        row[f"user_{uid}"]     = pts
-        row[f"user_{uid}_ctr"] = pts_ctr
-        user_totals[uid]       += pts
-        user_totals_ctr[uid]   += pts_ctr
+            pts = pts_ctr = pts_ctr_res = 0.0
+        row[f"user_{uid}"]         = pts
+        row[f"user_{uid}_ctr"]     = pts_ctr
+        row[f"user_{uid}_ctr_res"] = pts_ctr_res
+        user_totals[uid]           += pts
+        user_totals_ctr[uid]       += pts_ctr
+        user_totals_ctr_res[uid]   += pts_ctr_res
 
     match_rows.append(row)
 
@@ -554,18 +585,20 @@ ranking_rows = []
 
 for uid, uname in users.items():
     ranking_rows.append({
-        "participant":  uname,
-        "type":         "jogador",
-        "total_pts":    user_totals[uid],
-        "total_pts_ctr": round(user_totals_ctr[uid], 2),
+        "participant":       uname,
+        "type":              "jogador",
+        "total_pts":         user_totals[uid],
+        "total_pts_ctr":     round(user_totals_ctr[uid], 2),
+        "total_pts_ctr_res": round(user_totals_ctr_res[uid], 2),
     })
 
 for sname, total in strategy_totals.items():
     ranking_rows.append({
-        "participant":   sname,
-        "type":          "estratégia",
-        "total_pts":     total,
-        "total_pts_ctr": round(strategy_totals_ctr[sname], 2),
+        "participant":       sname,
+        "type":              "estratégia",
+        "total_pts":         total,
+        "total_pts_ctr":     round(strategy_totals_ctr[sname], 2),
+        "total_pts_ctr_res": round(strategy_totals_ctr_res[sname], 2),
     })
 
 ranking = (
@@ -591,6 +624,19 @@ ranking_ctr.index.name = "pos"
 
 ranking_ctr.to_csv("ranking_contrarian.csv")
 print()
-print("=== Ranking por pontos contrarian (1/√pct) ===")
+print("=== Ranking contrarian por placar (1/√pct_score) ===")
 print(ranking_ctr[["participant", "type", "total_pts_ctr"]].to_string())
+
+ranking_ctr_res = (
+    pd.DataFrame(ranking_rows)
+    .sort_values("total_pts_ctr_res", ascending=False)
+    .reset_index(drop=True)
+)
+ranking_ctr_res.index += 1
+ranking_ctr_res.index.name = "pos"
+
+ranking_ctr_res.to_csv("ranking_contrarian_result.csv")
+print()
+print("=== Ranking contrarian por resultado H/D/A (1/√pct_result) ===")
+print(ranking_ctr_res[["participant", "type", "total_pts_ctr_res"]].to_string())
 print(f"\nMáx possível: {max_possible} pts  |  {len(fixtures_list)} jogos encerrados")
