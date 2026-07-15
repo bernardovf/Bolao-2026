@@ -469,6 +469,7 @@ for (uid, mid), score in bets.items():
 # Score every finished match
 # ---------------------------------------------------------------------------
 match_rows            = []
+detail_rows           = []   # one row per (player, finished match) with a bet
 strategy_totals       = {name: 0 for name, _ in STRATEGIES}
 strategy_totals_ctr   = {name: 0.0 for name, _ in STRATEGIES}
 user_totals           = {uid: 0 for uid in users}
@@ -486,6 +487,7 @@ for f in fixtures_list:
     mult        = get_phase_multiplier(phase)
     max_possible += 6 * mult
     match_bets  = bets_by_match.get(match_id, [])
+    n_bets      = len(match_bets)
 
     row = {
         "match_id": match_id,
@@ -507,9 +509,30 @@ for f in fixtures_list:
     for uid in users:
         bet = bets.get((uid, match_id))
         if bet is not None:
-            pts     = calculate_points(bet[0], bet[1], real_home, real_away, phase)
-            pts_ctr = calculate_points_contrarian(bet[0], bet[1], real_home, real_away, phase, match_bets)
+            bh, ba  = bet
+            pts     = calculate_points(bh, ba, real_home, real_away, phase)
+            pts_ctr = calculate_points_contrarian(bh, ba, real_home, real_away, phase, match_bets)
             user_bets_played[uid] += 1
+
+            # compute pct and multiplier for the report
+            if n_bets > 0:
+                k   = match_bets.count((bh, ba))
+                pct = k / n_bets if k > 0 else 1 / n_bets
+            else:
+                pct = 1.0
+            multiplier = 1 / math.sqrt(pct) if pts > 0 else 1.0
+
+            detail_rows.append({
+                "player":          users[uid],
+                "home":            home,
+                "away":            away,
+                "real_result":     f"{real_home}x{real_away}",
+                "bet_result":      f"{bh}x{ba}",
+                "pts":             pts,
+                "pct_bets":        round(pct * 100, 2),
+                "multiplier":      round(multiplier, 4),
+                "pts_contrarian":  pts_ctr,
+            })
         else:
             pts = 0
             pts_ctr = 0.0
@@ -521,6 +544,8 @@ for f in fixtures_list:
     match_rows.append(row)
 
 pd.DataFrame(match_rows).to_csv("results.csv", index=False)
+pd.DataFrame(detail_rows).to_csv("bets_detail.csv", index=False)
+print(f"Saved bets_detail.csv ({len(detail_rows)} rows)")
 
 # ---------------------------------------------------------------------------
 # Final ranking: users + strategies, sorted by total points
