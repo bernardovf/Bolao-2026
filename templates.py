@@ -331,6 +331,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <th class="px-1 md:px-6 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-12 md:w-16">Pos</th>
                             <th data-col="name" onclick="sortBy('name',1)"  class="px-1 md:px-6 py-2 md:py-2 text-left   font-bold uppercase tracking-tight min-w-[120px] md:min-w-[150px]">Jogador<span class="sort-icon">↕</span></th>
                             <th data-col="total" onclick="sortBy('total',-1)" class="px-3 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-16 md:w-24 active-sort">Total<span class="sort-icon">↓</span></th>
+                            <th data-col="final" onclick="sortBy('final',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Final<span class="sort-icon">↕</span></th>
+                            <th data-col="terceiro" onclick="sortBy('terceiro',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">3o<span class="sort-icon">↕</span></th>
                             <th data-col="semis" onclick="sortBy('semis',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Semis<span class="sort-icon">↕</span></th>
                             <th data-col="quartas" onclick="sortBy('quartas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Quartas<span class="sort-icon">↕</span></th>
                             <th data-col="oitavas" onclick="sortBy('oitavas',-1)" class="px-2 md:px-4 py-2 md:py-2 text-center font-bold uppercase tracking-tight w-18 md:w-20">Oitavas<span class="sort-icon">↕</span></th>
@@ -349,6 +351,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                             <tr class="{% if rank.id == current_user_id %}bg-yellow-50 border-l-4 border-yellow-500{% else %}hover:bg-slate-50{% endif %} transition {% if betting_closed %}cursor-pointer{% endif %}"
                                 data-name="{{ rank.user_name }}"
                                 data-total="{{ rank.total_points or 0 }}"
+                                data-final="{{ rank.pts_final or 0 }}"
+                                data-terceiro="{{ rank.pts_terceiro or 0 }}"
                                 data-semis="{{ rank.pts_semifinal or 0 }}"
                                 data-quartas="{{ rank.pts_quartas or 0 }}"
                                 data-avos="{{ rank.pts_16avos or 0 }}"
@@ -391,6 +395,12 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                                 </td>
                                 <td class="px-2.0 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="cell-total text-base md:text-2xl font-black text-blue-600">{{ rank.total_points or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_final or 0 }}</span>
+                                </td>
+                                <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
+                                    <span class="text-sm font-normal text-blue-600">{{ rank.pts_terceiro or 0 }}</span>
                                 </td>
                                 <td class="px-1 md:px-4 py-0.5 md:py-1 text-center">
                                     <span class="text-sm font-normal text-blue-600">{{ rank.pts_semifinal or 0 }}</span>
@@ -463,12 +473,14 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
     }
 
     function computeTotal(row) {
-        const base = parseFloat(row.dataset.grupos  || 0)
-                   + parseFloat(row.dataset.avos    || 0)
-                   + parseFloat(row.dataset.oitavas || 0)
-                   + parseFloat(row.dataset.quartas || 0)
-                   + parseFloat(row.dataset.semis   || 0)
-                   + parseFloat(row.dataset.class   || 0);
+        const base = parseFloat(row.dataset.grupos    || 0)
+                   + parseFloat(row.dataset.avos      || 0)
+                   + parseFloat(row.dataset.oitavas   || 0)
+                   + parseFloat(row.dataset.quartas   || 0)
+                   + parseFloat(row.dataset.semis     || 0)
+                   + parseFloat(row.dataset.terceiro  || 0)
+                   + parseFloat(row.dataset.final     || 0)
+                   + parseFloat(row.dataset.class     || 0);
         return base + computeBonus(row);
     }
 
