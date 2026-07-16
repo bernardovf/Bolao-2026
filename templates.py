@@ -305,9 +305,8 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
                     <select id="filter-melhor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— atual —</option>
+                        <option value="">— Outro —</option>
                         <option value="Lamine Yamal">Lamine Yamal</option>
-                        <option value="Dani Olmo">Dani Olmo</option>
                     </select>
                 </div>
             </div>
