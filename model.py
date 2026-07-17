@@ -527,6 +527,33 @@ for f in fixtures_list:
         strategy_totals_ctr[name]     += pts_ctr
         strategy_totals_ctr_res[name] += pts_ctr_res
 
+        if n_bets > 0:
+            k_score   = match_bets.count((ph, pa))
+            pct_score = k_score / n_bets if k_score > 0 else 1 / n_bets
+            pred_dir  = get_result(ph, pa)
+            k_res     = sum(1 for (x, y) in match_bets if get_result(x, y) == pred_dir)
+            pct_res   = k_res / n_bets if k_res > 0 else 1 / n_bets
+        else:
+            pct_score = pct_res = 1.0
+        mult_score = 1 / math.sqrt(pct_score) if pts > 0 else 1.0
+        mult_res   = 1 / math.sqrt(pct_res)   if pts > 0 else 1.0
+
+        detail_rows.append({
+            "player":                "estratégia: " + name,
+            "phase":                 phase,
+            "home":                  home,
+            "away":                  away,
+            "real_result":           f"{real_home}x{real_away}",
+            "bet_result":            f"{ph}x{pa}",
+            "pts":                   pts,
+            "pct_bets_score":        round(pct_score * 100, 2),
+            "multiplier_score":      round(mult_score, 4),
+            "pts_contrarian_score":  pts_ctr,
+            "pct_bets_result":       round(pct_res * 100, 2),
+            "multiplier_result":     round(mult_res, 4),
+            "pts_contrarian_result": pts_ctr_res,
+        })
+
     for uid in users:
         bet = bets.get((uid, match_id))
         if bet is not None:
