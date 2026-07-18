@@ -44,7 +44,7 @@ BETTING_CLOSED_PHASES = {
     'Oitavas de Final': True,
     'Quartas de Final': True,
     'Semifinal': True,
-    '3o Lugar': False,
+    '3o Lugar': True,
     'Final': False,
 }
 
