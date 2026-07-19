@@ -45,7 +45,7 @@ BETTING_CLOSED_PHASES = {
     'Quartas de Final': True,
     'Semifinal': True,
     '3o Lugar': True,
-    'Final': False,
+    'Final': True,
 }
 
 # Fallback: se a fase não estiver na lista acima, usa este valor
