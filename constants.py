@@ -249,11 +249,11 @@ PLAYER_ALIASES = {
 
 }
 
-CAMPEAO = ""
+CAMPEAO = "Spain"
 
-ARTILHEIRO = ""
+ARTILHEIRO = "Mbappé"
 
-MELHOR_JOGADOR = ""
+MELHOR_JOGADOR = "Rodri"
 
 ZEBRA = "Cabo Verde"
 

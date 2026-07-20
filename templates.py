@@ -284,34 +284,6 @@ RANKING_TEMPLATE = '''<!DOCTYPE html>
 
     <div class="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8">
 
-        <!-- What-if Filters -->
-        <div class="bg-white rounded-xl shadow-md border border-slate-200 p-4 mb-4">
-            <div class="flex flex-wrap gap-3">
-                <div class="flex items-center gap-2">
-                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Campeão:</label>
-                    <select id="filter-campeao" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— Outro —</option>
-                        <option value="Spain">Espanha</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Artilheiro:</label>
-                    <select id="filter-artilheiro" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— Outro —</option>
-                        <option value="Mbappé">Mbappé</option>
-                        <option value="Harry Kane">Harry Kane</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Melhor Jogador:</label>
-                    <select id="filter-melhor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white font-semibold text-slate-700 focus:border-blue-400 outline-none">
-                        <option value="">— Outro —</option>
-                        <option value="Lamine Yamal">Lamine Yamal</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
         <!-- Ranking Table -->
         <div class="bg-white rounded-xl md:rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
